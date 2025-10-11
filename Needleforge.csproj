@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<!-- 
   Imports silksong path properties only if present in order to allow CI builds. The file should be gitignored.
@@ -22,7 +22,7 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
 		<AssemblyTitle>Needleforge</AssemblyTitle>
-		<Version>0.1.0</Version>
+		<Version>0.2.1</Version>
 		<Title>Needleforge</Title>
 		<Authors>VoidBaroness</Authors>
 		<Company>VoidBaroness</Company>
@@ -33,6 +33,7 @@
 		<PackageProjectUrl>https://github.com/GamingInfinite/Needleforge</PackageProjectUrl>
 		<RepositoryType>git</RepositoryType>
 		<Copyright>GNU GPL V3</Copyright>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -47,6 +48,10 @@
 
 	<ItemGroup>
 	  <None Update="icon.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Update="LICENSE">
 	    <Pack>True</Pack>
 	    <PackagePath>\</PackagePath>
 	  </None>
