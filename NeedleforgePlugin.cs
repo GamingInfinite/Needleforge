@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BepInEx;
+using Needleforge.Makers;
 using UnityEngine;
 
 namespace Needleforge
