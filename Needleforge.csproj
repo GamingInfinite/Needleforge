@@ -22,7 +22,7 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
 		<AssemblyTitle>Needleforge</AssemblyTitle>
-		<Version>0.2.1</Version>
+		<Version>0.3.0</Version>
 		<Title>Needleforge</Title>
 		<Authors>VoidBaroness</Authors>
 		<Company>VoidBaroness</Company>

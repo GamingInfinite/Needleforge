@@ -11,7 +11,7 @@ using Silksong.FsmUtil;
 namespace Needleforge.Patches
 {
     [HarmonyPatch(typeof(HeroController), nameof(HeroController.Start))]
-    internal class CrestAdd
+    internal class AddToolsCrests
     {
         public static Action<FsmInt, FsmInt, FsmFloat> defaultBind = (value, amount, time) =>
         {
@@ -21,8 +21,9 @@ namespace Needleforge.Patches
         };
 
         [HarmonyPostfix]
-        public static void Postfix(HeroController __instance)
+        public static void AddCrests(HeroController __instance)
         {
+            ModHelper.Log("Adding Crests...");
             foreach(CrestData data in NeedleforgePlugin.newCrestData)
             {
                 CrestMaker.CreateCrest(data.RealSprite, data.Silhouette, data.name);
@@ -66,6 +67,17 @@ namespace Needleforge.Patches
                     NeedleforgePlugin.bindEvents[crest.name].Invoke(healValue, healAmount, healTime);
                     bind.SendEvent("FINISHED");
                 });
+            }
+        }
+
+        [HarmonyPostfix]
+        public static void AddTools(HeroController __instance)
+        {
+            ModHelper.Log("Adding Tools...");
+            foreach(ToolData data in NeedleforgePlugin.newToolData)
+            {
+                ModHelper.Log($"Adding {data.name}");
+                ToolMaker.CreateBasicTool(data.inventorySprite, data.type, data.name);
             }
         }
     }
