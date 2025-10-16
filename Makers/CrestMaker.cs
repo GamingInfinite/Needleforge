@@ -14,7 +14,7 @@ namespace Needleforge.Makers
             DisplayNewIndicator = true,
         };
 
-        public static ToolCrest CreateCrest(Sprite? RealSprite, Sprite? Silhouette, string name)
+        public static ToolCrest CreateCrest(Sprite? RealSprite, Sprite? Silhouette, HeroControllerConfig? attackConfig, string name)
         {
             List<ToolCrest> crests = ToolItemManager.GetAllCrests();
             ToolCrest hunter = crests[0];
@@ -31,7 +31,7 @@ namespace Needleforge.Makers
 
             newCrest.slots = [];
 
-            newCrest.heroConfig = hunter.heroConfig;
+            newCrest.heroConfig = attackConfig ?? hunter.heroConfig;
             newCrest.SaveData = defaultSave;
 
             ToolItemManager.Instance.crestList.Add(newCrest);

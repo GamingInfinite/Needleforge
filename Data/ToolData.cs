@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace Needleforge.Data
 {
-    public struct ToolData
+    public class ToolData
     {
         public Sprite? inventorySprite;
         public ToolItemType type;
-        public string name;
+        public string name = "";
     }
 }

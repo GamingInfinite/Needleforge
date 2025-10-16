@@ -49,14 +49,9 @@ namespace Needleforge
             return AddTool(null, ToolItemType.Yellow, name);
         }
 
-        public static int AddCrest(Sprite? RealSprite, Sprite? Silhouette, string name)
+        public static CrestData AddCrest(string name, Sprite? RealSprite, Sprite? Silhouette)
         {
-            CrestData crestData = new()
-            {
-                RealSprite = RealSprite,
-                Silhouette = Silhouette,
-                name = name,
-            };
+            CrestData crestData = new(name, RealSprite, Silhouette);
 
             newCrestData.Add(crestData);
             bindEvents[name] = (value, amount, time) =>
@@ -64,12 +59,12 @@ namespace Needleforge
                 ModHelper.Log($"Running Bind for {name} Crest");
             };
 
-            return newCrestData.Count - 1;
+            return crestData;
         }
 
-        public static int AddCrest(string name)
+        public static CrestData AddCrest(string name)
         {
-            return AddCrest(null, null, name);
+            return AddCrest(name, null, null);
         }
     }
 }
