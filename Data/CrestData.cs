@@ -11,9 +11,10 @@ namespace Needleforge.Data
         public Sprite? RealSprite;
         public Sprite? Silhouette;
         public HeroControllerConfig? AttackConfig;
+        public List<ToolCrest.SlotInfo> slots = [];
         public string name = "";
 
-        public Action<FsmInt, FsmInt, FsmFloat> bindEvent
+        public Action<FsmInt, FsmInt, FsmFloat> BindEvent
         {
             get
             {
@@ -25,7 +26,7 @@ namespace Needleforge.Data
             }
         }
 
-        public ToolCrest? toolCrest
+        public ToolCrest? ToolCrest
         {
             get
             {
@@ -40,6 +41,18 @@ namespace Needleforge.Data
                     }
                 }
                 return null;
+            }
+        }
+
+        public bool IsEquipped
+        {
+            get
+            {
+                if (ToolCrest != null)
+                {
+                    return ToolCrest.IsEquipped;
+                }
+                return false;
             }
         }
 

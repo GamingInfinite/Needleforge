@@ -31,7 +31,7 @@ namespace Needleforge
             harmony.PatchAll();
         }
 
-        public static int AddTool(Sprite? InventorySprite, ToolItemType type, string name)
+        public static ToolData AddTool(Sprite? InventorySprite, ToolItemType type, string name)
         {
             ToolData data = new()
             {
@@ -41,14 +41,24 @@ namespace Needleforge
             };
 
             newToolData.Add(data);
-            return newToolData.Count - 1;
+            return data;
         }
 
-        public static int AddTool(string name)
+        public static ToolData AddTool(string name)
         {
             return AddTool(null, ToolItemType.Yellow, name);
         }
 
+        /// <summary>
+        /// Adds your class with the sprites already attached.
+        /// <para/>
+        /// IMPORTANT: <br/>
+        /// for obvious reasons certain data will return either null or some default value (eg. false for bool) until a Save is loaded.
+        /// </summary>
+        /// <param name="name">Name of the Crest</param>
+        /// <param name="RealSprite">Inventory Sprite</param>
+        /// <param name="Silhouette">Crest List Sprite</param>
+        /// <returns><see cref="CrestData"/></returns>
         public static CrestData AddCrest(string name, Sprite? RealSprite, Sprite? Silhouette)
         {
             CrestData crestData = new(name, RealSprite, Silhouette);
@@ -62,6 +72,11 @@ namespace Needleforge
             return crestData;
         }
 
+        /// <summary>
+        /// Adds a named Crest
+        /// </summary>
+        /// <param name="name">Name of the Crest</param>
+        /// <returns><see cref="CrestData"/></returns>
         public static CrestData AddCrest(string name)
         {
             return AddCrest(name, null, null);

@@ -26,7 +26,7 @@ namespace Needleforge.Patches
             ModHelper.Log("Adding Crests...");
             foreach(CrestData data in NeedleforgePlugin.newCrestData)
             {
-                CrestMaker.CreateCrest(data.RealSprite, data.Silhouette, data.AttackConfig, data.name);
+                CrestMaker.CreateCrest(data.RealSprite, data.Silhouette, data.AttackConfig, data.slots, data.name);
             }
 
             PlayMakerFSM bind = __instance.gameObject.GetFsmPreprocessed("Bind");
