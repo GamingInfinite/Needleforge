@@ -21,7 +21,7 @@ namespace Needleforge
         public static List<CrestData> newCrestData = new();
         public static List<ToolCrest> newCrests = new();
         public static List<ToolItem> newTools = new();
-        public static Dictionary<string, Action<FsmInt, FsmInt, FsmFloat>> bindEvents = new();
+        public static Dictionary<string, Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM>> bindEvents = new();
 
         private void Awake()
         {
@@ -64,7 +64,7 @@ namespace Needleforge
             CrestData crestData = new(name, RealSprite, Silhouette);
 
             newCrestData.Add(crestData);
-            bindEvents[name] = (value, amount, time) =>
+            bindEvents[name] = (value, amount, time, fsm) =>
             {
                 ModHelper.Log($"Running Bind for {name} Crest");
             };

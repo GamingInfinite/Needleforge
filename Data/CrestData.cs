@@ -12,9 +12,10 @@ namespace Needleforge.Data
         public Sprite? Silhouette;
         public HeroControllerConfig? AttackConfig;
         public List<ToolCrest.SlotInfo> slots = [];
+        public int bindCost = 9;
         public string name = "";
 
-        public Action<FsmInt, FsmInt, FsmFloat> BindEvent
+        public Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM> BindEvent
         {
             get
             {

@@ -37,11 +37,16 @@ namespace Needleforge.Makers
             newTool.SavedData = defaultData;
 
 
-            ToolItemManager.Instance.toolItems.Add(newTool);
-
-            NeedleforgePlugin.newTools.Add(newTool);
+            AddCustomTool(newTool);
 
             return newTool;
+        }
+
+        public static void AddCustomTool(ToolItem toolItem)
+        {
+            ToolItemManager.Instance.toolItems.Add(toolItem);
+
+            NeedleforgePlugin.newTools.Add(toolItem);
         }
 
         //TODO: CreateLiquidTool
