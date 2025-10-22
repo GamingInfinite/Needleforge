@@ -43,6 +43,10 @@ namespace Needleforge.Patches
 
             FsmState QuickBind = bind.GetState("Quick Bind?");
 
+            FsmState BindBell = bind.GetState("Bind Bell?");
+
+            FsmState EndBind = bind.GetState("End Bind");
+
             FsmState QuickCraft = bind.GetState("Quick Craft?");
             FsmState UseReserve = bind.GetState("Use Reserve Bind?");
             FsmState ReserveBurst = bind.GetState("Reserve Bind Burst");
@@ -52,7 +56,7 @@ namespace Needleforge.Patches
             FsmFloat healTime = bind.GetFloatVariable("Bind Time");
 
             FsmState whichCrest = bind.AddState("Which Crest?");
-            whichCrest.AddTransition("Toolmaster", "Quick Craft?");
+            whichCrest.AddTransition("Toolmaster", QuickCraft.name);
             whichCrest.AddLambdaMethod(finish =>
             {
                 if (!NeedleforgePlugin.newCrests.Any(crest => crest.name == PlayerData.instance.CurrentCrestID))
@@ -61,8 +65,8 @@ namespace Needleforge.Patches
                 }
                 finish.Invoke();
             });
-            UseReserve.ChangeTransition("FALSE", "Which Crest?");
-            ReserveBurst.ChangeTransition("FINISHED", "Which Crest?");
+            UseReserve.ChangeTransition("FALSE", whichCrest.name);
+            ReserveBurst.ChangeTransition("FINISHED", whichCrest.name);
             foreach (ToolCrest crest in NeedleforgePlugin.newCrests)
             {
                 FsmBool equipped = bind.AddBoolVariable($"Is {crest.name} Equipped");
@@ -96,21 +100,19 @@ namespace Needleforge.Patches
                     var bindData = NeedleforgePlugin.uniqueBind[crest.name];
                     FsmState specialBindCheck = bind.AddState($"{crest.name} Special Bind?");
                     FsmState specialBindTrigger = bind.AddState($"{crest.name} Special Bind Trigger");
-                    FsmEvent specialBindTransition = whichCrest.AddTransition($"{crest.name} Special", $"{crest.name} Special Bind?");
+                    FsmEvent specialBindTransition = whichCrest.AddTransition($"{crest.name} Special", specialBindCheck.name);
 
                     whichCrest.AddLambdaMethod(finish =>
                     {
                         if (crest.IsEquipped)
                         {
                             bind.SendEvent($"{crest.name} Special");
-                            ModHelper.Log($"{crest.name} special trigger, moving to ${crest.name} special bind?");
                         }
-                        ModHelper.Log($"{crest.name} called which crest");
                         finish.Invoke();
                     });
 
 
-                    specialBindCheck.AddTransition("FALSE", "Bind Bell?");
+                    specialBindCheck.AddTransition("FALSE", BindBell.name);
                     specialBindCheck.AddTransition("TRUE", $"{crest.name} Special Bind Trigger");
                     specialBindCheck.AddLambdaMethod(finish =>
                     {
@@ -118,7 +120,7 @@ namespace Needleforge.Patches
                         finish.Invoke();
                     });
 
-                    specialBindTrigger.AddTransition("FINISHED", "End Bind");
+                    specialBindTrigger.AddTransition("FINISHED", EndBind.name);
                     specialBindTrigger.AddLambdaMethod(bindData.lambdaMethod);
                 }
             }
