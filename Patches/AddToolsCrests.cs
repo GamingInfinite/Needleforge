@@ -113,7 +113,7 @@ namespace Needleforge.Patches
 
 
                     specialBindCheck.AddTransition("FALSE", BindBell.name);
-                    specialBindCheck.AddTransition("TRUE", $"{crest.name} Special Bind Trigger");
+                    specialBindCheck.AddTransition("TRUE", specialBindTrigger.name);
                     specialBindCheck.AddLambdaMethod(finish =>
                     {
                         bind.SendEvent(directionGet[bindData.Direction]() ? "TRUE" : "FALSE");
