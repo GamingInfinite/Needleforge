@@ -6,6 +6,17 @@ using UnityEngine;
 
 namespace Needleforge.Data
 {
+    public class UniqueBindEvent
+    {
+        public string Direction;
+        public Action<Action> lambdaMethod;
+
+        public UniqueBindEvent(string direction, Action<Action> lambdaMethod)
+        {
+            this.Direction = direction;
+            this.lambdaMethod = lambdaMethod;
+        }
+    }
     public class CrestData
     {
         public Sprite? RealSprite;
@@ -24,6 +35,17 @@ namespace Needleforge.Data
             set
             {
                 NeedleforgePlugin.bindEvents[name] = value;
+            }
+        }
+        public UniqueBindEvent uniqueBindEvent
+        {
+            get
+            {
+                return NeedleforgePlugin.uniqueBind[name];
+            }
+            set
+            {
+                NeedleforgePlugin.uniqueBind[name] = value;
             }
         }
 

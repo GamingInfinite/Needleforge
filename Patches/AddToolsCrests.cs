@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
@@ -18,6 +20,13 @@ namespace Needleforge.Patches
             amount.Value = 1;
             time.Value = 1.2f;
         };
+        public static Dictionary<string, Func<bool>> directionGet = new()
+        {
+            { "Up", () => HeroController.instance.inputHandler.inputActions.Up.IsPressed },
+            { "Down", () => HeroController.instance.inputHandler.inputActions.Down.IsPressed },
+            { "Left", () => HeroController.instance.inputHandler.inputActions.Left.IsPressed },
+            { "Right", () => HeroController.instance.inputHandler.inputActions.Right.IsPressed }
+        };
 
         [HarmonyPostfix]
         public static void AddCrests(HeroController __instance)
@@ -27,7 +36,6 @@ namespace Needleforge.Patches
             {
                 CrestMaker.CreateCrest(data.RealSprite, data.Silhouette, data.AttackConfig, data.slots, data.name);
             }
-
             PlayMakerFSM bind = __instance.gameObject.GetFsmPreprocessed("Bind");
             FsmState CanBind = bind.GetState("Can Bind?");
 
@@ -35,10 +43,30 @@ namespace Needleforge.Patches
 
             FsmState QuickBind = bind.GetState("Quick Bind?");
 
+            FsmState BindBell = bind.GetState("Bind Bell?");
+
+            FsmState EndBind = bind.GetState("End Bind");
+
+            FsmState QuickCraft = bind.GetState("Quick Craft?");
+            FsmState UseReserve = bind.GetState("Use Reserve Bind?");
+            FsmState ReserveBurst = bind.GetState("Reserve Bind Burst");
+
             FsmInt healValue = bind.GetIntVariable("Heal Amount");
             FsmInt healAmount = bind.GetIntVariable("Bind Amount");
             FsmFloat healTime = bind.GetFloatVariable("Bind Time");
 
+            FsmState whichCrest = bind.AddState("Which Crest?");
+            whichCrest.AddTransition("Toolmaster", QuickCraft.name);
+            whichCrest.AddLambdaMethod(finish =>
+            {
+                if (!NeedleforgePlugin.newCrests.Any(crest => crest.name == PlayerData.instance.CurrentCrestID))
+                {
+                    bind.SendEvent("Toolmaster");
+                }
+                finish.Invoke();
+            });
+            UseReserve.ChangeTransition("FALSE", whichCrest.name);
+            ReserveBurst.ChangeTransition("FINISHED", whichCrest.name);
             foreach (ToolCrest crest in NeedleforgePlugin.newCrests)
             {
                 FsmBool equipped = bind.AddBoolVariable($"Is {crest.name} Equipped");
@@ -66,6 +94,35 @@ namespace Needleforge.Patches
                     NeedleforgePlugin.bindEvents[crest.name].Invoke(healValue, healAmount, healTime, bind);
                     bind.SendEvent("FINISHED");
                 });
+                
+                if (NeedleforgePlugin.uniqueBind.ContainsKey(crest.name))
+                {
+                    var bindData = NeedleforgePlugin.uniqueBind[crest.name];
+                    FsmState specialBindCheck = bind.AddState($"{crest.name} Special Bind?");
+                    FsmState specialBindTrigger = bind.AddState($"{crest.name} Special Bind Trigger");
+                    FsmEvent specialBindTransition = whichCrest.AddTransition($"{crest.name} Special", specialBindCheck.name);
+
+                    whichCrest.AddLambdaMethod(finish =>
+                    {
+                        if (crest.IsEquipped)
+                        {
+                            bind.SendEvent($"{crest.name} Special");
+                        }
+                        finish.Invoke();
+                    });
+
+
+                    specialBindCheck.AddTransition("FALSE", BindBell.name);
+                    specialBindCheck.AddTransition("TRUE", specialBindTrigger.name);
+                    specialBindCheck.AddLambdaMethod(finish =>
+                    {
+                        bind.SendEvent(directionGet[bindData.Direction]() ? "TRUE" : "FALSE");
+                        finish.Invoke();
+                    });
+
+                    specialBindTrigger.AddTransition("FINISHED", EndBind.name);
+                    specialBindTrigger.AddLambdaMethod(bindData.lambdaMethod);
+                }
             }
 
             DelegateAction<Action> replaceSilkCost = new()
