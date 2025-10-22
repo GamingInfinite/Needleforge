@@ -21,12 +21,12 @@ namespace Needleforge.Patches
             time.Value = 1.2f;
         };
         public static Dictionary<string, Func<bool>> directionGet = new()
-{
-    { "Up", () => HeroController.instance.inputHandler.inputActions.Up.IsPressed },
-    { "Down", () => HeroController.instance.inputHandler.inputActions.Down.IsPressed },
-    { "Left", () => HeroController.instance.inputHandler.inputActions.Left.IsPressed },
-    { "Right", () => HeroController.instance.inputHandler.inputActions.Right.IsPressed }
-};
+        {
+            { "Up", () => HeroController.instance.inputHandler.inputActions.Up.IsPressed },
+            { "Down", () => HeroController.instance.inputHandler.inputActions.Down.IsPressed },
+            { "Left", () => HeroController.instance.inputHandler.inputActions.Left.IsPressed },
+            { "Right", () => HeroController.instance.inputHandler.inputActions.Right.IsPressed }
+        };
 
         [HarmonyPostfix]
         public static void AddCrests(HeroController __instance)
@@ -58,9 +58,7 @@ namespace Needleforge.Patches
                 if (!NeedleforgePlugin.newCrests.Any(crest => crest.name == PlayerData.instance.CurrentCrestID))
                 {
                     bind.SendEvent("Toolmaster");
-                    ModHelper.Log("toolmaster defaultation");
                 }
-                ModHelper.Log("which crest called");
                 finish.Invoke();
             });
             UseReserve.ChangeTransition("FALSE", "Which Crest?");
@@ -95,7 +93,6 @@ namespace Needleforge.Patches
                 
                 if (NeedleforgePlugin.uniqueBind.ContainsKey(crest.name))
                 {
-                    ModHelper.Log($"{crest.name} Crest has special bind action, initilizating");
                     var bindData = NeedleforgePlugin.uniqueBind[crest.name];
                     FsmState specialBindCheck = bind.AddState($"{crest.name} Special Bind?");
                     FsmState specialBindTrigger = bind.AddState($"{crest.name} Special Bind Trigger");
@@ -117,17 +114,12 @@ namespace Needleforge.Patches
                     specialBindCheck.AddTransition("TRUE", $"{crest.name} Special Bind Trigger");
                     specialBindCheck.AddLambdaMethod(finish =>
                     {
-                        ModHelper.Log($"checking correct bind for {crest.name} which is meant to be {bindData.Direction} and results in {directionGet[bindData.Direction]()}");
                         bind.SendEvent(directionGet[bindData.Direction]() ? "TRUE" : "FALSE");
                         finish.Invoke();
                     });
 
                     specialBindTrigger.AddTransition("FINISHED", "End Bind");
                     specialBindTrigger.AddLambdaMethod(bindData.lambdaMethod);
-                }
-                else
-                {
-                    ModHelper.Log($"{crest.name} belongs not in uniquebind");
                 }
             }
 
