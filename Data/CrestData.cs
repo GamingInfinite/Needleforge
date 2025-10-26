@@ -6,21 +6,25 @@ using UnityEngine;
 
 namespace Needleforge.Data
 {
-    public class UniqueBindEvent
+    public enum UniqueBindDirection
     {
-        public string Direction;
-        public Action<Action> lambdaMethod;
-
-        public UniqueBindEvent(string direction, Action<Action> lambdaMethod)
-        {
-            this.Direction = direction;
-            this.lambdaMethod = lambdaMethod;
-        }
+        UP,
+        DOWN, 
+        LEFT, 
+        RIGHT
     }
+
+    public class UniqueBindEvent(UniqueBindDirection Direction, Action<Action> lambdaMethod)
+    {
+        public UniqueBindDirection Direction = Direction;
+        public Action<Action> lambdaMethod = lambdaMethod;
+    }
+
     public class CrestData
     {
         public Sprite? RealSprite;
         public Sprite? Silhouette;
+        public Sprite? CrestGlow;
         public HeroControllerConfig? AttackConfig;
         public List<ToolCrest.SlotInfo> slots = [];
         public int bindCost = 9;
@@ -55,7 +59,7 @@ namespace Needleforge.Data
             {
                 if (HeroController.instance != null)
                 {
-                    foreach(var crest in NeedleforgePlugin.newCrests)
+                    foreach (var crest in NeedleforgePlugin.newCrests)
                     {
                         if (crest.name == name)
                         {
@@ -79,11 +83,53 @@ namespace Needleforge.Data
             }
         }
 
-        public CrestData(string name, Sprite? RealSprite, Sprite? Silhouette)
+        public void AddToolSlot(ToolItemType color, AttackToolBinding binding, Vector2 position, bool isLocked)
+        {
+            ToolCrest.SlotInfo newSlot = new()
+            {
+                AttackBinding = binding,
+                Type = color,
+                Position = position,
+                IsLocked = isLocked,
+                NavUpIndex = -1,
+                NavUpFallbackIndex = -1,
+                NavRightIndex = -1,
+                NavRightFallbackIndex = -1,
+                NavLeftIndex = -1,
+                NavLeftFallbackIndex = -1,
+                NavDownIndex = -1,
+                NavDownFallbackIndex = -1,
+            };
+
+            slots.Add(newSlot);
+        }
+
+        public void AddSkillSlot(AttackToolBinding binding, Vector2 position, bool isLocked)
+        {
+            AddToolSlot(ToolItemType.Skill, binding, position, isLocked);
+        }
+
+        public void AddRedSlot(AttackToolBinding binding, Vector2 position, bool isLocked)
+        {
+            AddToolSlot(ToolItemType.Red, binding, position, isLocked);
+        }
+
+        public void AddYellowSlot(Vector2 position, bool isLocked)
+        {
+            AddToolSlot(ToolItemType.Yellow, AttackToolBinding.Neutral, position, isLocked);
+        }
+
+        public void AddBlueSlot(Vector2 position, bool isLocked)
+        {
+            AddToolSlot(ToolItemType.Blue, AttackToolBinding.Neutral, position, isLocked);
+        }
+
+        public CrestData(string name, Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
         {
             this.name = name;
             this.RealSprite = RealSprite;
             this.Silhouette = Silhouette;
+            this.CrestGlow = CrestGlow;
         }
     }
 }

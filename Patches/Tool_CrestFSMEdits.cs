@@ -1,18 +1,19 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using Needleforge.Data;
-using Needleforge.Makers;
 using Silksong.FsmUtil;
 using Silksong.FsmUtil.Actions;
+using UnityEngine;
 
 namespace Needleforge.Patches
 {
     [HarmonyPatch(typeof(HeroController), nameof(HeroController.Start))]
-    internal class AddToolsCrests
+    internal class Tool_CrestFSMEdits
     {
         public static Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM> defaultBind = (value, amount, time, fsm) =>
         {
@@ -20,22 +21,17 @@ namespace Needleforge.Patches
             amount.Value = 1;
             time.Value = 1.2f;
         };
-        public static Dictionary<string, Func<bool>> directionGet = new()
+        public static Dictionary<UniqueBindDirection, Func<bool>> directionGet = new()
         {
-            { "Up", () => HeroController.instance.inputHandler.inputActions.Up.IsPressed },
-            { "Down", () => HeroController.instance.inputHandler.inputActions.Down.IsPressed },
-            { "Left", () => HeroController.instance.inputHandler.inputActions.Left.IsPressed },
-            { "Right", () => HeroController.instance.inputHandler.inputActions.Right.IsPressed }
+            { UniqueBindDirection.UP, () => HeroController.instance.inputHandler.inputActions.Up.IsPressed },
+            { UniqueBindDirection.DOWN, () => HeroController.instance.inputHandler.inputActions.Down.IsPressed },
+            { UniqueBindDirection.LEFT, () => HeroController.instance.inputHandler.inputActions.Left.IsPressed },
+            { UniqueBindDirection.RIGHT, () => HeroController.instance.inputHandler.inputActions.Right.IsPressed }
         };
 
         [HarmonyPostfix]
         public static void AddCrests(HeroController __instance)
         {
-            ModHelper.Log("Adding Crests...");
-            foreach (CrestData data in NeedleforgePlugin.newCrestData)
-            {
-                CrestMaker.CreateCrest(data.RealSprite, data.Silhouette, data.AttackConfig, data.slots, data.name);
-            }
             PlayMakerFSM bind = __instance.gameObject.GetFsmPreprocessed("Bind");
             FsmState CanBind = bind.GetState("Can Bind?");
 
@@ -59,7 +55,7 @@ namespace Needleforge.Patches
             whichCrest.AddTransition("Toolmaster", QuickCraft.name);
             whichCrest.AddLambdaMethod(finish =>
             {
-                if (!NeedleforgePlugin.newCrests.Any(crest => crest.name == PlayerData.instance.CurrentCrestID))
+                if (!NeedleforgePlugin.uniqueBind.ContainsKey(PlayerData.instance.CurrentCrestID))
                 {
                     bind.SendEvent("Toolmaster");
                 }
@@ -111,7 +107,6 @@ namespace Needleforge.Patches
                         finish.Invoke();
                     });
 
-
                     specialBindCheck.AddTransition("FALSE", BindBell.name);
                     specialBindCheck.AddTransition("TRUE", specialBindTrigger.name);
                     specialBindCheck.AddLambdaMethod(finish =>
@@ -130,12 +125,13 @@ namespace Needleforge.Patches
                 Method = (action) =>
                 {
                     FsmInt silkCost = bind.GetIntVariable("Current Silk Cost");
+                    FsmInt witchSilkCost = bind.GetIntVariable("Silk Cost Witch");
                     FsmBool witchEquipped = bind.GetBoolVariable("Is Witch Equipped");
                     bool unset = true;
 
                     if (witchEquipped.Value == true)
                     {
-                        silkCost.Value = 0;
+                        silkCost.Value = witchSilkCost.Value;
                     }
                     else
                     {
@@ -163,11 +159,43 @@ namespace Needleforge.Patches
         [HarmonyPostfix]
         public static void AddTools(HeroController __instance)
         {
-            ModHelper.Log("Adding Tools...");
-            foreach (ToolData data in NeedleforgePlugin.newToolData)
+
+            PlayMakerFSM toolEvents = __instance.toolEventTarget;
+            FsmState toolChoiceState = toolEvents.GetState("Tool Choice");
+
+            foreach (ToolData newTool in NeedleforgePlugin.newToolData)
             {
-                ModHelper.Log($"Adding {data.name}");
-                ToolMaker.CreateBasicTool(data.inventorySprite, data.type, data.name);
+                if (newTool is LiquidToolData liquidTool)
+                {
+                    FsmState newToolState = toolEvents.AddState($"{liquidTool.name} ANIM");
+
+                    var animator = __instance.GetComponent<tk2dSpriteAnimator>();
+                    string clipName = liquidTool.clip;
+
+                    newToolState.AddLambdaMethod((finish) =>
+                    {
+                        animator.Play(clipName);
+
+                        void FinishEventThenRemove(tk2dSpriteAnimator sprite, tk2dSpriteAnimationClip clip)
+                        {
+                            if (clip.name != clipName)
+                            {
+                                return;
+                            }
+                            NeedleforgePlugin.toolEventHooks[$"{newTool.name} AFTER ANIM"].Invoke();
+                            animator.AnimationCompleted -= FinishEventThenRemove;
+                            finish.Invoke();
+                        }
+
+                        animator.AnimationCompleted += FinishEventThenRemove;
+                        NeedleforgePlugin.toolEventHooks[$"{newTool.name} BEFORE ANIM"].Invoke();
+                    });
+
+                    FsmEvent toolChoiceTrans = toolChoiceState.AddTransition($"{liquidTool.name}", newToolState.name);
+                    toolEvents.FsmTemplate.fsm.Events = [.. toolEvents.Fsm.Events, toolChoiceTrans];
+
+                    newToolState.AddTransition("FINISHED", "Return Control");
+                }
             }
         }
     }
