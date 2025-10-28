@@ -121,7 +121,7 @@ namespace Needleforge
         /// <returns><see cref="CrestData"/></returns>
         public static CrestData AddCrest(string name, Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
         {
-            CrestData crestData = new(name, RealSprite, Silhouette, null);
+            CrestData crestData = new(name, RealSprite, Silhouette, CrestGlow);
 
             newCrestData.Add(crestData);
             bindEvents[name] = (value, amount, time, fsm) =>
@@ -139,7 +139,7 @@ namespace Needleforge
 
         public static CrestData AddCrest(string name, Sprite? RealSprite)
         {
-            return AddCrest(name, RealSprite, null, null);
+            return AddCrest(name, RealSprite, null);
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace Needleforge
         /// <returns><see cref="CrestData"/></returns>
         public static CrestData AddCrest(string name)
         {
-            return AddCrest(name, null, null, null);
+            return AddCrest(name, null);
         }
     }
 }

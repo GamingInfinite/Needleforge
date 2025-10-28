@@ -29,6 +29,7 @@ namespace Needleforge.Data
         public List<ToolCrest.SlotInfo> slots = [];
         public int bindCost = 9;
         public string name = "";
+        public bool UnlockedAtStart = true;
 
         public Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM> BindEvent
         {

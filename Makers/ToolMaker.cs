@@ -39,7 +39,20 @@ namespace Needleforge.Makers
 
             newTool.inventorySprite = inventorySprite ?? item.GetInventorySprite(ToolItem.IconVariants.Default);
             newTool.SavedData = defaultData;
-
+            newTool.alternateUnlockedTest = new(new PlayerDataExtension())
+            {
+                TestGroups = [
+                    new () {
+                        Tests = [
+                            new(){
+                                FieldName = "areCustomToolsUnlocked",
+                                Type = PlayerDataTest.TestType.Bool,
+                                BoolValue = true,
+                            }
+                            ]
+                    }
+                    ]
+            };
 
             AddCustomTool(newTool);
 

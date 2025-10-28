@@ -8,6 +8,7 @@ namespace Needleforge.Data
         public Sprite? inventorySprite;
         public ToolItemType type;
         public string name = "";
+        public bool UnlockedAtStart = true;
 
         public ToolItem? Item
         {

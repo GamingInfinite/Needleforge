@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Needleforge
+﻿namespace Needleforge
 {
     internal class ModHelper
     {
