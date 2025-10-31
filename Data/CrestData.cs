@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using HutongGames.PlayMaker;
+using TeamCherry.Localization;
 using UnityEngine;
 
 namespace Needleforge.Data
@@ -30,6 +31,9 @@ namespace Needleforge.Data
         public int bindCost = 9;
         public string name = "";
         public bool UnlockedAtStart = true;
+
+        public LocalisedString displayName;
+        public LocalisedString description;
 
         public Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM> BindEvent
         {
@@ -125,12 +129,14 @@ namespace Needleforge.Data
             AddToolSlot(ToolItemType.Blue, AttackToolBinding.Neutral, position, isLocked);
         }
 
-        public CrestData(string name, Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
+        public CrestData(string name, LocalisedString displayName, LocalisedString description, Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
         {
             this.name = name;
             this.RealSprite = RealSprite;
             this.Silhouette = Silhouette;
             this.CrestGlow = CrestGlow;
+            this.displayName = displayName;
+            this.description = description;
         }
     }
 }

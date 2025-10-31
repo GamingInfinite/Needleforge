@@ -1,9 +1,0 @@
-{
-	"name": "Needleforge",
-	"description": "API for adding Crests and Tools",
-	"version_number": "0.5.1",
-	"dependencies": [
-		"silksong_modding-Silksong_FsmUtil-0.2.0"
-	],
-	"website_url": "https://www.nuget.org/packages/Needleforge/"
-}

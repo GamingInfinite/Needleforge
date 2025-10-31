@@ -1,4 +1,5 @@
 ﻿using System;
+using TeamCherry.Localization;
 using UnityEngine;
 
 namespace Needleforge.Data
@@ -9,6 +10,8 @@ namespace Needleforge.Data
         public ToolItemType type;
         public string name = "";
         public bool UnlockedAtStart = true;
+        public LocalisedString displayName;
+        public LocalisedString description;
 
         public ToolItem? Item
         {
@@ -37,6 +40,13 @@ namespace Needleforge.Data
                     return Item.IsEquipped;
                 }
                 return false;
+            }
+        }
+        public string unlockedPDString
+        {
+            get
+            {
+                return $"is{name}Unlocked";
             }
         }
     }

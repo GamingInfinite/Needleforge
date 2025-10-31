@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using TeamCherry.Localization;
 using UnityEngine;
 
 namespace Needleforge.Makers
@@ -23,7 +24,7 @@ namespace Needleforge.Makers
         /// <param name="slots"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static ToolCrest CreateCrest(Sprite? RealSprite, Sprite? Silhouette, HeroControllerConfig? attackConfig, List<ToolCrest.SlotInfo> slots, string name)
+        public static ToolCrest CreateCrest(Sprite? RealSprite, Sprite? Silhouette, HeroControllerConfig? attackConfig, List<ToolCrest.SlotInfo> slots, string name, LocalisedString displayName, LocalisedString description)
         {
             List<ToolCrest> crests = ToolItemManager.GetAllCrests();
             ToolCrest hunter = crests[0];
@@ -35,8 +36,8 @@ namespace Needleforge.Makers
             newCrest.crestSilhouette = Silhouette ?? hunter.crestSilhouette;
             newCrest.crestSprite = RealSprite ?? hunter.crestSprite;
 
-            newCrest.displayName = new() { Key = $"{name}CRESTNAME", Sheet = $"{name}" };
-            newCrest.description = new() { Key = $"{name}CRESTDESC", Sheet = $"{name}" };
+            newCrest.displayName = displayName;
+            newCrest.description = description;
 
             newCrest.slots = [.. slots];
 

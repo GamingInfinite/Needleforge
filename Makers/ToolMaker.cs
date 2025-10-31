@@ -1,4 +1,5 @@
 ﻿using Needleforge.Data;
+using TeamCherry.Localization;
 using UnityEngine;
 
 namespace Needleforge.Makers
@@ -21,7 +22,7 @@ namespace Needleforge.Makers
             UsedExtra = false,
         };
 
-        public static ToolItemBasic CreateBasicTool(Sprite? inventorySprite, ToolItemType type, string name)
+        public static ToolItemBasic CreateBasicTool(Sprite? inventorySprite, ToolItemType type, string name, LocalisedString displayName, LocalisedString description)
         {
             ToolItem item = ToolItemManager.Instance.toolItems[62];
 
@@ -30,8 +31,8 @@ namespace Needleforge.Makers
 
             newTool.name = name;
 
-            newTool.description = new() { Key = $"{name}TOOLDESC", Sheet = $"{name}TOOL" };
-            newTool.displayName = new() { Key = $"{name}TOOLNAME", Sheet = $"{name}TOOL" };
+            newTool.description = description;
+            newTool.displayName = displayName;
 
             newTool.type = type;
 
@@ -39,13 +40,13 @@ namespace Needleforge.Makers
 
             newTool.inventorySprite = inventorySprite ?? item.GetInventorySprite(ToolItem.IconVariants.Default);
             newTool.SavedData = defaultData;
-            newTool.alternateUnlockedTest = new(new PlayerDataExtension())
+            newTool.alternateUnlockedTest = new()
             {
                 TestGroups = [
                     new () {
                         Tests = [
                             new(){
-                                FieldName = "areCustomToolsUnlocked",
+                                FieldName = NeedleforgePlugin.GetToolDataByName(name).unlockedPDString,
                                 Type = PlayerDataTest.TestType.Bool,
                                 BoolValue = true,
                             }
@@ -67,11 +68,11 @@ namespace Needleforge.Makers
         }
 
         //TODO: CreateLiquidTool
-        public static ToolItemStatesLiquid CreateLiquidTool(string name, int storageAmount, int maxRefills, Color fluidColor, string infiniteRefillsPD, ToolItem.ReplenishResources resource, ToolItem.ReplenishUsages replenishUsage, float replenishMult, StateSprites? full, StateSprites? empty)
+        public static ToolItemStatesLiquid CreateLiquidTool(string name, int storageAmount, int maxRefills, Color fluidColor, string infiniteRefillsPD, 
+            ToolItem.ReplenishResources resource, ToolItem.ReplenishUsages replenishUsage, float replenishMult, 
+            StateSprites? full, StateSprites? empty, LocalisedString displayName, LocalisedString description)
         {
             ToolItemStatesLiquid fleaBrew = (ToolItemStatesLiquid)ToolItemManager.Instance.toolItems[26];
-            ModHelper.Log(fleaBrew.replenishResource.ToString());
-            ModHelper.Log(fleaBrew.replenishUsageMultiplier.ToString());
 
             ToolItemStatesLiquid newLiquidTool = new();
 
@@ -85,8 +86,8 @@ namespace Needleforge.Makers
 
             newLiquidTool.fullState = new()
             {
-                DisplayName = new() { Key = $"{name}TOOLNAME", Sheet = $"{name}TOOL" },
-                Description = new() { Key = $"{name}TOOLDESC", Sheet = $"{name}TOOL" },
+                DisplayName = displayName,
+                Description = description,
                 HudSprite = full != null ? full.HudSprite : fleaBrew.fullState.HudSprite,
                 InventorySprite = full != null ? full.InventorySprite : fleaBrew.fullState.InventorySprite,
                 HudSpritePoison = full != null ? full.PoisonHudSprite : fleaBrew.fullState.HudSpritePoison,
@@ -99,8 +100,8 @@ namespace Needleforge.Makers
             };
             newLiquidTool.emptyState = new()
             {
-                DisplayName = new() { Key = $"{name}TOOLNAME", Sheet = $"{name}TOOL" },
-                Description = new() { Key = $"{name}TOOLDESC", Sheet = $"{name}TOOL" },
+                DisplayName = displayName,
+                Description = description,
                 HudSprite = empty != null ? empty.HudSprite : fleaBrew.emptyState.HudSprite,
                 InventorySprite = empty != null ? empty.InventorySprite : fleaBrew.emptyState.InventorySprite,
                 HudSpritePoison = empty != null ? empty.PoisonHudSprite : fleaBrew.emptyState.HudSpritePoison,

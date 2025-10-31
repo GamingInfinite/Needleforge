@@ -14,7 +14,7 @@ namespace Needleforge.Patches
             foreach (CrestData data in NeedleforgePlugin.newCrestData)
             {
                 ModHelper.Log($"Adding {data.name}");
-                CrestMaker.CreateCrest(data.RealSprite, data.Silhouette, data.AttackConfig, data.slots, data.name);
+                CrestMaker.CreateCrest(data.RealSprite, data.Silhouette, data.AttackConfig, data.slots, data.name, data.displayName, data.description);
             }
         }
 
@@ -28,11 +28,11 @@ namespace Needleforge.Patches
 
                 if (data is LiquidToolData liquidData)
                 {
-                    ToolMaker.CreateLiquidTool(liquidData.name, liquidData.storageAmount, liquidData.maxRefills, liquidData.color, liquidData.infiniteRefills, liquidData.resource, liquidData.replenishUsage, liquidData.replenishMult, liquidData.FullSprites, liquidData.EmptySprites);
+                    ToolMaker.CreateLiquidTool(liquidData.name, liquidData.storageAmount, liquidData.maxRefills, liquidData.color, liquidData.infiniteRefills, liquidData.resource, liquidData.replenishUsage, liquidData.replenishMult, liquidData.FullSprites, liquidData.EmptySprites, data.displayName, data.description);
                 }
                 else
                 {
-                    ToolMaker.CreateBasicTool(data.inventorySprite, data.type, data.name);
+                    ToolMaker.CreateBasicTool(data.inventorySprite, data.type, data.name, data.displayName, data.description);
                 }
             }
         }
