@@ -1,4 +1,4 @@
-﻿# Needleforge
+# Needleforge
 A utility for adding Crests and Tools to the game (Crest and Tool mechanics not included)
 
 ## Features
