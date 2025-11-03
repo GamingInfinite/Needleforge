@@ -20,7 +20,7 @@ namespace Needleforge.Data
         HUNTER,
         HUNTER_V2,
         HUNTER_V3,
-        WARRIOR,
+        BEAST,
         REAPER,
         WANDERER,
         WITCH,

@@ -166,7 +166,7 @@ internal class CrestHUD {
 			basicFrameAnims = crest.BaseGameHudFrame switch {
 				BaseGameCrest.HUNTER_V2 => self.hunterV2FrameAnims,
 				BaseGameCrest.HUNTER_V3 => self.hunterV3FrameAnims,
-				BaseGameCrest.WARRIOR => self.warriorFrameAnims,
+				BaseGameCrest.BEAST => self.warriorFrameAnims,
 				BaseGameCrest.REAPER => self.reaperFrameAnims,
 				BaseGameCrest.WANDERER => self.wandererFrameAnims,
 				BaseGameCrest.WITCH => self.witchFrameAnims,
