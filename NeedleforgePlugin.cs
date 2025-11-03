@@ -23,8 +23,11 @@ namespace Needleforge
         public static List<CrestData> newCrestData = new();
         public static List<ToolCrest> newCrests = new();
         public static List<ToolItem> newTools = new();
+        
+        public static Dictionary<string, GameObject> hudRoots = new();
         public static Dictionary<string, Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM>> bindEvents = new();
         public static Dictionary<string, UniqueBindEvent> uniqueBind = new();
+        
         public static Dictionary<string, Action> toolEventHooks = new();
 
         private void Awake()

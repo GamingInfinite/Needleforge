@@ -105,6 +105,14 @@ namespace Needleforge.Data
             }
         }
 
+        public GameObject? HudRoot
+        {
+            get
+            {
+                return NeedleforgePlugin.hudRoots[name];
+            }
+        }
+
         public bool IsEquipped
         {
             get
