@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using HutongGames.PlayMaker;
 using TeamCherry.Localization;
 using UnityEngine;
-using CoroutineFunction = BindOrbHudFrame.CoroutineFunction;
 
 namespace Needleforge.Data
 {
@@ -15,7 +15,7 @@ namespace Needleforge.Data
         RIGHT
     }
 
-    public enum BaseGameCrest
+    public enum VanillaCrest
     {
         HUNTER,
         HUNTER_V2,
@@ -54,15 +54,27 @@ namespace Needleforge.Data
         /// Changes the look of this crest's HUD frame to match one of the base game
         /// crests. This doesn't include unique animations like Beast's rage mode HUD.
         /// </summary>
-        public BaseGameCrest BaseGameHudFrame { get; set; } = BaseGameCrest.HUNTER;
+        public VanillaCrest HudFrame { get; set; } = VanillaCrest.HUNTER;
+
+        /// <inheritdoc cref="HudCoroutine"/>
+        public HudCoroutine? HudFrameCoroutine { get; set; }
 
         /// <summary>
-        /// An optional coroutine which will run continuously when this crest is equipped.
-        /// This should be used to control any extra animations or visual effects for the
-        /// crest's HUD frame.
+        /// <para>
+        /// An optional coroutine function which will run continuously when this crest is
+        /// equipped, and should be used to control any extra animations or visual
+        /// effects for the crest's HUD frame. This function generally takes the form of
+        /// an infinite "while(true)" loop which calls "yield return null" at least once
+        /// per loop iteration.
+        /// </para><para>
+        /// Access to the HUD frame is provided for convenience, e.x. for calling
+        /// <see cref="BindOrbHudFrame.PlayFrameAnim"/> to trigger an extra HUD animation.
+        /// </para><para>
         /// For examples, see the source code of <see cref="BindOrbHudFrame"/>.
+        /// </para>
         /// </summary>
-        public CoroutineFunction? HudFrameCoroutine { get; set; }
+        /// <param name="hudInstance">The current instance of the HUD frame.</param>
+        public delegate IEnumerator HudCoroutine(BindOrbHudFrame hudInstance);
 
         public Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM> BindEvent
         {

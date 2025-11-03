@@ -9,6 +9,8 @@ using static Needleforge.Utils.ILUtils;
 using BasicFrameAnims = BindOrbHudFrame.BasicFrameAnims;
 using CoroutineFunction = BindOrbHudFrame.CoroutineFunction;
 using Needleforge.Data;
+using System.Collections;
+using System;
 
 namespace Needleforge.Patches;
 
@@ -162,21 +164,12 @@ internal class CrestHUD {
 			if (crest.ToolCrest == self.currentFrameCrest)
 				return ReturnBehaviour.ReturnFalse;
 
+			IEnumerator HudCoro() => crest.HudFrameCoroutine(self);
+
 			self.currentFrameCrest = crest.ToolCrest;
-			basicFrameAnims = crest.BaseGameHudFrame switch {
-				BaseGameCrest.HUNTER_V2 => self.hunterV2FrameAnims,
-				BaseGameCrest.HUNTER_V3 => self.hunterV3FrameAnims,
-				BaseGameCrest.BEAST => self.warriorFrameAnims,
-				BaseGameCrest.REAPER => self.reaperFrameAnims,
-				BaseGameCrest.WANDERER => self.wandererFrameAnims,
-				BaseGameCrest.WITCH => self.witchFrameAnims,
-				BaseGameCrest.ARCHITECT => self.toolmasterFrameAnims,
-				BaseGameCrest.SHAMAN => self.spellFrameAnims,
-				BaseGameCrest.CURSED => self.cursedV1FrameAnims,
-				BaseGameCrest.CLOAKLESS => self.cloaklessFrameAnims,
-				_ => self.defaultFrameAnims
-			};
-			coroutineFunction = crest.HudFrameCoroutine;
+			basicFrameAnims = VanillaBasicFrameAnims(self, crest.HudFrame);
+			if (crest.HudFrameCoroutine != null)
+				coroutineFunction = HudCoro;
 
 			return ReturnBehaviour.ElseIfCompleted;
 		}
@@ -191,6 +184,22 @@ internal class CrestHUD {
 		ReturnFalse = 0,
 		NextElseIf = 1,
 		ElseIfCompleted = 2,
+	}
+
+	private static BasicFrameAnims VanillaBasicFrameAnims(BindOrbHudFrame self, VanillaCrest crest) {
+		return crest switch {
+			VanillaCrest.HUNTER_V2 => self.hunterV2FrameAnims,
+			VanillaCrest.HUNTER_V3 => self.hunterV3FrameAnims,
+			VanillaCrest.BEAST => self.warriorFrameAnims,
+			VanillaCrest.REAPER => self.reaperFrameAnims,
+			VanillaCrest.WANDERER => self.wandererFrameAnims,
+			VanillaCrest.WITCH => self.witchFrameAnims,
+			VanillaCrest.ARCHITECT => self.toolmasterFrameAnims,
+			VanillaCrest.SHAMAN => self.spellFrameAnims,
+			VanillaCrest.CURSED => self.cursedV1FrameAnims,
+			VanillaCrest.CLOAKLESS => self.cloaklessFrameAnims,
+			_ => self.defaultFrameAnims
+		};
 	}
 
 }
