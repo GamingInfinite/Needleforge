@@ -56,8 +56,29 @@ namespace Needleforge.Data
         /// </summary>
         public VanillaCrest HudFrame { get; set; } = VanillaCrest.HUNTER;
 
-        /// <inheritdoc cref="HudCoroutine"/>
-        public HudCoroutine? HudFrameCoroutine { get; set; }
+        /// <summary>
+        /// After the HUD has been created, this returns a dedicated GameObject for this
+        /// crest which is attached to the HUD. <b>This will be destroyed and recreated
+        /// every time the player quits to the main menu;</b> any modifications or
+        /// additions to this GameObject should be made in a handler attached to
+        /// <see cref="OnHudInitializing"/>.
+        /// </summary>
+        public GameObject? HudRoot
+        {
+            get => NeedleforgePlugin.hudRoots[name];
+        }
+
+        /// <summary>
+        /// Called every time the HUD is created. This should be used to attach
+        /// <see cref="MonoBehaviour"/>s and/or <see cref="GameObject"/>s to this crest's
+        /// <see cref="HudRoot"/> which will provide extra visuals or functionality to
+        /// the HUD. To control the behaviour of these additional elements, add a
+        /// <see cref="HudFrameCoroutine"/> to the crest.
+        /// </summary>
+        public event Action OnHudInitializing;
+
+        /// <inheritdoc cref="OnHudInitializing"/>
+        internal void InitializeHud() => OnHudInitializing?.Invoke();
 
         /// <summary>
         /// <para>
@@ -68,12 +89,16 @@ namespace Needleforge.Data
         /// per loop iteration.
         /// </para><para>
         /// Access to the HUD frame is provided for convenience, e.x. for calling
-        /// <see cref="BindOrbHudFrame.PlayFrameAnim"/> to trigger an extra HUD animation.
+        /// <see cref="BindOrbHudFrame.PlayFrameAnim"/> to trigger extra HUD animations.
+        /// Any extra elements added to the <see cref="HudRoot"/> via
+        /// <see cref="OnHudInitializing"/> will be available to this function as well.
         /// </para><para>
         /// For examples, see the source code of <see cref="BindOrbHudFrame"/>.
         /// </para>
         /// </summary>
-        /// <param name="hudInstance">The current instance of the HUD frame.</param>
+        public HudCoroutine? HudFrameCoroutine { get; set; }
+
+        /// <inheritdoc cref="HudFrameCoroutine"/>
         public delegate IEnumerator HudCoroutine(BindOrbHudFrame hudInstance);
 
         public Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM> BindEvent
@@ -114,14 +139,6 @@ namespace Needleforge.Data
                     }
                 }
                 return null;
-            }
-        }
-
-        public GameObject? HudRoot
-        {
-            get
-            {
-                return NeedleforgePlugin.hudRoots[name];
             }
         }
 

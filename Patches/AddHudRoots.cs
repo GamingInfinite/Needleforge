@@ -17,6 +17,7 @@ namespace Needleforge.Patches
                 GameObject hudRoot = new GameObject($"{data.name}HUDRoot");
                 hudRoot.transform.SetParent(NeedleforgeHudRoots.transform);
                 NeedleforgePlugin.hudRoots[data.name] = hudRoot;
+                data.InitializeHud();
             }
             NeedleforgeHudRoots.transform.SetParent(__instance.transform);
         }
