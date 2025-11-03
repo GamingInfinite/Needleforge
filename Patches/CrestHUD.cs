@@ -133,11 +133,10 @@ internal class CrestHUD {
 		return cm.Instructions();
 	}
 
-
 	/// <summary>
 	/// Delegate for <see cref="ChangeHud"/> which handles the logic for either setting
-	/// the HUD to the animations and coroutine of our custom crest, or else branching
-	/// appropriately if we shouldn't.
+	/// the HUD to the animations and coroutine of custom crests, or else branching
+	/// appropriately if there's nothing to set.
 	/// </summary>
 	/// <param name="self"></param>
 	/// <param name="basicFrameAnims">
