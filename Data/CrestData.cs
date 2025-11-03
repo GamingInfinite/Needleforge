@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using HutongGames.PlayMaker;
 using TeamCherry.Localization;
 using UnityEngine;
+using CoroutineFunction = BindOrbHudFrame.CoroutineFunction;
 
 namespace Needleforge.Data
 {
@@ -13,6 +13,21 @@ namespace Needleforge.Data
         DOWN, 
         LEFT, 
         RIGHT
+    }
+
+    public enum BaseGameCrest
+    {
+        HUNTER,
+        HUNTER_V2,
+        HUNTER_V3,
+        WARRIOR,
+        REAPER,
+        WANDERER,
+        WITCH,
+        ARCHITECT,
+        SHAMAN,
+        CURSED,
+        CLOAKLESS,
     }
 
     public class UniqueBindEvent(UniqueBindDirection Direction, Action<Action> lambdaMethod)
@@ -34,6 +49,20 @@ namespace Needleforge.Data
 
         public LocalisedString displayName;
         public LocalisedString description;
+
+        /// <summary>
+        /// Changes the look of this crest's HUD frame to match one of the base game
+        /// crests. This doesn't include unique animations like Beast's rage mode HUD.
+        /// </summary>
+        public BaseGameCrest BaseGameHudFrame { get; set; } = BaseGameCrest.HUNTER;
+
+        /// <summary>
+        /// An optional coroutine which will run continuously when this crest is equipped.
+        /// This should be used to control any extra animations or visual effects for the
+        /// crest's HUD frame.
+        /// For examples, see the source code of <see cref="BindOrbHudFrame"/>.
+        /// </summary>
+        public CoroutineFunction? HudFrameCoroutine { get; set; }
 
         public Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM> BindEvent
         {
