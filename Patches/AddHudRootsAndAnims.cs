@@ -26,11 +26,31 @@ namespace Needleforge.Patches
                         library.AddIfNotPresent(anim);
                     }
                     __instance.animator.Library.clips = [.. library];
-				}
+                }
 
-                data.HudFrame.Initialize();
+                data.HudFrame.InitializeRoot();
             }
             NeedleforgeHudRoots.transform.SetParent(__instance.transform);
+        }
+
+        /// <summary>
+        /// Called by <see cref="HudFrameData"/> objects to cause the hud's animation
+        /// library to receive changes to their animation properties even after the
+        /// above <see cref="Postfix"/> runs.
+        /// </summary>
+        internal static void UpdateHudAnimLibrary(HudFrameData hudData) {
+            BindOrbHudFrame hudFrame = Object.FindAnyObjectByType<BindOrbHudFrame>();
+            if (!hudData.Root || !hudFrame || !hudFrame.enabled || !hudFrame.didAwake)
+                return;
+
+            if (hudData.HasAnyCustomAnims) {
+                List<tk2dSpriteAnimationClip>
+                    library = [.. hudFrame.animator.Library.clips];
+                foreach (var anim in hudData.AllCustomAnims()) {
+                    library.AddIfNotPresent(anim);
+                }
+                hudFrame.animator.Library.clips = [.. library];
+            }
         }
     }
 }
