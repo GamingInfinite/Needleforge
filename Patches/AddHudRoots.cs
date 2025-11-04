@@ -20,13 +20,13 @@ namespace Needleforge.Patches
                 hudRoot.transform.SetParent(NeedleforgeHudRoots.transform);
                 NeedleforgePlugin.hudRoots[data.name] = hudRoot;
 
-                if (data.HasCustomHudAnims) {
+                if (data.HUD.HasCustomAnims) {
                     List<tk2dSpriteAnimationClip> library = [.. __instance.animator.Library.clips];
-                    foreach(var anim in data.AllCustomAnims)
+                    foreach(var anim in data.HUD.AllCustomAnims)
                         library.AddIfNotPresent(anim);
                 }
 
-                data.InitializeHud();
+                data.HUD.Initialize();
             }
             NeedleforgeHudRoots.transform.SetParent(__instance.transform);
         }
