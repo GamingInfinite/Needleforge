@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using HutongGames.PlayMaker;
 using TeamCherry.Localization;
 using UnityEngine;
+using System.Linq;
+using BasicFrameAnims = BindOrbHudFrame.BasicFrameAnims;
 
 namespace Needleforge.Data
 {
@@ -57,6 +59,62 @@ namespace Needleforge.Data
         public VanillaCrest HudFrame { get; set; } = VanillaCrest.HUNTER;
 
         /// <summary>
+        /// A custom animation for when this crest is equipped.
+        /// <reqs>All custom HUD animations must have a unique name.</reqs>
+        /// </summary>
+        public tk2dSpriteAnimationClip? HudAppear { get; set; }
+
+        /// <summary>
+        /// A custom animation for when the HUD first appears upon loading a save where
+        /// this crest is equipped.
+        /// <inheritdoc cref="HudAppear" path="/summary/reqs"/>
+        /// </summary>
+        public tk2dSpriteAnimationClip? HudAppearFromNone { get; set; }
+
+		/// <summary>
+		/// A custom animation which determines this crest's idle appearance.
+		/// <inheritdoc cref="HudAppear" path="/summary/reqs"/>
+		/// </summary>
+		public tk2dSpriteAnimationClip? HudIdle { get; set; }
+
+		/// <summary>
+		/// A custom animation for when this crest is unequipped.
+		/// <inheritdoc cref="HudAppear" path="/summary/reqs"/>
+		/// </summary>
+		public tk2dSpriteAnimationClip? HudDisappear { get; set; }
+
+		/// <summary>
+		/// Any extra custom animations for this crest's HUD.
+		/// <inheritdoc cref="HudAppear" path="/summary/reqs"/>
+        /// Use <see cref="HudFrameCoroutine"/> to play these animations.
+		/// </summary>
+		public List<tk2dSpriteAnimationClip> ExtraHudAnims { get; } = [];
+
+        internal IEnumerable<tk2dSpriteAnimationClip> AllCustomAnims =>
+            new List<tk2dSpriteAnimationClip?> {
+                HudAppear, HudAppearFromNone, HudIdle, HudDisappear
+            }
+            .Where(x => x != null)
+            .Cast<tk2dSpriteAnimationClip>()
+            .Concat(ExtraHudAnims);
+
+		internal bool HasCustomHudAnims =>
+            HudAppear != null
+            || HudAppearFromNone != null
+            || HudIdle != null
+            || HudDisappear != null
+            || ExtraHudAnims.Count > 0;
+
+        internal BasicFrameAnims HudBasicFrameAnims =>
+            new() {
+                Appear = HudAppear?.name ?? "",
+                AppearFromNone = HudAppearFromNone?.name ?? "",
+                Idle = HudIdle?.name ?? "",
+                Disappear = HudDisappear?.name ?? "",
+                // TODO figure out what ActivateEvent does
+            };
+
+        /// <summary>
         /// After the HUD has been created, this returns a dedicated GameObject for this
         /// crest which is attached to the HUD. <b>This will be destroyed and recreated
         /// every time the player quits to the main menu;</b> any modifications or
@@ -75,7 +133,7 @@ namespace Needleforge.Data
         /// the HUD. To control the behaviour of these additional elements, add a
         /// <see cref="HudFrameCoroutine"/> to the crest.
         /// </summary>
-        public event Action OnHudInitializing;
+        public event Action? OnHudInitializing;
 
         /// <inheritdoc cref="OnHudInitializing"/>
         internal void InitializeHud() => OnHudInitializing?.Invoke();

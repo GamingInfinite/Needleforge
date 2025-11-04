@@ -1,5 +1,7 @@
 using HarmonyLib;
 using Needleforge.Data;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Needleforge.Patches
@@ -17,6 +19,13 @@ namespace Needleforge.Patches
                 GameObject hudRoot = new GameObject($"{data.name}HUDRoot");
                 hudRoot.transform.SetParent(NeedleforgeHudRoots.transform);
                 NeedleforgePlugin.hudRoots[data.name] = hudRoot;
+
+                if (data.HasCustomHudAnims) {
+                    List<tk2dSpriteAnimationClip> library = [.. __instance.animator.Library.clips];
+                    foreach(var anim in data.AllCustomAnims)
+                        library.AddIfNotPresent(anim);
+                }
+
                 data.InitializeHud();
             }
             NeedleforgeHudRoots.transform.SetParent(__instance.transform);
