@@ -19,10 +19,12 @@ namespace Needleforge.Patches
                 hudRoot.transform.SetParent(NeedleforgeHudRoots.transform);
                 NeedleforgePlugin.hudRoots[data.name] = hudRoot;
 
-                if (data.HudFrame.HasAnyCustomAnims) {
+                if (data.HudFrame.HasAnyCustomAnims)
+                {
                     List<tk2dSpriteAnimationClip>
                         library = [.. __instance.animator.Library.clips];
-                    foreach(var anim in data.HudFrame.AllCustomAnims()){
+                    foreach(var anim in data.HudFrame.AllCustomAnims())
+                    {
                         library.AddIfNotPresent(anim);
                     }
                     __instance.animator.Library.clips = [.. library];
@@ -38,15 +40,18 @@ namespace Needleforge.Patches
         /// library to receive changes to their animation properties even after the
         /// above <see cref="Postfix"/> runs.
         /// </summary>
-        internal static void UpdateHudAnimLibrary(HudFrameData hudData) {
+        internal static void UpdateHudAnimLibrary(HudFrameData hudData)
+        {
             BindOrbHudFrame hudFrame = Object.FindAnyObjectByType<BindOrbHudFrame>();
             if (!hudData.Root || !hudFrame || !hudFrame.enabled || !hudFrame.didAwake)
                 return;
 
-            if (hudData.HasAnyCustomAnims) {
+            if (hudData.HasAnyCustomAnims)
+            {
                 List<tk2dSpriteAnimationClip>
                     library = [.. hudFrame.animator.Library.clips];
-                foreach (var anim in hudData.AllCustomAnims()) {
+                foreach (var anim in hudData.AllCustomAnims())
+                {
                     library.AddIfNotPresent(anim);
                 }
                 hudFrame.animator.Library.clips = [.. library];

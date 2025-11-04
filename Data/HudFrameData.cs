@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Needleforge.Patches;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -6,21 +7,34 @@ using System.Collections.Specialized;
 using System.Linq;
 using UnityEngine;
 using BasicFrameAnims = BindOrbHudFrame.BasicFrameAnims;
-using Needleforge.Patches;
 
 namespace Needleforge.Data;
 
-public class HudFrameData {
+public class HudFrameData
+{
 
-    private readonly CrestData Crest;
+    internal readonly CrestData Crest;
 
-    public HudFrameData(CrestData owner) {
+    public HudFrameData(CrestData owner)
+    {
         Crest = owner;
         ExtraAnims.CollectionChanged += ExtraAnimsChanged;
     }
 
-    private void ExtraAnimsChanged(object sender, NotifyCollectionChangedEventArgs e) {
-        AddHudRootsAndAnims.UpdateHudAnimLibrary(this);
+    private void ExtraAnimsChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        switch (e.Action)
+        {
+            case NotifyCollectionChangedAction.Add:
+            case NotifyCollectionChangedAction.Remove:
+            case NotifyCollectionChangedAction.Replace:
+            case NotifyCollectionChangedAction.Reset:
+                AddHudRootsAndAnims.UpdateHudAnimLibrary(this);
+                break;
+            case NotifyCollectionChangedAction.Move:
+                // We do not care about the list order, only what's in it
+                break;
+        }
     }
 
     #region Animations
@@ -46,7 +60,8 @@ public class HudFrameData {
     /// A custom animation for when this crest is equipped.
     /// <reqs>All custom HUD animations must have a unique name.</reqs>
     /// </summary>
-    public tk2dSpriteAnimationClip? Appear {
+    public tk2dSpriteAnimationClip? Appear
+    {
         get => appear;
         set {
             appear = value;
@@ -59,7 +74,8 @@ public class HudFrameData {
     /// this crest is equipped.
     /// <inheritdoc cref="Appear" path="/summary/reqs"/>
     /// </summary>
-    public tk2dSpriteAnimationClip? AppearFromNone {
+    public tk2dSpriteAnimationClip? AppearFromNone
+    {
         get => appearNone;
         set {
             appearNone = value;
@@ -71,7 +87,8 @@ public class HudFrameData {
     /// A custom animation which determines this crest's idle appearance.
     /// <inheritdoc cref="Appear" path="/summary/reqs"/>
     /// </summary>
-    public tk2dSpriteAnimationClip? Idle {
+    public tk2dSpriteAnimationClip? Idle
+    {
         get => idle;
         set {
             idle = value;
@@ -83,7 +100,8 @@ public class HudFrameData {
     /// A custom animation for when this crest is unequipped.
     /// <inheritdoc cref="Appear" path="/summary/reqs"/>
     /// </summary>
-    public tk2dSpriteAnimationClip? Disappear {
+    public tk2dSpriteAnimationClip? Disappear
+    {
         get => disappear;
         set {
             disappear = value;
@@ -101,7 +119,8 @@ public class HudFrameData {
     // Internal helpers
 
     internal IEnumerable<tk2dSpriteAnimationClip> AllCustomAnims() =>
-        new List<tk2dSpriteAnimationClip?> {
+        new List<tk2dSpriteAnimationClip?>
+        {
             Appear, AppearFromNone, Idle, Disappear
         }
         .Where(x => x != null)
@@ -118,7 +137,8 @@ public class HudFrameData {
         HasCustomBasicAnims || ExtraAnims.Count > 0;
 
     internal BasicFrameAnims CustomBasicAnims() =>
-        new() {
+        new()
+        {
             Appear = Appear?.name ?? "",
             AppearFromNone = AppearFromNone?.name ?? "",
             Idle = Idle?.name ?? "",
@@ -137,8 +157,12 @@ public class HudFrameData {
     /// additions to this GameObject should be made in a handler attached to
     /// <see cref="OnRootCreated"/>.
     /// </summary>
-    public GameObject? Root {
-        get => NeedleforgePlugin.hudRoots[Crest.name];
+    public GameObject? Root
+    {
+        get {
+            NeedleforgePlugin.hudRoots.TryGetValue(Crest.name, out var result);
+            return result;
+        }
     }
 
     /// <summary>
