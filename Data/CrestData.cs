@@ -49,7 +49,11 @@ namespace Needleforge.Data
         public LocalisedString displayName;
         public LocalisedString description;
 
-        public HudData HUD { get; }
+        /// <summary>
+        /// <para>Can be used to customize the look of the HUD. The default is the same HUD as Hunter crest level 1.</para>
+        /// <para>Customization can be as simple as picking a different HUD from a vanilla crest with <see cref="HudFrameData.Preset"/>, or further customized with a custom coroutine, custom animations, or adding additional GameObjects/Monobehaviours to the HUD.</para>
+        /// </summary>
+        public HudFrameData HudFrame { get; }
 
         public Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM> BindEvent
         {
@@ -153,7 +157,7 @@ namespace Needleforge.Data
             this.CrestGlow = CrestGlow;
             this.displayName = displayName;
             this.description = description;
-            HUD = new HudData(this);
+            HudFrame = new HudFrameData(this);
         }
     }
 }

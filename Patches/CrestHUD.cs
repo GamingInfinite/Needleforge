@@ -163,11 +163,14 @@ internal class CrestHUD {
 			if (crest.ToolCrest == self.currentFrameCrest)
 				return ReturnBehaviour.ReturnFalse;
 
-			IEnumerator HudCoro() => crest.HUD.Coroutine(self);
+			IEnumerator HudCoro() => crest.HudFrame.Coroutine(self);
 
 			self.currentFrameCrest = crest.ToolCrest;
-			basicFrameAnims = PresetBasicAnims(self, crest.HUD.PresetFrame);
-			if (crest.HUD.Coroutine != null)
+			basicFrameAnims =
+				crest.HudFrame.HasCustomBasicAnims
+					? crest.HudFrame.CustomBasicAnims()
+					: PresetBasicAnims(self, crest.HudFrame.Preset);
+			if (crest.HudFrame.Coroutine != null)
 				coroutineFunction = HudCoro;
 
 			return ReturnBehaviour.ElseIfCompleted;

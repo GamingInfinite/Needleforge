@@ -7,15 +7,26 @@ using BasicFrameAnims = BindOrbHudFrame.BasicFrameAnims;
 
 namespace Needleforge.Data;
 
-public class HudData(CrestData owner) {
+public class HudFrameData(CrestData owner) {
 
     private readonly CrestData Crest = owner;
 
-    /// <summary>
-    /// Changes the look of this crest's HUD frame to match one of the base game
-    /// crests. This doesn't include unique animations like Beast's rage mode HUD.
-    /// </summary>
-    public VanillaCrest PresetFrame { get; set; } = VanillaCrest.HUNTER;
+	#region Animations
+
+    // Public API
+
+	/// <summary>
+	/// <para>
+	/// Changes the look of this crest's HUD frame to match one of the base game crests.
+	/// This doesn't include unique animations like Beast's rage mode, which must be
+	/// controlled with a <see cref="Coroutine"/>.
+	/// </para><para>
+	/// This preset will be completely overridden if <b>any</b> custom animations are set
+	/// on <see cref="Appear"/>, <see cref="AppearFromNone"/>, <see cref="Idle"/>, or
+	/// <see cref="Disappear"/>.
+	/// </para>
+	/// </summary>
+	public VanillaCrest Preset { get; set; } = VanillaCrest.HUNTER;
 
     /// <summary>
     /// A custom animation for when this crest is equipped.
@@ -49,22 +60,26 @@ public class HudData(CrestData owner) {
     /// </summary>
     public List<tk2dSpriteAnimationClip> ExtraAnims { get; } = [];
 
-    internal IEnumerable<tk2dSpriteAnimationClip> AllCustomAnims =>
+    // Internal helpers
+
+    internal IEnumerable<tk2dSpriteAnimationClip> AllCustomAnims() =>
         new List<tk2dSpriteAnimationClip?> {
             Appear, AppearFromNone, Idle, Disappear
         }
         .Where(x => x != null)
         .Cast<tk2dSpriteAnimationClip>()
-        .Concat(ExtraAnims);
+        .Concat(ExtraAnims.Distinct());
 
-    internal bool HasCustomAnims =>
-        Appear != null
-        || AppearFromNone != null
-        || Idle != null
-        || Disappear != null
-        || ExtraAnims.Count > 0;
+	internal bool HasCustomBasicAnims =>
+		Appear != null
+		|| AppearFromNone != null
+		|| Idle != null
+		|| Disappear != null;
 
-    internal BasicFrameAnims HudBasicFrameAnims =>
+	internal bool HasAnyCustomAnims =>
+        HasCustomBasicAnims || ExtraAnims.Count > 0;
+
+    internal BasicFrameAnims CustomBasicAnims() =>
         new() {
             Appear = Appear?.name ?? "",
             AppearFromNone = AppearFromNone?.name ?? "",
@@ -73,14 +88,18 @@ public class HudData(CrestData owner) {
             // TODO figure out what ActivateEvent does
         };
 
-    /// <summary>
-    /// After the HUD has been created, this returns a dedicated GameObject for this
-    /// crest which is attached to the HUD. <b>This will be destroyed and recreated
-    /// every time the player quits to the main menu;</b> any modifications or
-    /// additions to this GameObject should be made in a handler attached to
-    /// <see cref="OnInitializing"/>.
-    /// </summary>
-    public GameObject? Root {
+	#endregion
+
+	#region Initialization & Coroutines
+
+	/// <summary>
+	/// After the HUD has been created, this returns a dedicated GameObject for this
+	/// crest which is attached to the HUD. <b>This will be destroyed and recreated
+	/// every time the player quits to the main menu;</b> any modifications or
+	/// additions to this GameObject should be made in a handler attached to
+	/// <see cref="OnInitializing"/>.
+	/// </summary>
+	public GameObject? Root {
         get => NeedleforgePlugin.hudRoots[Crest.name];
     }
 
@@ -104,8 +123,9 @@ public class HudData(CrestData owner) {
     /// an infinite "while(true)" loop which calls "yield return null" at least once
     /// per loop iteration.
     /// </para><para>
-    /// Access to the HUD frame is provided for convenience, e.x. for calling
-    /// <see cref="BindOrbHudFrame.PlayFrameAnim"/> to trigger extra HUD animations.
+    /// Access to the HUD frame component is provided for convenience, e.x. for calling
+    /// <see cref="BindOrbHudFrame.PlayFrameAnim"/> to trigger extra HUD animations that
+    /// were added to <see cref="ExtraAnims"/>.
     /// Any extra elements added to the <see cref="Root"/> via
     /// <see cref="OnInitializing"/> will be available to this function as well.
     /// </para><para>
@@ -116,5 +136,7 @@ public class HudData(CrestData owner) {
 
     /// <inheritdoc cref="Coroutine"/>
     public delegate IEnumerator HudCoroutine(BindOrbHudFrame hudInstance);
+
+	#endregion
 
 }
