@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Needleforge.Patches
 {
     [HarmonyPatch(typeof(BindOrbHudFrame), nameof(BindOrbHudFrame.Awake))]
-    public class AddHudRoots
+    public class AddHudRootsAndAnims
     {
         [HarmonyPostfix]
         public static void Postfix(BindOrbHudFrame __instance)

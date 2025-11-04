@@ -1,5 +1,7 @@
 ﻿using GlobalSettings;
 using HarmonyLib;
+using Needleforge.Data;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,9 +10,6 @@ using static Needleforge.NeedleforgePlugin;
 using static Needleforge.Utils.ILUtils;
 using BasicFrameAnims = BindOrbHudFrame.BasicFrameAnims;
 using CoroutineFunction = BindOrbHudFrame.CoroutineFunction;
-using Needleforge.Data;
-using System.Collections;
-using System;
 
 namespace Needleforge.Patches;
 
@@ -19,7 +18,7 @@ namespace Needleforge.Patches;
 /// any base game HUD frame.
 /// </summary>
 [HarmonyPatch(typeof(BindOrbHudFrame), nameof(BindOrbHudFrame.DoChangeFrame))]
-internal class CrestHUD {
+internal class HudFrameIL {
 
 	/// <summary>
 	/// IL patch which injects an extra branch into the crest selection process of
