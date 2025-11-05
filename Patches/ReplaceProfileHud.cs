@@ -1,8 +1,5 @@
 ﻿using HarmonyLib;
 using Needleforge.Data;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 using CrestTypes = SaveProfileHealthBar.CrestTypes;
 
@@ -29,8 +26,8 @@ internal class ReplaceProfileHud {
                     : fallback.SpoolImage;
 
                 Sprite steelSpool =
-                    crest.HudFrame.ProfileIconSteel != null
-                    ? crest.HudFrame.ProfileIconSteel
+                    crest.HudFrame.SteelProfileIcon != null
+                    ? crest.HudFrame.SteelProfileIcon
                     : fallback.SpoolImageSteel;
 
                 __instance.spoolImage.sprite = steelsoulMode ? steelSpool : spool;
@@ -53,6 +50,5 @@ internal class ReplaceProfileHud {
             VanillaCrest.CLOAKLESS => CrestTypes.Cloakless,
             _ => CrestTypes.Hunter,
         };
-
 
 }

@@ -165,8 +165,8 @@ internal class ReplaceInGameHud
 
             self.currentFrameCrest = crest.ToolCrest;
             basicFrameAnims =
-                crest.HudFrame.HasCustomBasicAnims
-                    ? crest.HudFrame.CustomBasicAnims()
+                crest.HudFrame.HasRegularCustomBasicAnims
+                    ? crest.HudFrame.CustomBasicFrameAnims()
                     : PresetBasicAnims(self, crest.HudFrame.Preset);
             if (crest.HudFrame.Coroutine != null)
                 coroutineFunction = HudCoro;
