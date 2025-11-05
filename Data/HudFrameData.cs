@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using UnityEngine;
+using CrestTypeInfo = SaveProfileHealthBar.CrestTypeInfo;
 using BasicFrameAnims = BindOrbHudFrame.BasicFrameAnims;
 
 namespace Needleforge.Data;
@@ -36,6 +37,21 @@ public class HudFrameData
                 break;
         }
     }
+
+    #region Sprites
+
+    /// <summary>
+    /// Crest icon which will appear in the corner of regular save files on the menu.
+    /// </summary>
+    public Sprite? ProfileIcon { get; set; }
+
+    
+    /// <summary>
+    /// Crest icon which will appear in the corner of steel soul save files on the menu.
+    /// </summary>
+    public Sprite? ProfileIconSteel { get; set; }
+
+    #endregion
 
     #region Animations
 

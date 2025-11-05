@@ -14,11 +14,10 @@ using CoroutineFunction = BindOrbHudFrame.CoroutineFunction;
 namespace Needleforge.Patches;
 
 /// <summary>
-/// Patches necessary for custom crests to be able to have their choice of
-/// any base game HUD frame.
+/// Patches which enable custom crests to use custom HUD frames in-game.
 /// </summary>
 [HarmonyPatch(typeof(BindOrbHudFrame), nameof(BindOrbHudFrame.DoChangeFrame))]
-internal class HudFrameIL
+internal class ReplaceInGameHud
 {
 
     /// <summary>
@@ -30,7 +29,6 @@ internal class HudFrameIL
     /// Many thanks to <see href="https://github.com/hamunii">Hamunii</see> for their
     /// help making this patch cleaner and more maintainable.
     /// </remarks>
-    
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> ChangeHud(
         IEnumerable<CodeInstruction> instructions,
@@ -129,7 +127,7 @@ internal class HudFrameIL
 
         #endregion
 
-        // Return the results!
+        // Return the results
         return cm.Instructions();
     }
 
