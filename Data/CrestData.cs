@@ -1,39 +1,12 @@
 ﻿using HutongGames.PlayMaker;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TeamCherry.Localization;
 using UnityEngine;
 
 namespace Needleforge.Data
 {
-    public enum UniqueBindDirection
-    {
-        UP,
-        DOWN, 
-        LEFT, 
-        RIGHT
-    }
-
-    public enum VanillaCrest
-    {
-        HUNTER,
-        HUNTER_V2,
-        HUNTER_V3,
-        BEAST,
-        REAPER,
-        WANDERER,
-        WITCH,
-        ARCHITECT,
-        SHAMAN,
-        CURSED,
-        CLOAKLESS,
-    }
-
-    public class UniqueBindEvent(UniqueBindDirection Direction, Action<Action> lambdaMethod)
-    {
-        public UniqueBindDirection Direction = Direction;
-        public Action<Action> lambdaMethod = lambdaMethod;
-    }
 
     public class CrestData
     {
@@ -50,8 +23,15 @@ namespace Needleforge.Data
         public LocalisedString description;
 
         /// <summary>
-        /// <para>Can be used to customize the look of the HUD. The default is the same HUD as Hunter crest level 1.</para>
-        /// <para>Customization can be as simple as picking a different HUD from a vanilla crest with <see cref="HudFrameData.Preset"/>, or further customized with a custom coroutine, custom animations, or adding additional GameObjects/Monobehaviours to the HUD.</para>
+        /// <para>
+        /// Can be used to customize the look of the HUD. The default is the
+        /// Hunter crest level 1 HUD.
+        /// </para><para>
+        /// Customization can be as simple as picking a different HUD from a vanilla
+        /// crest with <see cref="HudFrameData.Preset"/>, or further customized with a
+        /// custom coroutine, custom animations, and/or adding additional
+        /// GameObjects/MonoBehaviours to the HUD.
+        /// </para>
         /// </summary>
         public HudFrameData HudFrame { get; }
 
@@ -80,32 +60,12 @@ namespace Needleforge.Data
 
         public ToolCrest? ToolCrest
         {
-            get
-            {
-                if (HeroController.instance != null)
-                {
-                    foreach (var crest in NeedleforgePlugin.newCrests)
-                    {
-                        if (crest.name == name)
-                        {
-                            return crest;
-                        }
-                    }
-                }
-                return null;
-            }
+            get => NeedleforgePlugin.newCrests.FirstOrDefault(crest => crest.name == name);
         }
 
         public bool IsEquipped
         {
-            get
-            {
-                if (ToolCrest != null)
-                {
-                    return ToolCrest.IsEquipped;
-                }
-                return false;
-            }
+            get => ToolCrest != null && ToolCrest.IsEquipped;
         }
 
         public void AddToolSlot(ToolItemType color, AttackToolBinding binding, Vector2 position, bool isLocked)
