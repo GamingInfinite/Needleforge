@@ -32,7 +32,7 @@
         <PackageReference Include="Silksong.FsmUtil" Version="0.3.1" />
         <PackageReference Include="Silksong.PrepatcherPlugin" Version="1.0.2" />
         <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
-        <PackageReference Include="Silksong.GameLibs" Version="*-*" PrivateAssets="all" />
+        <PackageReference Include="Silksong.GameLibs" Version="1.1.0-silksong1.0.29242" PrivateAssets="all" />
     </ItemGroup>
     <ItemGroup>
         <Folder Remove="thunderstore/temp;thunderstore/dist" />
