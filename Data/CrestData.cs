@@ -1,9 +1,11 @@
 ﻿using HutongGames.PlayMaker;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using TeamCherry.Localization;
 using UnityEngine;
+using SlotInfo = ToolCrest.SlotInfo;
 
 namespace Needleforge.Data
 {
@@ -14,7 +16,7 @@ namespace Needleforge.Data
         public Sprite? Silhouette;
         public Sprite? CrestGlow;
         public HeroControllerConfig? AttackConfig;
-        public List<ToolCrest.SlotInfo> slots = [];
+        public List<SlotInfo> slots = [];
         public int bindCost = 9;
         public string name = "";
         public bool UnlockedAtStart = true;
@@ -68,9 +70,9 @@ namespace Needleforge.Data
             get => ToolCrest != null && ToolCrest.IsEquipped;
         }
 
-        public void AddToolSlot(ToolItemType color, AttackToolBinding binding, Vector2 position, bool isLocked)
+        public SlotInfo AddToolSlot(ToolItemType color, AttackToolBinding binding, Vector2 position, bool isLocked)
         {
-            ToolCrest.SlotInfo newSlot = new()
+            SlotInfo newSlot = new()
             {
                 AttackBinding = binding,
                 Type = color,
@@ -87,27 +89,129 @@ namespace Needleforge.Data
             };
 
             slots.Add(newSlot);
+            return newSlot;
         }
 
-        public void AddSkillSlot(AttackToolBinding binding, Vector2 position, bool isLocked)
+        public SlotInfo AddSkillSlot(AttackToolBinding binding, Vector2 position, bool isLocked)
         {
-            AddToolSlot(ToolItemType.Skill, binding, position, isLocked);
+            return AddToolSlot(ToolItemType.Skill, binding, position, isLocked);
         }
 
-        public void AddRedSlot(AttackToolBinding binding, Vector2 position, bool isLocked)
+        public SlotInfo AddRedSlot(AttackToolBinding binding, Vector2 position, bool isLocked)
         {
-            AddToolSlot(ToolItemType.Red, binding, position, isLocked);
+            return AddToolSlot(ToolItemType.Red, binding, position, isLocked);
         }
 
-        public void AddYellowSlot(Vector2 position, bool isLocked)
+        public SlotInfo AddYellowSlot(Vector2 position, bool isLocked)
         {
-            AddToolSlot(ToolItemType.Yellow, AttackToolBinding.Neutral, position, isLocked);
+            return AddToolSlot(ToolItemType.Yellow, AttackToolBinding.Neutral, position, isLocked);
         }
 
-        public void AddBlueSlot(Vector2 position, bool isLocked)
+        public SlotInfo AddBlueSlot(Vector2 position, bool isLocked)
         {
-            AddToolSlot(ToolItemType.Blue, AttackToolBinding.Neutral, position, isLocked);
+            return AddToolSlot(ToolItemType.Blue, AttackToolBinding.Neutral, position, isLocked);
         }
+
+        #region Auto Slot Navigation
+
+        /// <summary>
+        /// Sets the targets of navigation on <paramref name="source"/> for each
+        /// specified direction. Leaving any of the directional parameters null or unset
+        /// will leave <paramref name="source"/>'s navigation in that direction unchanged.
+        /// </summary>
+        /// <param name="source">The slot to set the navigation properties of.</param>
+        /// <param name="up">
+        ///     The slot to select when navigating up from <paramref name="source"/>.
+        /// </param>
+        /// <param name="right">
+        ///     The slot to select when navigating right from <paramref name="source"/>.
+        /// </param>
+        /// <param name="left">
+        ///     The slot to select when navigating left from <paramref name="source"/>.
+        /// </param>
+        /// <param name="down">
+        ///     The slot to select when navigating down from <paramref name="source"/>.
+        /// </param>
+        public void SetSlotNavigation(
+            SlotInfo source,
+            SlotInfo? up = null, SlotInfo? right = null, SlotInfo? left = null, SlotInfo? down = null
+        ) {
+            StackTrace stackTrace = new(skipFrames: 1, fNeedFileInfo: true);
+            string trace = stackTrace.ToString().Split("at UnityEngine", 2)[0];
+            bool printTrace = false;
+
+            int source_i = slots.FindIndex(s => SlotsEqual(source, s));
+            if (source_i == -1)
+            {
+                ModHelper.LogError($"{SlotNotFoundMsg("Source")}. Stack Trace: {trace}");
+                return;
+            }
+
+            SlotInfo slot = slots[source_i];
+
+            if (up != null)
+            {
+                int up_i = slots.FindIndex(s => SlotsEqual(up, s));
+                if (up_i == -1)
+                {
+                    ModHelper.LogWarning(SlotNotFoundMsg("Up"));
+                    printTrace = true;
+                }
+                else slot = slot with { NavUpIndex = up_i };
+            }
+            if (right != null)
+            {
+                int right_i = slots.FindIndex(s => SlotsEqual(right, s));
+                if (right_i == -1)
+                {
+                    ModHelper.LogWarning(SlotNotFoundMsg("Right"));
+                    printTrace = true;
+                }
+                else slot = slot with { NavRightIndex = right_i };
+            }
+            if (left != null)
+            {
+                int left_i = slots.FindIndex(s => SlotsEqual(left, s));
+                if (left_i == -1)
+                {
+                    ModHelper.LogWarning(SlotNotFoundMsg("Left"));
+                    printTrace = true;
+                }
+                else slot = slot with { NavLeftIndex = left_i };
+            }
+            if (down != null)
+            {
+                int down_i = slots.FindIndex(s => SlotsEqual(down, s));
+                if (down_i == -1)
+                {
+                    ModHelper.LogWarning(SlotNotFoundMsg("Down"));
+                    printTrace = true;
+                }
+                else slot = slot with { NavDownIndex = down_i };
+            }
+
+            if (printTrace)
+                ModHelper.LogWarning($"{name}: Stack Trace: {trace}");
+
+            slots[source_i] = slot;
+
+            #region Local Functions
+            string SlotNotFoundMsg(string identifier) =>
+                $"{name}: {identifier} slot doesn't belog to this crest";
+
+            static bool SlotsEqual(SlotInfo? one, SlotInfo? two) =>
+                // null checks
+                one is SlotInfo A && two is SlotInfo B
+                // equality check
+                && A.Position == B.Position && A.Type == B.Type
+                && (
+                    A.Type != ToolItemType.Red && A.Type != ToolItemType.Skill
+                    || A.AttackBinding == B.AttackBinding
+                );
+            #endregion
+        }
+
+        #endregion
 
         public CrestData(string name, LocalisedString displayName, LocalisedString description, Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
         {
