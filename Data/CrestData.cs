@@ -273,6 +273,10 @@ namespace Needleforge.Data
                 slotSize = 1.5f, // Slots in inventory UI are 1.5 x 1.5
                 sMin = slotSize / 2f,
                 sMax = slotSize * 2f,
+
+                defaultWidth = slotSize * 2f / 3f,
+                defaultHeight = slotSize * 2f / 3f,
+
                 angleEpsilon = 2f,
                 distanceEpsilon = 0.05f;
 
@@ -285,8 +289,8 @@ namespace Needleforge.Data
                 boxB = objB.AddComponent<BoxCollider2D>();
 
             boxA.size = boxB.size = new(
-                Mathf.Clamp(slotDimensions?.W ?? slotSize, sMin, sMax),
-                Mathf.Clamp(slotDimensions?.H ?? slotSize, sMin, sMax)
+                Mathf.Clamp(slotDimensions?.W ?? defaultWidth, sMin, sMax),
+                Mathf.Clamp(slotDimensions?.H ?? defaultHeight, sMin, sMax)
             );
             directionAngleRange = Mathf.Clamp(Mathf.Abs(directionAngleRange), 0f, 180f);
             #endregion
@@ -335,7 +339,7 @@ namespace Needleforge.Data
                     NavUpIndex = CanSet(s.NavUpIndex) ? up.Index : s.NavUpIndex,
                     NavRightIndex = CanSet(s.NavRightIndex) ? right.Index : s.NavRightIndex,
                     NavLeftIndex = CanSet(s.NavLeftIndex) ? left.Index : s.NavLeftIndex,
-                    NavDownIndex = CanSet(s.NavDownIndex) ? up.Index : s.NavDownIndex
+                    NavDownIndex = CanSet(s.NavDownIndex) ? down.Index : s.NavDownIndex
                 };
             }
 
@@ -348,8 +352,8 @@ namespace Needleforge.Data
                 if (!AngleCloseTo(nuu.Angle, direction, directionAngleRange))
                     return old;
 
-                // if the angles are nearly equivalent, favour the better distance
-                if (AngleCloseTo(nuu.Angle, old.Angle, angleEpsilon))
+                // if the angles are equally good, favour the better distance
+                if (Mathf.Abs(Vector2.Angle(nuu.Angle, direction) - Vector2.Angle(old.Angle, direction)) <= angleEpsilon)
                     return GTE(nuu.Distance, old.Distance, distanceEpsilon)
                         ? old : nuu;
 
