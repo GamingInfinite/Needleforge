@@ -22,16 +22,16 @@ namespace Needleforge.Makers
             ToolCrest newCrest = ScriptableObject.CreateInstance<ToolCrest>();
 
             newCrest.name = crestData.name;
-            newCrest.crestGlow = crestData.CrestGlow ?? hunter.crestGlow;
-            newCrest.crestSilhouette = crestData.Silhouette ?? hunter.crestSilhouette;
-            newCrest.crestSprite = crestData.RealSprite ?? hunter.crestSprite;
+            newCrest.crestGlow = crestData.CrestGlow ? crestData.CrestGlow : hunter.crestGlow;
+            newCrest.crestSilhouette = crestData.Silhouette ? crestData.Silhouette : hunter.crestSilhouette;
+            newCrest.crestSprite = crestData.RealSprite ? crestData.RealSprite : hunter.crestSprite;
 
             newCrest.displayName = crestData.displayName;
             newCrest.description = crestData.description;
 
             newCrest.slots = [.. crestData.slots];
 
-            newCrest.heroConfig = crestData.AttackConfig ?? hunter.heroConfig;
+            newCrest.heroConfig = crestData.AttackConfig ? crestData.AttackConfig : hunter.heroConfig;
 
             ToolItemManager.Instance.crestList.Add(newCrest);
 
