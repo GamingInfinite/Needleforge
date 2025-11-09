@@ -235,32 +235,47 @@ namespace Needleforge.Data
         /// default it will not overwrite any navigation properties which have already
         /// been set to a valid slot.
         /// </para><para>
-        /// The algorithm may sometimes produce undesirable results; test and
-        /// override its decisions as necessary.
+        /// The algorithm may sometimes produce undesirable results. You can adjust its
+        /// behaviour with the optional parameters <paramref name="directionAngleRange"/>
+        /// and <paramref name="slotDimensions"/>, or you can override any connections
+        /// it makes by setting specific slot connections manually.
         /// </para>
         /// </summary>
-        /// <param name="onlyOnInvalidProps">
+        /// <param name="onlyChangeInvalidProps">
         ///     If true, auto-navigation is only applied to navigation properties which
         ///     don't point to an existing slot. If false, auto-navigation will overwrite
         ///     ALL navigation properties.
         /// </param>
-        public void ApplyAutoSlotNavigation(bool onlyOnInvalidProps = true)
-        {
-            #region Algorithm Tuning
-            // Size & shape slots are considered to be for distance & angle calculations.
-            // Taller ratio favours horizontal nav, shorter favours vertical nav.
-            // Slot size in inventory UI = 1.5 x 1.5
-            const float slotWidth = 1.5f, slotHeight = 1.5f;
-
-            // Range around a cardinal direction that an angle can be in for it to count
-            // as being "in that direction"
-            const float cardinalDirRange = 46f;
-
-            const float angleEpsilon = 2f;
-            const float distanceEpsilon = 0.05f;
-            #endregion
-
+        /// <param name="directionAngleRange">
+        ///     This is a range, in degrees, used to determine which cardinal direction
+        ///     one tool slot is in relative to another tool slot. Higher values loosen
+        ///     the restriction, smaller values tighten it. Setting the value below 45
+        ///     degrees may rarely introduce "blind spots" that prevent a tool slot from
+        ///     being reachable.
+        /// </param>
+        /// <param name="slotDimensions">
+        ///     <para>
+        ///     This affects how biased the algorithm is toward making either vertical
+        ///     or horizontal connections between slots. If W is greater than H, there
+        ///     are tighter angle restrictions on left-right connections and looser angle
+        ///     restrictions on up-down connections; the reverse is also true.
+        ///     </para><para>
+        ///     Default is (1.5, 1.5). Values are clamped between 0.75 and 3.
+        ///     </para>
+        /// </param>
+        public void ApplyAutoSlotNavigation(
+            bool onlyChangeInvalidProps = true,
+            float directionAngleRange = 46f,
+            (float W, float H)? slotDimensions = null
+        ) {
             #region Setup
+            const float
+                slotSize = 1.5f, // Slots in inventory UI are 1.5 x 1.5
+                sMin = slotSize / 2f,
+                sMax = slotSize * 2f,
+                angleEpsilon = 2f,
+                distanceEpsilon = 0.05f;
+
             // Using physics calcs for convenience; need colliders to represent slots
             GameObject
                 objA = new("", typeof(Rigidbody2D)),
@@ -269,7 +284,11 @@ namespace Needleforge.Data
                 boxA = objA.AddComponent<BoxCollider2D>(),
                 boxB = objB.AddComponent<BoxCollider2D>();
 
-            boxA.size = boxB.size = new(slotWidth, slotHeight);
+            boxA.size = boxB.size = new(
+                Mathf.Clamp(slotDimensions?.W ?? slotSize, sMin, sMax),
+                Mathf.Clamp(slotDimensions?.H ?? slotSize, sMin, sMax)
+            );
+            directionAngleRange = Mathf.Clamp(Mathf.Abs(directionAngleRange), 0f, 180f);
             #endregion
 
             for (int A = 0; A < slots.Count; A++)
@@ -326,7 +345,7 @@ namespace Needleforge.Data
             #region Local Functions
             NavCandidate StrongerCandidate(NavCandidate nuu, NavCandidate old, Vector2 direction){
                 // check if nuu's angle is valid at all
-                if (!AngleCloseTo(nuu.Angle, direction, cardinalDirRange))
+                if (!AngleCloseTo(nuu.Angle, direction, directionAngleRange))
                     return old;
 
                 // if the angles are nearly equivalent, favour the better distance
@@ -350,10 +369,11 @@ namespace Needleforge.Data
                 => Mathf.Abs(lhs - rhs) <= epsilon || lhs >= rhs;
 
             bool CanSet(int currentNav)
-                => currentNav < 0 || currentNav >= slots.Count || !onlyOnInvalidProps;
+                => currentNav < 0 || currentNav >= slots.Count || !onlyChangeInvalidProps;
             #endregion
         }
 
+        private record struct Size(float w, float h);
         private record struct NavCandidate(int Index, Vector2 Angle, float Distance);
 
         #endregion
