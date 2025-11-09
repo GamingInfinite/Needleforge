@@ -8,7 +8,6 @@ using System.Text;
 using TeamCherry.Localization;
 using UnityEngine;
 using SlotInfo = ToolCrest.SlotInfo;
-using System.Reflection;
 
 namespace Needleforge.Data
 {
@@ -229,6 +228,133 @@ namespace Needleforge.Data
             }
             #endregion
         }
+
+        /// <summary>
+        /// <para>
+        /// Sets up menu navigation between this crest's tool slots automatically. By
+        /// default it will not overwrite any navigation properties which have already
+        /// been set to a valid slot.
+        /// </para><para>
+        /// The algorithm may sometimes produce undesirable results; test and
+        /// override its decisions as necessary.
+        /// </para>
+        /// </summary>
+        /// <param name="onlyOnInvalidProps">
+        ///     If true, auto-navigation is only applied to navigation properties which
+        ///     don't point to an existing slot. If false, auto-navigation will overwrite
+        ///     ALL navigation properties.
+        /// </param>
+        public void ApplyAutoSlotNavigation(bool onlyOnInvalidProps = true)
+        {
+            #region Algorithm Tuning
+            // Size & shape slots are considered to be for distance & angle calculations.
+            // Taller ratio favours horizontal nav, shorter favours vertical nav.
+            // Slot size in inventory UI = 1.5 x 1.5
+            const float slotWidth = 1.5f, slotHeight = 1.5f;
+
+            // Range around a cardinal direction that an angle can be in for it to count
+            // as being "in that direction"
+            const float cardinalDirRange = 46f;
+
+            const float angleEpsilon = 2f;
+            const float distanceEpsilon = 0.05f;
+            #endregion
+
+            #region Setup
+            // Using physics calcs for convenience; need colliders to represent slots
+            GameObject
+                objA = new("", typeof(Rigidbody2D)),
+                objB = new("", typeof(Rigidbody2D));
+            BoxCollider2D
+                boxA = objA.AddComponent<BoxCollider2D>(),
+                boxB = objB.AddComponent<BoxCollider2D>();
+
+            boxA.size = boxB.size = new(slotWidth, slotHeight);
+            #endregion
+
+            for (int A = 0; A < slots.Count; A++)
+            {
+                // Current best candidate for navigation from slot A in each direction
+                NavCandidate
+                    up = new(-1, Vector2.down, Mathf.Infinity),
+                    right = new(-1, Vector2.left, Mathf.Infinity),
+                    left = new(-1, Vector2.right, Mathf.Infinity),
+                    down = new(-1, Vector2.up, Mathf.Infinity);
+
+                for (int B = 0; B < slots.Count; B++)
+                {
+                    if (A == B) continue;
+                    Vector2 posA = slots[A].Position, posB = slots[B].Position;
+
+                    objA.transform.position = posA;
+                    objB.transform.position = posB;
+                    ColliderDistance2D colliderDiff = Physics2D.Distance(boxB, boxA);
+
+                    Vector2 angle = colliderDiff.normal;
+                    float distance = colliderDiff.distance;
+
+                    if (colliderDiff.isOverlapped)
+                    {
+                        // Severe overlap; switch to center-point-based angle
+                        if (boxA.OverlapPoint(posB))
+                            angle = (posB - posA).normalized;
+                        // Shallow overlap; flip the angle the right way and continue
+                        else
+                            angle *= -Vector2.one;
+                    }
+
+                    NavCandidate candidate = new(B, angle, distance);
+
+                    up = StrongerCandidate(candidate, up, Vector2.up);
+                    right = StrongerCandidate(candidate, right, Vector2.right);
+                    left = StrongerCandidate(candidate, left, Vector2.left);
+                    down = StrongerCandidate(candidate, down, Vector2.down);
+                }
+
+                SlotInfo s = slots[A];
+                slots[A] = s with {
+                    NavUpIndex = CanSet(s.NavUpIndex) ? up.Index : s.NavUpIndex,
+                    NavRightIndex = CanSet(s.NavRightIndex) ? right.Index : s.NavRightIndex,
+                    NavLeftIndex = CanSet(s.NavLeftIndex) ? left.Index : s.NavLeftIndex,
+                    NavDownIndex = CanSet(s.NavDownIndex) ? up.Index : s.NavDownIndex
+                };
+            }
+
+            GameObject.Destroy(objA);
+            GameObject.Destroy(objB);
+
+            #region Local Functions
+            NavCandidate StrongerCandidate(NavCandidate nuu, NavCandidate old, Vector2 direction){
+                // check if nuu's angle is valid at all
+                if (!AngleCloseTo(nuu.Angle, direction, cardinalDirRange))
+                    return old;
+
+                // if the angles are nearly equivalent, favour the better distance
+                if (AngleCloseTo(nuu.Angle, old.Angle, angleEpsilon))
+                    return GTE(nuu.Distance, old.Distance, distanceEpsilon)
+                        ? old : nuu;
+
+                // otherwise, favour the better angle
+                return old.Angle == CloserAngle(nuu.Angle, old.Angle, direction)
+                        ? old : nuu;
+            }
+
+            static bool AngleCloseTo(Vector2 angle, Vector2 direction, float degreeRange)
+                => Vector2.Angle(angle, direction) <= degreeRange;
+
+            static Vector2 CloserAngle(Vector2 angleA, Vector2 angleB, Vector2 direction)
+                => Vector2.Angle(angleA, direction) <= Vector2.Angle(angleB, direction)
+                    ? angleA : angleB;
+
+            static bool GTE(float lhs, float rhs, float epsilon)
+                => Mathf.Abs(lhs - rhs) <= epsilon || lhs >= rhs;
+
+            bool CanSet(int currentNav)
+                => currentNav < 0 || currentNav >= slots.Count || !onlyOnInvalidProps;
+            #endregion
+        }
+
+        private record struct NavCandidate(int Index, Vector2 Angle, float Distance);
 
         #endregion
 
