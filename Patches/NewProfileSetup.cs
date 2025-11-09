@@ -14,7 +14,7 @@ namespace Needleforge.Patches
             {
                 if (data.ToolCrest != null && data.UnlockedAtStart)
                 {
-                    data.ToolCrest.SaveData = CrestMaker.defaultSave;
+                    data.ToolCrest.SaveData = CrestMaker.CreateDefaultSaveData();
                 }
             }
         }

@@ -6,14 +6,15 @@ using UnityEngine;
 
 namespace Needleforge.Makers
 {
-    public class CrestMaker
+    internal class CrestMaker
     {
-        public static ToolCrestsData.Data defaultSave = new()
-        {
-            IsUnlocked = true,
-            Slots = [],
-            DisplayNewIndicator = true,
-        };
+        internal static ToolCrestsData.Data CreateDefaultSaveData() =>
+            new()
+            {
+                IsUnlocked = true,
+                Slots = [],
+                DisplayNewIndicator = true,
+            };
 
         /// <summary>
         /// NEVER USE THIS, USE <see cref="NeedleforgePlugin.AddCrest"/> INSTEAD
@@ -24,12 +25,12 @@ namespace Needleforge.Makers
         /// <param name="slots"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static ToolCrest CreateCrest(Sprite? RealSprite, Sprite? Silhouette, HeroControllerConfig? attackConfig, List<ToolCrest.SlotInfo> slots, string name, LocalisedString displayName, LocalisedString description)
+        internal static ToolCrest CreateCrest(Sprite? RealSprite, Sprite? Silhouette, HeroControllerConfig? attackConfig, List<ToolCrest.SlotInfo> slots, string name, LocalisedString displayName, LocalisedString description)
         {
             List<ToolCrest> crests = ToolItemManager.GetAllCrests();
             ToolCrest hunter = crests[0];
 
-            ToolCrest newCrest = new();
+            ToolCrest newCrest = ScriptableObject.CreateInstance<ToolCrest>();
 
             newCrest.name = name;
             newCrest.crestGlow = hunter.crestGlow;
@@ -42,7 +43,7 @@ namespace Needleforge.Makers
             newCrest.slots = [.. slots];
 
             newCrest.heroConfig = attackConfig ?? hunter.heroConfig;
-            newCrest.SaveData = defaultSave;
+            newCrest.SaveData = CreateDefaultSaveData();
 
             ToolItemManager.Instance.crestList.Add(newCrest);
 
