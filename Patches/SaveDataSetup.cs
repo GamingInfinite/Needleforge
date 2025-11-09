@@ -28,7 +28,7 @@ namespace Needleforge.Patches
             List<string> validCrestNames = __instance.ToolEquips.GetValidNames();
             foreach (CrestData data in NeedleforgePlugin.newCrestData)
             {
-                if (data.ToolCrest != null && !validCrestNames.Contains(data.name))
+                if (data.ToolCrest != null && data.UnlockedAtStart && !validCrestNames.Contains(data.name))
                 {
                     __instance.ToolEquips.SetData(data.name, CrestMaker.CreateDefaultSaveData());
                 }
