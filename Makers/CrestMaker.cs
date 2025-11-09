@@ -1,7 +1,5 @@
-﻿using System;
+﻿using Needleforge.Data;
 using System.Collections.Generic;
-using System.Text;
-using TeamCherry.Localization;
 using UnityEngine;
 
 namespace Needleforge.Makers
@@ -16,33 +14,24 @@ namespace Needleforge.Makers
                 DisplayNewIndicator = true,
             };
 
-        /// <summary>
-        /// NEVER USE THIS, USE <see cref="NeedleforgePlugin.AddCrest"/> INSTEAD
-        /// </summary>
-        /// <param name="RealSprite"></param>
-        /// <param name="Silhouette"></param>
-        /// <param name="attackConfig"></param>
-        /// <param name="slots"></param>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        internal static ToolCrest CreateCrest(Sprite? RealSprite, Sprite? Silhouette, HeroControllerConfig? attackConfig, List<ToolCrest.SlotInfo> slots, string name, LocalisedString displayName, LocalisedString description)
+        internal static ToolCrest CreateCrest(CrestData crestData)
         {
             List<ToolCrest> crests = ToolItemManager.GetAllCrests();
             ToolCrest hunter = crests[0];
 
             ToolCrest newCrest = ScriptableObject.CreateInstance<ToolCrest>();
 
-            newCrest.name = name;
-            newCrest.crestGlow = hunter.crestGlow;
-            newCrest.crestSilhouette = Silhouette ?? hunter.crestSilhouette;
-            newCrest.crestSprite = RealSprite ?? hunter.crestSprite;
+            newCrest.name = crestData.name;
+            newCrest.crestGlow = crestData.CrestGlow ?? hunter.crestGlow;
+            newCrest.crestSilhouette = crestData.Silhouette ?? hunter.crestSilhouette;
+            newCrest.crestSprite = crestData.RealSprite ?? hunter.crestSprite;
 
-            newCrest.displayName = displayName;
-            newCrest.description = description;
+            newCrest.displayName = crestData.displayName;
+            newCrest.description = crestData.description;
 
-            newCrest.slots = [.. slots];
+            newCrest.slots = [.. crestData.slots];
 
-            newCrest.heroConfig = attackConfig ?? hunter.heroConfig;
+            newCrest.heroConfig = crestData.AttackConfig ?? hunter.heroConfig;
 
             ToolItemManager.Instance.crestList.Add(newCrest);
 

@@ -14,7 +14,7 @@ namespace Needleforge.Patches
             foreach (CrestData data in NeedleforgePlugin.newCrestData)
             {
                 ModHelper.Log($"Adding {data.name}");
-                CrestMaker.CreateCrest(data.RealSprite, data.Silhouette, data.AttackConfig, data.slots, data.name, data.displayName, data.description);
+                CrestMaker.CreateCrest(data);
             }
         }
 
