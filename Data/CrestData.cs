@@ -1,11 +1,14 @@
 ﻿using HutongGames.PlayMaker;
+using MonoMod.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using TeamCherry.Localization;
 using UnityEngine;
 using SlotInfo = ToolCrest.SlotInfo;
+using System.Reflection;
 
 namespace Needleforge.Data
 {
@@ -136,18 +139,15 @@ namespace Needleforge.Data
             SlotInfo source,
             SlotInfo? up = null, SlotInfo? right = null, SlotInfo? left = null, SlotInfo? down = null
         ) {
-            StackTrace stackTrace = new(skipFrames: 1, fNeedFileInfo: true);
-            string trace = stackTrace.ToString().Split("at UnityEngine", 2)[0];
-            bool printTrace = false;
-
             int source_i = slots.FindIndex(s => SlotsEqual(source, s));
             if (source_i == -1)
             {
-                ModHelper.LogError($"{SlotNotFoundMsg("Source")}. Stack Trace: {trace}");
+                ModHelper.LogError($"{SlotNotFoundMsg("Source")}. Stack Trace: {GetStackTrace()}");
                 return;
             }
 
             SlotInfo slot = slots[source_i];
+            bool printTrace = false;
 
             if (up != null)
             {
@@ -191,13 +191,13 @@ namespace Needleforge.Data
             }
 
             if (printTrace)
-                ModHelper.LogWarning($"{name}: Stack Trace: {trace}");
+                ModHelper.LogWarning($"{name}: Stack Trace: {GetStackTrace()}");
 
             slots[source_i] = slot;
 
             #region Local Functions
             string SlotNotFoundMsg(string identifier) =>
-                $"{name}: {identifier} slot doesn't belog to this crest";
+                $"{name}: {identifier} slot doesn't belong to this crest";
 
             static bool SlotsEqual(SlotInfo? one, SlotInfo? two) =>
                 // null checks
@@ -208,6 +208,25 @@ namespace Needleforge.Data
                     A.Type != ToolItemType.Red && A.Type != ToolItemType.Skill
                     || A.AttackBinding == B.AttackBinding
                 );
+
+            // Purely because I don't want any file path info or any stack frames past
+            // the ones that are made by mod developers to get logged
+            static string GetStackTrace() {
+                StackTrace stackTrace = new(skipFrames: 2, fNeedFileInfo: true);
+                StringBuilder trace = new();
+                foreach (var frame in stackTrace.GetFrames()) {
+                    if (!frame.HasMethod())
+                        continue;
+                    var method = frame.GetMethod();
+                    if (method.DeclaringType.Namespace == nameof(UnityEngine))
+                        break;
+                    trace.AppendLine(
+                        $"    at {method.DeclaringType}.{method.Name
+                        }() line {frame.GetFileLineNumber()}"
+                    );
+                }
+                return trace.ToString().Trim();
+            }
             #endregion
         }
 
