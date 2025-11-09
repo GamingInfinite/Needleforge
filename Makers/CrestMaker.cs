@@ -43,7 +43,6 @@ namespace Needleforge.Makers
             newCrest.slots = [.. slots];
 
             newCrest.heroConfig = attackConfig ?? hunter.heroConfig;
-            newCrest.SaveData = CreateDefaultSaveData();
 
             ToolItemManager.Instance.crestList.Add(newCrest);
 
