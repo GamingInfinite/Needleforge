@@ -139,65 +139,44 @@ namespace Needleforge.Data
             SlotInfo source,
             SlotInfo? up = null, SlotInfo? right = null, SlotInfo? left = null, SlotInfo? down = null
         ) {
-            int source_i = slots.FindIndex(s => SlotsEqual(source, s));
-            if (source_i == -1)
+            if (slots.FindIndex(s => SlotsEqual(source, s)) is int src && src == -1)
             {
-                ModHelper.LogError($"{SlotNotFoundMsg("Source")}. Stack Trace: {GetStackTrace()}");
+                ModHelper.LogError(SlotNotFoundMsg("Source"));
                 return;
             }
 
-            SlotInfo slot = slots[source_i];
-            bool printTrace = false;
-
             if (up != null)
             {
-                int up_i = slots.FindIndex(s => SlotsEqual(up, s));
-                if (up_i == -1)
-                {
+                if (slots.FindIndex(s => SlotsEqual(up, s)) is int i && i > -1)
+                    slots[src] = slots[src] with { NavUpIndex = i };
+                else
                     ModHelper.LogWarning(SlotNotFoundMsg("Up"));
-                    printTrace = true;
-                }
-                else slot = slot with { NavUpIndex = up_i };
             }
             if (right != null)
             {
-                int right_i = slots.FindIndex(s => SlotsEqual(right, s));
-                if (right_i == -1)
-                {
+                if (slots.FindIndex(s => SlotsEqual(right, s)) is int i && i > -1)
+                    slots[src] = slots[src] with { NavRightIndex = i };
+                else
                     ModHelper.LogWarning(SlotNotFoundMsg("Right"));
-                    printTrace = true;
-                }
-                else slot = slot with { NavRightIndex = right_i };
             }
             if (left != null)
             {
-                int left_i = slots.FindIndex(s => SlotsEqual(left, s));
-                if (left_i == -1)
-                {
+                if (slots.FindIndex(s => SlotsEqual(left, s)) is int i && i > -1)
+                    slots[src] = slots[src] with { NavLeftIndex = i };
+                else
                     ModHelper.LogWarning(SlotNotFoundMsg("Left"));
-                    printTrace = true;
-                }
-                else slot = slot with { NavLeftIndex = left_i };
             }
             if (down != null)
             {
-                int down_i = slots.FindIndex(s => SlotsEqual(down, s));
-                if (down_i == -1)
-                {
+                if (slots.FindIndex(s => SlotsEqual(down, s)) is int i && i > -1)
+                    slots[src] = slots[src] with { NavDownIndex = i };
+                else
                     ModHelper.LogWarning(SlotNotFoundMsg("Down"));
-                    printTrace = true;
-                }
-                else slot = slot with { NavDownIndex = down_i };
             }
-
-            if (printTrace)
-                ModHelper.LogWarning($"{name}: Stack Trace: {GetStackTrace()}");
-
-            slots[source_i] = slot;
 
             #region Local Functions
             string SlotNotFoundMsg(string identifier) =>
-                $"{name}: {identifier} slot doesn't belong to this crest";
+                $"Crest {name}: {identifier} slot doesn't belong to this crest. {GetStackTrace()}";
 
             static bool SlotsEqual(SlotInfo? one, SlotInfo? two) =>
                 // null checks
