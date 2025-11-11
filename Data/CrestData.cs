@@ -51,6 +51,17 @@ namespace Needleforge.Data
                 NeedleforgePlugin.bindEvents[name] = value;
             }
         }
+        public Action BindCompleteEvent
+        {
+            get
+            {
+                return NeedleforgePlugin.bindCompleteEvents[name];
+            }
+            set
+            {
+                NeedleforgePlugin.bindCompleteEvents[name] = value;
+            }
+        }
         public UniqueBindEvent uniqueBindEvent
         {
             get

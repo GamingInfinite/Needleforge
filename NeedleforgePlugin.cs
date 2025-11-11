@@ -26,6 +26,7 @@ namespace Needleforge
         
         public static Dictionary<string, GameObject> hudRoots = new();
         public static Dictionary<string, Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM>> bindEvents = new();
+        public static Dictionary<string, Action> bindCompleteEvents = new();
         public static Dictionary<string, UniqueBindEvent> uniqueBind = new();
         
         public static Dictionary<string, Action> toolEventHooks = new();
@@ -170,6 +171,10 @@ namespace Needleforge
             bindEvents[name] = (value, amount, time, fsm) =>
             {
                 ModHelper.Log($"Running Bind for {name} Crest");
+            };
+            bindCompleteEvents[name] = () =>
+            {
+                ModHelper.Log($"Bind for {name} Crest Complete");
             };
 
             return crestData;
