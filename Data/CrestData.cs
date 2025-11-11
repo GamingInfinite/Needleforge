@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using TeamCherry.Localization;
 using UnityEngine;
+using UnityEngine.UIElements;
 using SlotInfo = ToolCrest.SlotInfo;
 
 namespace Needleforge.Data
@@ -230,53 +231,39 @@ namespace Needleforge.Data
         }
 
         /// <summary>
-        /// <para>
         /// Sets up menu navigation between this crest's tool slots automatically. By
-        /// default it will not overwrite any navigation properties which have already
-        /// been set to a valid slot.
-        /// </para><para>
-        /// The algorithm may sometimes produce undesirable results. You can adjust its
-        /// behaviour with the optional parameters <paramref name="directionAngleRange"/>
-        /// and <paramref name="slotDimensions"/>, or you can override any connections
-        /// it makes by setting specific slot connections manually.
-        /// </para>
+        /// default it will not overwrite any previously set navigation properties. The
+        /// auto-navigation logic can be fine-tuned with the optional parameters. This
+        /// function should only be called after all slots have been added to the crest.
         /// </summary>
         /// <param name="onlyChangeInvalidProps">
         ///     If true, auto-navigation is only applied to navigation properties which
         ///     don't point to an existing slot. If false, auto-navigation will overwrite
         ///     ALL navigation properties.
         /// </param>
-        /// <param name="directionAngleRange">
-        ///     This is a range, in degrees, used to determine which cardinal direction
-        ///     one tool slot is in relative to another tool slot. Higher values loosen
-        ///     the restriction, smaller values tighten it. Setting the value below 45
-        ///     degrees may rarely introduce "blind spots" that prevent a tool slot from
-        ///     being reachable.
+        /// <param name="angleRange">
+        ///     A range in degrees used to determine which cardinal direction one tool
+        ///     slot is in relative to another tool slot. Clamped between 45 and 180.
         /// </param>
         /// <param name="slotDimensions">
         ///     <para>
-        ///     This affects how biased the algorithm is toward making either vertical
-        ///     or horizontal connections between slots. If W is greater than H, there
-        ///     are tighter angle restrictions on left-right connections and looser angle
-        ///     restrictions on up-down connections; the reverse is also true.
+        ///     This affects how biased the algorithm is toward making either vertical or
+        ///     horizontal connections. If x > y, restrictions are tighter on left-right
+        ///     connections and looser on up-down connections; the inverse is also true.
         ///     </para><para>
-        ///     Default is (1.5, 1.5). Values are clamped between 0.75 and 3.
+        ///     Default is (1, 1). Values are clamped between 0.25 and 2.
         ///     </para>
         /// </param>
         public void ApplyAutoSlotNavigation(
             bool onlyChangeInvalidProps = true,
-            float directionAngleRange = 46f,
-            (float W, float H)? slotDimensions = null
+            float angleRange = 60f,
+            Vector2? slotDimensions = null
         ) {
             #region Setup
             const float
-                slotSize = 1.5f, // Slots in inventory UI are 1.5 x 1.5
-                sMin = slotSize / 2f,
-                sMax = slotSize * 2f,
-
-                defaultWidth = slotSize * 2f / 3f,
-                defaultHeight = slotSize * 2f / 3f,
-
+                defaultSize = 1f, // Slots in inventory UI are 1.5 x 1.5
+                sMin = 0.25f,
+                sMax = 2.0f,
                 angleEpsilon = 2f,
                 distanceEpsilon = 0.05f;
 
@@ -289,96 +276,93 @@ namespace Needleforge.Data
                 boxB = objB.AddComponent<BoxCollider2D>();
 
             boxA.size = boxB.size = new(
-                Mathf.Clamp(slotDimensions?.W ?? defaultWidth, sMin, sMax),
-                Mathf.Clamp(slotDimensions?.H ?? defaultHeight, sMin, sMax)
+                Mathf.Clamp(slotDimensions?.x ?? defaultSize, sMin, sMax),
+                Mathf.Clamp(slotDimensions?.y ?? defaultSize, sMin, sMax)
             );
-            directionAngleRange = Mathf.Clamp(Mathf.Abs(directionAngleRange), 0f, 180f);
+            angleRange = Mathf.Clamp(Mathf.Abs(angleRange), 45f, 180f);
             #endregion
 
             for (int A = 0; A < slots.Count; A++)
             {
-                // Current best candidate for navigation from slot A in each direction
-                NavCandidate
-                    up = new(-1, Vector2.down, Mathf.Infinity),
-                    right = new(-1, Vector2.left, Mathf.Infinity),
-                    left = new(-1, Vector2.right, Mathf.Infinity),
-                    down = new(-1, Vector2.up, Mathf.Infinity);
+                Dictionary<Vector2, NavCandidate> bestTarget = new(){
+                    { Vector2.up,    new(-1, Vector2.down,  Mathf.Infinity, Vector2.down) },
+                    { Vector2.right, new(-1, Vector2.left,  Mathf.Infinity, Vector2.left) },
+                    { Vector2.left,  new(-1, Vector2.right, Mathf.Infinity, Vector2.right) },
+                    { Vector2.down,  new(-1, Vector2.up,    Mathf.Infinity, Vector2.up) }
+                };
 
                 for (int B = 0; B < slots.Count; B++)
                 {
                     if (A == B) continue;
+                    #region Calculate angles & distances
+
                     Vector2 posA = slots[A].Position, posB = slots[B].Position;
 
                     objA.transform.position = posA;
                     objB.transform.position = posB;
                     ColliderDistance2D colliderDiff = Physics2D.Distance(boxB, boxA);
 
-                    Vector2 angle = colliderDiff.normal;
                     float distance = colliderDiff.distance;
+                    Vector2
+                        boxAngle = colliderDiff.normal,
+                        pointAngle = (posB - posA).normalized;
 
                     if (colliderDiff.isOverlapped)
                     {
-                        // Severe overlap; switch to center-point-based angle
-                        if (boxA.OverlapPoint(posB))
-                            angle = (posB - posA).normalized;
-                        // Shallow overlap; flip the angle the right way and continue
-                        else
-                            angle *= -Vector2.one;
+                        if (boxA.OverlapPoint(posB)) // Severe overlap; forego box model
+                            boxAngle = pointAngle;
+                        else                        // Shallow overlap; flip angle & continue
+                            boxAngle *= -Vector2.one;
                     }
+                    #endregion
+                    #region Decide if & how A navigates to B
 
-                    NavCandidate candidate = new(B, angle, distance);
+                    foreach (Vector2 direction in bestTarget.Keys.ToList())
+                    {
+                        NavCandidate best = bestTarget[direction];
+                        float
+                            boxAngleDiff = Vector2.Angle(boxAngle, direction),
+                            pointAngleDiff = Vector2.Angle(pointAngle, direction),
+                            bestBoxAngleDiff = Vector2.Angle(best.BoxAngle, direction),
+                            bestPtAngleDiff = Vector2.Angle(best.PointAngle, direction);
+                        bool
+                            boxAnglesEqual = boxAngleDiff.IsWithinTolerance(angleEpsilon, bestBoxAngleDiff),
+                            distancesEqual = distance.IsWithinTolerance(distanceEpsilon, best.Distance);
 
-                    up = StrongerCandidate(candidate, up, Vector2.up);
-                    right = StrongerCandidate(candidate, right, Vector2.right);
-                    left = StrongerCandidate(candidate, left, Vector2.left);
-                    down = StrongerCandidate(candidate, down, Vector2.down);
+                        if (
+                            boxAngleDiff > angleRange // on incorrect side of the reference slot
+                            || (boxAnglesEqual && distancesEqual && bestPtAngleDiff <= pointAngleDiff)
+                            || (boxAnglesEqual && best.Distance < distance)
+                            || bestBoxAngleDiff < boxAngleDiff
+                        ) {
+                            continue;
+                        }
+                        bestTarget[direction] = new NavCandidate(B, boxAngle, distance, pointAngle);
+                    }
+                    #endregion
                 }
 
-                SlotInfo s = slots[A];
-                slots[A] = s with {
-                    NavUpIndex = CanSet(s.NavUpIndex) ? up.Index : s.NavUpIndex,
-                    NavRightIndex = CanSet(s.NavRightIndex) ? right.Index : s.NavRightIndex,
-                    NavLeftIndex = CanSet(s.NavLeftIndex) ? left.Index : s.NavLeftIndex,
-                    NavDownIndex = CanSet(s.NavDownIndex) ? down.Index : s.NavDownIndex
+                slots[A] = slots[A] with {
+                    NavUpIndex = CanSet(slots[A].NavUpIndex)
+                        ? bestTarget[Vector2.up].Index : slots[A].NavUpIndex,
+                    NavRightIndex = CanSet(slots[A].NavRightIndex)
+                        ? bestTarget[Vector2.right].Index : slots[A].NavRightIndex,
+                    NavLeftIndex = CanSet(slots[A].NavLeftIndex)
+                        ? bestTarget[Vector2.left].Index : slots[A].NavLeftIndex,
+                    NavDownIndex = CanSet(slots[A].NavDownIndex)
+                        ? bestTarget[Vector2.down].Index : slots[A].NavDownIndex
                 };
             }
 
             GameObject.Destroy(objA);
             GameObject.Destroy(objB);
 
-            #region Local Functions
-            NavCandidate StrongerCandidate(NavCandidate nuu, NavCandidate old, Vector2 direction){
-                // check if nuu's angle is valid at all
-                if (!AngleCloseTo(nuu.Angle, direction, directionAngleRange))
-                    return old;
-
-                // if the angles are equally good, favour the better distance
-                if (Mathf.Abs(Vector2.Angle(nuu.Angle, direction) - Vector2.Angle(old.Angle, direction)) <= angleEpsilon)
-                    return GTE(nuu.Distance, old.Distance, distanceEpsilon)
-                        ? old : nuu;
-
-                // otherwise, favour the better angle
-                return old.Angle == CloserAngle(nuu.Angle, old.Angle, direction)
-                        ? old : nuu;
-            }
-
-            static bool AngleCloseTo(Vector2 angle, Vector2 direction, float degreeRange)
-                => Vector2.Angle(angle, direction) <= degreeRange;
-
-            static Vector2 CloserAngle(Vector2 angleA, Vector2 angleB, Vector2 direction)
-                => Vector2.Angle(angleA, direction) <= Vector2.Angle(angleB, direction)
-                    ? angleA : angleB;
-
-            static bool GTE(float lhs, float rhs, float epsilon)
-                => Mathf.Abs(lhs - rhs) <= epsilon || lhs >= rhs;
-
-            bool CanSet(int currentNav)
-                => currentNav < 0 || currentNav >= slots.Count || !onlyChangeInvalidProps;
-            #endregion
+            bool CanSet(int navProp)
+                => navProp < 0 || navProp >= slots.Count || !onlyChangeInvalidProps;
         }
 
-        private record struct Size(float w, float h);
-        private record struct NavCandidate(int Index, Vector2 Angle, float Distance);
+        private record struct NavCandidate(
+            int Index, Vector2 BoxAngle, float Distance, Vector2 PointAngle);
 
         #endregion
 
