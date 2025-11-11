@@ -1,6 +1,6 @@
 ﻿namespace Needleforge
 {
-    internal class ModHelper
+    internal static class ModHelper
     {
         public static void Log(string msg)
         {
@@ -10,6 +10,11 @@
         public static void LogError(string msg)
         {
             NeedleforgePlugin.logger.LogError(msg);
+        }
+
+        public static void LogWarning(string msg)
+        {
+            NeedleforgePlugin.logger.LogWarning(msg);
         }
     }
 }
