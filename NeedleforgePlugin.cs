@@ -23,6 +23,7 @@ namespace Needleforge
         public static List<CrestData> newCrestData = new();
         public static List<ToolCrest> newCrests = new();
         public static List<ToolItem> newTools = new();
+        public static List<ColorData> newColors = new();
         
         public static Dictionary<string, GameObject> hudRoots = new();
         public static Dictionary<string, Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM>> bindEvents = new();
@@ -37,6 +38,14 @@ namespace Needleforge
             Logger.LogInfo($"Plugin {Name} ({Id}) has loaded!");
             harmony = new("com.example.patch");
             harmony.PatchAll();
+            
+            newColors.Add(new()
+            {
+                name = "Green",
+                color = new Color32(0, 255, 0, 255),
+            });
+
+            AddTool("NeoGreenTool", (ToolItemType)4);
         }
 
         public static ToolData GetToolDataByName(string name)
