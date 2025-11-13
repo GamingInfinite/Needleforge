@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using GlobalSettings;
 using HarmonyLib;
-using Needleforge.Data;
 using UnityEngine;
 
 namespace Needleforge.Patches;
@@ -102,104 +100,5 @@ public class InventoryToolCrestPatches
         {
             __instance.templateSlots[(int)color.type] = __instance.templateSlots[1];
         }
-    }
-}
-
-[HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.GetAvailableSlotCount))]
-public class MutliToolSlots
-{
-    [HarmonyPostfix]
-    public static void Postfix(IEnumerable<InventoryToolCrestSlot> slots, ToolItemType? toolType, ref int __result)
-    {
-        foreach (var slot in slots)
-        {
-            if (slot.Type > (ToolItemType)3)
-            {
-                int index = (int)slot.Type - 4;
-                ColorData color = NeedleforgePlugin.newColors[index];
-                if (color.type == toolType)
-                {
-                    Debug.Log("Increasing Usable Slots");
-                    __result++;
-                }
-            }
-        }
-    }
-}
-
-[HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.GetAvailableSlot))]
-public class MutliToolSlotsPatches
-{
-    [HarmonyPostfix]
-    public static void Postfix(IEnumerable<InventoryToolCrestSlot> slots, ToolItemType toolType, ref InventoryToolCrestSlot __result)
-    {
-        if (__result == null)
-        {
-            foreach (var slot in slots)
-            {
-                if (slot.Type > (ToolItemType)3)
-                {
-                    int index = (int)slot.Type - 4;
-                    ColorData color = NeedleforgePlugin.newColors[index];
-                    if (color.acceptableTypes.Contains(toolType))
-                    {
-                        __result = slot;
-                    }
-                }
-            }
-        }
-    }
-}
-
-[HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.PlaceTool))]
-public class MutliToolPlaceToolPatch
-{
-    [HarmonyPrefix]
-    public static bool Prefix(InventoryToolCrestSlot slot, bool isManual, InventoryItemToolManager __instance)
-    {
-        void Selected()
-        {
-            __instance.SetSelected(__instance.selectedBeforePickup, null);
-            __instance.selectedBeforePickup = null;
-        }
-        if (slot.Type > (ToolItemType)3)
-        {
-            foreach (var color in NeedleforgePlugin.newColors)
-            {
-                if (color.type == slot.Type)
-                {
-                    Debug.Log("GotHere");
-                    if (!color.acceptableTypes.Contains(__instance.PickedUpTool.Type))
-                    {
-                        continue;
-                    }
-                    Debug.Log("We Got Here");
-                    ToolItem tool = __instance.PickedUpTool;
-                    __instance.PickedUpTool = null;
-                    __instance.EquipState = InventoryItemToolManager.EquipStates.None;
-                    if (isManual)
-                    {
-                        slot.SetEquipped(tool, true, true);
-                    }
-                    if (!__instance.selectedBeforePickup)
-                    {
-                        if (isManual)
-                        {
-                            slot.PreOpenSlot();
-                        }
-                        if (__instance.tweenTool && slot)
-                        {
-                            __instance.tweenTool.DoPlace(__instance.selectedBeforePickup.transform.position, slot.transform.position, tool, Selected);
-                        }
-                        else
-                        {
-                            Selected();
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-        return true;
     }
 }

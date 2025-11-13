@@ -41,22 +41,20 @@ namespace Needleforge
             Logger.LogInfo($"Plugin {Name} ({Id}) has loaded!");
             harmony = new("com.example.patch");
             harmony.PatchAll();
+
             
             newColors.CollectionChanged += NewColors_CollectionChanged;
 
-            ColorData altCrest = new()
+            newColors.Add(new()
             {
-                name = "AltCrest",
+                name = "Green",
                 color = new Color32(0, 255, 0, 255),
                 type = (ToolItemType)4
-            };
-            altCrest.acceptableTypes.Add(altCrest.type);
-            altCrest.acceptableTypes.Add(ToolItemType.Yellow);
-            newColors.Add(altCrest);
+            });
 
             var neoCrest = AddCrest("NeoCrest");
-            neoCrest.AddToolSlot(altCrest.type, AttackToolBinding.Neutral, Vector2.zero, false);
-            AddTool("NeoGreenTool", altCrest.type);
+            neoCrest.AddToolSlot(newColors[0].type, AttackToolBinding.Neutral, Vector2.zero, false);
+            AddTool("NeoGreenTool", newColors[0].type);
         }
 
         private void NewColors_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

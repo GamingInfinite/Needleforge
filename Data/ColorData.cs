@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Needleforge.Data;
@@ -9,5 +8,4 @@ public class ColorData
     public Color color;
 
     public ToolItemType type;
-    public List<ToolItemType> acceptableTypes = [];
 }
