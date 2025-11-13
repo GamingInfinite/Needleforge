@@ -76,10 +76,9 @@ public class ToolItemTypePatch2
         {
             Array newArr = Array.CreateInstance(enumType, __result.Length + NeedleforgePlugin.newColors.Count);
             List<ToolItemType> arrList = [..(ToolItemType[])__result];
-            for (int i = 0; i < NeedleforgePlugin.newColors.Count; i++)
+            foreach (var color in NeedleforgePlugin.newColors)
             {
-                int index = i + 4;
-                arrList.Add((ToolItemType)index);
+                arrList.Add(color.type);
             }
             arrList.ToArray().CopyTo(newArr, 0);
             __result = newArr;

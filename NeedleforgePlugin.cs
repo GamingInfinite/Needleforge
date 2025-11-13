@@ -43,11 +43,12 @@ namespace Needleforge
             {
                 name = "Green",
                 color = new Color32(0, 255, 0, 255),
+                type = (ToolItemType)4
             });
 
             var neoCrest = AddCrest("NeoCrest");
-            neoCrest.AddToolSlot((ToolItemType)4, AttackToolBinding.Neutral, Vector2.zero, false);
-            AddTool("NeoGreenTool", (ToolItemType)4);
+            neoCrest.AddToolSlot(newColors[0].type, AttackToolBinding.Neutral, Vector2.zero, false);
+            AddTool("NeoGreenTool", newColors[0].type);
         }
 
         public static ToolData GetToolDataByName(string name)
