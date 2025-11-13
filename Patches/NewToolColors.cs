@@ -25,7 +25,12 @@ public class AddAnimators
     [HarmonyPrefix]
     public static void Postfix(InventoryItemTool __instance, ToolItem newItemData)
     {
-        Debug.Log($"[Needleforge] {__instance.slotAnimatorControllers.Length}");
+        List<RuntimeAnimatorController> newControllers = [..__instance.slotAnimatorControllers];
+        foreach (var color in NeedleforgePlugin.newColors)
+        {
+            newControllers.Add(__instance.slotAnimatorControllers[1]);
+        }
+        __instance.slotAnimatorControllers = newControllers.ToArray();
     }
 }
 
@@ -58,5 +63,45 @@ public class ToolItemTypeEnumPatch
                 __result.AddItem(index);
             }
         }
+    }
+}
+
+[HarmonyPatch(typeof(Enum), nameof(Enum.GetValues), typeof(Type))]
+public class ToolItemTypePatch2
+{
+    [HarmonyPostfix]
+    public static void Postfix(Type enumType, ref Array __result)
+    {
+        if (enumType == typeof(ToolItemType))
+        {
+            Array newArr = Array.CreateInstance(enumType, __result.Length + NeedleforgePlugin.newColors.Count);
+            List<ToolItemType> arrList = [..(ToolItemType[])__result];
+            for (int i = 0; i < NeedleforgePlugin.newColors.Count; i++)
+            {
+                int index = i + 4;
+                arrList.Add((ToolItemType)index);
+            }
+            arrList.ToArray().CopyTo(newArr, 0);
+            __result = newArr;
+            foreach (var VARIABLE in newArr)
+            {
+                Debug.Log(VARIABLE);
+            }
+        }
+    }
+}
+
+[HarmonyPatch(typeof(InventoryToolCrest), nameof(InventoryToolCrest.OnValidate))]
+public class InventoryToolCrestPatches
+{
+    [HarmonyPostfix]
+    public static void Postfix(InventoryToolCrest __instance)
+    {
+        List<InventoryToolCrestSlot> newSlots = [..__instance.templateSlots];
+        foreach (var color in NeedleforgePlugin.newColors) 
+        {
+            newSlots.Add(__instance.templateSlots[1]);
+        }
+        __instance.templateSlots = newSlots.ToArray();
     }
 }

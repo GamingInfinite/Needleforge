@@ -45,6 +45,8 @@ namespace Needleforge
                 color = new Color32(0, 255, 0, 255),
             });
 
+            var neoCrest = AddCrest("NeoCrest");
+            neoCrest.AddToolSlot((ToolItemType)4, AttackToolBinding.Neutral, Vector2.zero, false);
             AddTool("NeoGreenTool", (ToolItemType)4);
         }
 
