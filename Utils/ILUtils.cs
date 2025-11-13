@@ -65,7 +65,8 @@ internal static class ILUtils {
 		if (ci.opcode == OpCodes.Stloc_1) return 1;
 		if (ci.opcode == OpCodes.Stloc_2) return 2;
 		if (ci.opcode == OpCodes.Stloc_3) return 3;
-		return (int)ci.operand;
+		if (ci.operand is int v) return v;
+		return -1;
 	}
 
 	#endregion

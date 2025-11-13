@@ -12,9 +12,9 @@ public class AddHeaders
     [HarmonyPostfix]
     public static void Postfix(InventoryItemToolManager __instance)
     {
-        for (int i = 0; i < NeedleforgePlugin.newColors.Count; i++)
+        foreach (var color in NeedleforgePlugin.newColors) 
         {
-            __instance.listSectionHeaders.AddItem(__instance.listSectionHeaders[0]);
+            __instance.listSectionHeaders[(int)color.type] = __instance.listSectionHeaders[1];
         }
     }
 }
@@ -74,18 +74,16 @@ public class ToolItemTypePatch2
     {
         if (enumType == typeof(ToolItemType))
         {
-            Array newArr = Array.CreateInstance(enumType, __result.Length + NeedleforgePlugin.newColors.Count);
-            List<ToolItemType> arrList = [..(ToolItemType[])__result];
+            List<ToolItemType> arrList = [];
+            foreach (var color in __result)
+            {
+                arrList.Add((ToolItemType)color);
+            }
             foreach (var color in NeedleforgePlugin.newColors)
             {
                 arrList.Add(color.type);
             }
-            arrList.ToArray().CopyTo(newArr, 0);
-            __result = newArr;
-            foreach (var VARIABLE in newArr)
-            {
-                Debug.Log(VARIABLE);
-            }
+            __result = arrList.ToArray();
         }
     }
 }
@@ -96,11 +94,11 @@ public class InventoryToolCrestPatches
     [HarmonyPostfix]
     public static void Postfix(InventoryToolCrest __instance)
     {
-        List<InventoryToolCrestSlot> newSlots = [..__instance.templateSlots];
+        // OnValidate already expands the length of the list to accomodate the new
+        // length of the enum, it just doesn't populate the empty spaces.
         foreach (var color in NeedleforgePlugin.newColors) 
         {
-            newSlots.Add(__instance.templateSlots[1]);
+            __instance.templateSlots[(int)color.type] = __instance.templateSlots[1];
         }
-        __instance.templateSlots = newSlots.ToArray();
     }
 }

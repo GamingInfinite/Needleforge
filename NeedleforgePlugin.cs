@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using HutongGames.PlayMaker;
 using Needleforge.Data;
 using Needleforge.Makers;
+using Needleforge.Patches;
 using PrepatcherPlugin;
 using TeamCherry.Localization;
 using UnityEngine;
@@ -23,7 +26,7 @@ namespace Needleforge
         public static List<CrestData> newCrestData = new();
         public static List<ToolCrest> newCrests = new();
         public static List<ToolItem> newTools = new();
-        public static List<ColorData> newColors = new();
+        public static ObservableCollection<ColorData> newColors = new();
         
         public static Dictionary<string, GameObject> hudRoots = new();
         public static Dictionary<string, Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM>> bindEvents = new();
@@ -38,7 +41,10 @@ namespace Needleforge
             Logger.LogInfo($"Plugin {Name} ({Id}) has loaded!");
             harmony = new("com.example.patch");
             harmony.PatchAll();
+
             
+            newColors.CollectionChanged += NewColors_CollectionChanged;
+
             newColors.Add(new()
             {
                 name = "Green",
@@ -49,6 +55,13 @@ namespace Needleforge
             var neoCrest = AddCrest("NeoCrest");
             neoCrest.AddToolSlot(newColors[0].type, AttackToolBinding.Neutral, Vector2.zero, false);
             AddTool("NeoGreenTool", newColors[0].type);
+        }
+
+        private void NewColors_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            // Doing this so the static variable updates
+            // whenever a user of needleforge adds a color, in theory
+            InventoryToolCrest.TOOL_TYPES = (ToolItemType[])Enum.GetValues(typeof(ToolItemType));
         }
 
         public static ToolData GetToolDataByName(string name)
