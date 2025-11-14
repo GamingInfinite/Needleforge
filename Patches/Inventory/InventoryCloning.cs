@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using HarmonyLib;
+using TeamCherry.NestedFadeGroup;
 using UnityEngine;
 
 namespace Needleforge.Patches;
 
 [HarmonyPatch]
-public class InventoryPatches
+public class InventoryCloning
 {
     [HarmonyPatch(typeof(InventoryToolCrest), nameof(InventoryToolCrest.OnValidate))]
     [HarmonyPostfix]
@@ -13,7 +14,14 @@ public class InventoryPatches
     {
         foreach (var color in NeedleforgePlugin.newColors)
         {
-            __instance.templateSlots[(int)color.type] = __instance.templateSlots[1];
+            if (color.isAttackType)
+            {
+                __instance.templateSlots[(int)color.type] = __instance.templateSlots[0];
+            }
+            else
+            {
+                __instance.templateSlots[(int)color.type] = __instance.templateSlots[1];
+            }
         }
     }
 
@@ -24,7 +32,14 @@ public class InventoryPatches
         List<RuntimeAnimatorController> newControllers = [..__instance.slotAnimatorControllers];
         foreach (var color in NeedleforgePlugin.newColors)
         {
-            newControllers.Add(__instance.slotAnimatorControllers[1]);
+            if (color.isAttackType)
+            {
+                newControllers.Add(__instance.slotAnimatorControllers[0]);
+            }
+            else
+            {
+                newControllers.Add(__instance.slotAnimatorControllers[1]);
+            }
         }
 
         __instance.slotAnimatorControllers = newControllers.ToArray();
@@ -36,10 +51,14 @@ public class InventoryPatches
     {
         foreach (var color in NeedleforgePlugin.newColors)
         {
-            var og = __instance.listSectionHeaders[1];
-            var obj = UnityEngine.Object.Instantiate(og, og.transform.parent);
-            obj.name = color.name;
-            __instance.listSectionHeaders[(int)color.type] = obj;
+            NestedFadeGroupSpriteRenderer originalHeader = __instance.listSectionHeaders[1];
+            NestedFadeGroupSpriteRenderer header = Object.Instantiate(originalHeader, originalHeader.transform.parent);
+            header.name = color.name;
+            if (color.header != null)
+            {
+                header.Sprite = color.header;
+            }
+            __instance.listSectionHeaders[(int)color.type] = header;
         }
     }
 }

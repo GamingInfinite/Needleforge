@@ -42,20 +42,25 @@ namespace Needleforge
             harmony = new("com.example.patch");
             harmony.PatchAll();
 
-            #if DEBUG
             newColors.CollectionChanged += NewColors_CollectionChanged;
 
-            newColors.Add(new()
-            {
-                name = "Green",
-                color = new Color32(0, 255, 0, 255),
-                type = (ToolItemType)4
-            });
+#if DEBUG
+            var greenTools = AddToolColor("Green", Color.green);
+            greenTools.AddValidType(ToolItemType.Yellow);
+            greenTools.AddValidType(ToolItemType.Blue);
+            var pinkTools = AddToolColor("Pink",
+                new Color32(255, 150, 200, 255),
+                true
+            );
+            pinkTools.AddValidType(ToolItemType.Red);
+            pinkTools.AddValidType(ToolItemType.Skill);
 
             var neoCrest = AddCrest("NeoCrest");
-            neoCrest.AddToolSlot(newColors[0].type, AttackToolBinding.Neutral, Vector2.zero, false);
+            neoCrest.AddToolSlot(greenTools.type, AttackToolBinding.Neutral, Vector2.zero, false);
+            neoCrest.AddToolSlot(pinkTools.type, AttackToolBinding.Up, new(0, 2), false);
+            neoCrest.ApplyAutoSlotNavigation();
             AddTool("NeoGreenTool", newColors[0].type);
-            #endif
+#endif
         }
 
         private void NewColors_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -76,6 +81,20 @@ namespace Needleforge
             }
 
             return null;
+        }
+
+        public static ColorData AddToolColor(string name, Color color, bool isAttackType = false)
+        {
+            int index = newColors.Count + 4;
+            ColorData newColor = new()
+            {
+                name = name,
+                color = color,
+                type = (ToolItemType)index,
+                isAttackType = isAttackType
+            };
+            newColors.Add(newColor);
+            return newColor;
         }
 
         public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
