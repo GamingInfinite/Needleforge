@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
 using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using Needleforge.Data;
 using Silksong.FsmUtil;
 using Silksong.FsmUtil.Actions;
-using UnityEngine;
 
 namespace Needleforge.Patches
 {
