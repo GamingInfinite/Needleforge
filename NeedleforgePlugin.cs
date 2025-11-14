@@ -48,6 +48,7 @@ namespace Needleforge
             var greenTools = AddToolColor("Green", Color.green);
             greenTools.AddValidType(ToolItemType.Yellow);
             greenTools.AddValidType(ToolItemType.Blue);
+            
             var pinkTools = AddToolColor("Pink",
                 new Color32(255, 150, 200, 255),
                 true
@@ -55,11 +56,16 @@ namespace Needleforge
             pinkTools.AddValidType(ToolItemType.Red);
             pinkTools.AddValidType(ToolItemType.Skill);
 
+            var blackTools = AddToolColor("Black", Color.black, true);
+            blackTools.allColorsValid = true;
+
             var neoCrest = AddCrest("NeoCrest");
             neoCrest.AddToolSlot(greenTools.type, AttackToolBinding.Neutral, Vector2.zero, false);
             neoCrest.AddToolSlot(pinkTools.type, AttackToolBinding.Up, new(0, 2), false);
+            neoCrest.AddToolSlot(blackTools.type, AttackToolBinding.Down, new(0, -2), false);
             neoCrest.ApplyAutoSlotNavigation();
-            AddTool("NeoGreenTool", newColors[0].type);
+            AddTool("NeoGreenTool", greenTools.type);
+            // AddTool("NeoPinkTool", pinkTools.type);
 #endif
         }
 

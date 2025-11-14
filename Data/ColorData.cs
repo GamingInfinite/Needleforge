@@ -14,6 +14,7 @@ public class ColorData
 
     public ToolItemType type;
     private List<ToolItemType> _extraValidTypes = [];
+    public bool allColorsValid = false;
 
     public void AddValidType(ToolItemType type)
     {
