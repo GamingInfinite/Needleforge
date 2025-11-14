@@ -7,7 +7,6 @@ namespace Needleforge.Patches;
 [HarmonyPatch]
 public class MultiSlot
 {
-    //IsAttackType
     [HarmonyPatch(typeof(ToolItemTypeExtensions), nameof(ToolItemTypeExtensions.IsAttackType))]
     [HarmonyPostfix]
     public static void CustomColorAttackType(ToolItemType type, ref bool __result)
@@ -22,12 +21,12 @@ public class MultiSlot
     [HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.GetAvailableSlotCount))]
     [HarmonyPostfix]
     public static void GetAvailableSlotCountMultiColor(IEnumerable<InventoryToolCrestSlot> slots,
-        ToolItemType? toolType, ref int __result)
+        ToolItemType? toolType, bool checkEmpty, ref int __result)
     {
         int count = 0;
         foreach (var slot in slots)
         {
-            if (!slot.IsLocked)
+            if (!slot.IsLocked && (slot.EquippedItem == null || !checkEmpty))
             {
                 ToolItemType realToolType = toolType.GetValueOrDefault();
                 if ((int)slot.Type > 3)
