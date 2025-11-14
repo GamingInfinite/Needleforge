@@ -65,7 +65,7 @@ namespace Needleforge
             neoCrest.AddToolSlot(blackTools.type, AttackToolBinding.Down, new(0, -2), false);
             neoCrest.ApplyAutoSlotNavigation();
             AddTool("NeoGreenTool", greenTools.type);
-            // AddTool("NeoPinkTool", pinkTools.type);
+            AddTool("NeoBlackTool", blackTools.type);
 #endif
         }
 
@@ -91,12 +91,10 @@ namespace Needleforge
 
         public static ColorData AddToolColor(string name, Color color, bool isAttackType = false)
         {
-            int index = newColors.Count + 4;
             ColorData newColor = new()
             {
                 name = name,
                 color = color,
-                type = (ToolItemType)index,
                 isAttackType = isAttackType
             };
             newColors.Add(newColor);

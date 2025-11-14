@@ -12,7 +12,14 @@ public class ColorData
     public Sprite slotIcon;
     public Sprite header;
 
-    public ToolItemType type;
+    public ToolItemType type
+    {
+        get
+        {
+            int index = NeedleforgePlugin.newColors.IndexOf(this);
+            return (ToolItemType)(index + 4);
+        }
+    }
     private List<ToolItemType> _extraValidTypes = [];
     public bool allColorsValid = false;
 
