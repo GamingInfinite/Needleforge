@@ -51,9 +51,14 @@ public class InventoryCloning
     {
         foreach (var color in NeedleforgePlugin.newColors)
         {
+            if (__instance.listSectionHeaders[(int)color.type]) // To avoid duplicate header objects
+            {
+                continue;
+            }
+
             NestedFadeGroupSpriteRenderer originalHeader = __instance.listSectionHeaders[1];
             NestedFadeGroupSpriteRenderer header = Object.Instantiate(originalHeader, originalHeader.transform.parent);
-            header.name = color.name;
+            header.name = $"{color.name} Section Header";
             if (color.header != null)
             {
                 header.Sprite = color.header;
