@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HarmonyLib;
 using TeamCherry.NestedFadeGroup;
 using UnityEngine;
@@ -25,24 +24,17 @@ public class InventoryCloning
         }
     }
 
-    [HarmonyPatch(typeof(InventoryItemTool), nameof(InventoryItemTool.SetData))]
-    [HarmonyPrefix]
-    public static void AddAnimators(InventoryItemTool __instance, ToolItem newItemData)
+    [HarmonyPatch(typeof(InventoryItemTool), nameof(InventoryItemTool.OnValidate))]
+    [HarmonyPostfix]
+    public static void AddAnimators(InventoryItemTool __instance)
     {
-        List<RuntimeAnimatorController> newControllers = [..__instance.slotAnimatorControllers];
         foreach (var color in NeedleforgePlugin.newColors)
         {
-            if (color.isAttackType)
-            {
-                newControllers.Add(__instance.slotAnimatorControllers[0]);
-            }
-            else
-            {
-                newControllers.Add(__instance.slotAnimatorControllers[1]);
-            }
-        }
+            RuntimeAnimatorController controller =
+                __instance.slotAnimatorControllers[color.isAttackType ? 0 : 1];
 
-        __instance.slotAnimatorControllers = newControllers.ToArray();
+            __instance.slotAnimatorControllers[(int)color.type] = controller;
+        }
     }
 
     [HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.OnValidate))]
