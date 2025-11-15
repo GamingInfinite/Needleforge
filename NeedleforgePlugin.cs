@@ -34,6 +34,13 @@ namespace Needleforge
         public static Dictionary<string, UniqueBindEvent> uniqueBind = new();
 
         public static Dictionary<string, Action> toolEventHooks = new();
+        
+        public static ColorData greenTools = AddToolColor("Green", Color.green);
+        public static ColorData pinkTools = AddToolColor("Pink",
+            new Color32(255, 150, 200, 255),
+            true
+        );
+        public static ColorData blackTools = AddToolColor("Black", new Color(0.38f, 0.38f, 0.38f, 1f), true);
 
         private void Awake()
         {
@@ -43,22 +50,16 @@ namespace Needleforge
             harmony.PatchAll();
 
             newColors.CollectionChanged += NewColors_CollectionChanged;
-
-#if DEBUG
-            var greenTools = AddToolColor("Green", Color.green);
+            
             greenTools.AddValidType(ToolItemType.Yellow);
             greenTools.AddValidType(ToolItemType.Blue);
             
-            var pinkTools = AddToolColor("Pink",
-                new Color32(255, 150, 200, 255),
-                true
-            );
             pinkTools.AddValidType(ToolItemType.Red);
             pinkTools.AddValidType(ToolItemType.Skill);
 
-            var blackTools = AddToolColor("Black", new Color(0.38f, 0.38f, 0.38f, 1f), true);
             blackTools.allColorsValid = true;
 
+#if DEBUG
             var neoCrest = AddCrest("NeoCrest");
             neoCrest.AddToolSlot(greenTools.type, AttackToolBinding.Neutral, Vector2.zero, false);
             neoCrest.AddToolSlot(pinkTools.type, AttackToolBinding.Up, new(0, 2), false);
