@@ -6,7 +6,7 @@ namespace Needleforge.Makers
 {
     public class ToolMaker
     {
-        public static ToolItemsData.Data defaultData = new()
+        public static ToolItemsData.Data CreateDefaultData() => new()
         {
             IsUnlocked = true,
             IsHidden = false,
@@ -15,7 +15,7 @@ namespace Needleforge.Makers
             AmountLeft = 0,
         };
 
-        public static ToolItemLiquidsData.Data defaultLiquidsData = new()
+        public static ToolItemLiquidsData.Data CreateDefaultLiquidsData() => new()
         {
             RefillsLeft = 20,
             SeenEmptyState = true,
@@ -27,7 +27,7 @@ namespace Needleforge.Makers
             ToolItem item = ToolItemManager.Instance.toolItems[62];
 
 
-            ToolItemBasic newTool = new();
+            ToolItemBasic newTool = ScriptableObject.CreateInstance<ToolItemBasic>();
 
             newTool.name = name;
 
@@ -39,7 +39,7 @@ namespace Needleforge.Makers
             newTool.baseStorageAmount = 0;
 
             newTool.inventorySprite = inventorySprite ?? item.GetInventorySprite(ToolItem.IconVariants.Default);
-            newTool.SavedData = defaultData;
+            newTool.SavedData = CreateDefaultData();
             newTool.alternateUnlockedTest = new()
             {
                 TestGroups = [
@@ -50,7 +50,7 @@ namespace Needleforge.Makers
                                 Type = PlayerDataTest.TestType.Bool,
                                 BoolValue = true,
                             }
-                            ]
+                        ]
                     }
                     ]
             };
@@ -74,7 +74,7 @@ namespace Needleforge.Makers
         {
             ToolItemStatesLiquid fleaBrew = (ToolItemStatesLiquid)ToolItemManager.Instance.toolItems[26];
 
-            ToolItemStatesLiquid newLiquidTool = new();
+            ToolItemStatesLiquid newLiquidTool = ScriptableObject.CreateInstance<ToolItemStatesLiquid>();
 
             newLiquidTool.name = name;
             newLiquidTool.liquidColor = fluidColor;
@@ -123,8 +123,8 @@ namespace Needleforge.Makers
             newLiquidTool.refillEffectHero = fleaBrew.refillEffectHero;
             newLiquidTool.extraDescriptionSection = fleaBrew.extraDescriptionSection;
 
-            newLiquidTool.SavedData = defaultData;
-            newLiquidTool.LiquidSavedData = defaultLiquidsData;
+            newLiquidTool.SavedData = CreateDefaultData();
+            newLiquidTool.LiquidSavedData = CreateDefaultLiquidsData();
 
             AddCustomTool(newLiquidTool);
 

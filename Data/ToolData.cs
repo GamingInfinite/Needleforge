@@ -35,11 +35,7 @@ namespace Needleforge.Data
         {
             get
             {
-                if (Item != null)
-                {
-                    return Item.IsEquipped;
-                }
-                return false;
+                return Item && Item.IsEquipped;
             }
         }
         public string unlockedPDString

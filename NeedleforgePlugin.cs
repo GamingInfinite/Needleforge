@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using HutongGames.PlayMaker;
 using Needleforge.Data;
 using Needleforge.Makers;
+using Needleforge.Patches;
 using PrepatcherPlugin;
 using TeamCherry.Localization;
 using UnityEngine;
@@ -23,13 +26,21 @@ namespace Needleforge
         public static List<CrestData> newCrestData = new();
         public static List<ToolCrest> newCrests = new();
         public static List<ToolItem> newTools = new();
-        
+        public static ObservableCollection<ColorData> newColors = new();
+
         public static Dictionary<string, GameObject> hudRoots = new();
         public static Dictionary<string, Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM>> bindEvents = new();
         public static Dictionary<string, Action> bindCompleteEvents = new();
         public static Dictionary<string, UniqueBindEvent> uniqueBind = new();
-        
+
         public static Dictionary<string, Action> toolEventHooks = new();
+        
+        public static ColorData greenTools = AddToolColor("Green", Color.green);
+        public static ColorData pinkTools = AddToolColor("Pink",
+            new Color32(255, 150, 200, 255),
+            true
+        );
+        public static ColorData blackTools = AddToolColor("Black", new Color(0.38f, 0.38f, 0.38f, 1f), true);
 
         private void Awake()
         {
@@ -37,6 +48,33 @@ namespace Needleforge
             Logger.LogInfo($"Plugin {Name} ({Id}) has loaded!");
             harmony = new("com.example.patch");
             harmony.PatchAll();
+
+            newColors.CollectionChanged += NewColors_CollectionChanged;
+            
+            greenTools.AddValidType(ToolItemType.Yellow);
+            greenTools.AddValidType(ToolItemType.Blue);
+            
+            pinkTools.AddValidType(ToolItemType.Red);
+            pinkTools.AddValidType(ToolItemType.Skill);
+
+            blackTools.allColorsValid = true;
+
+#if DEBUG
+            var neoCrest = AddCrest("NeoCrest");
+            neoCrest.AddToolSlot(greenTools.type, AttackToolBinding.Neutral, Vector2.zero, false);
+            neoCrest.AddToolSlot(pinkTools.type, AttackToolBinding.Up, new(0, 2), false);
+            neoCrest.AddToolSlot(blackTools.type, AttackToolBinding.Down, new(0, -2), false);
+            neoCrest.ApplyAutoSlotNavigation();
+            AddTool("NeoGreenTool", greenTools.type);
+            AddTool("NeoBlackTool", blackTools.type);
+#endif
+        }
+
+        private void NewColors_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            // Doing this so the static variable updates
+            // whenever a user of needleforge adds a color, in theory
+            InventoryToolCrest.TOOL_TYPES = (ToolItemType[])Enum.GetValues(typeof(ToolItemType));
         }
 
         public static ToolData GetToolDataByName(string name)
@@ -48,12 +86,26 @@ namespace Needleforge
                     return t;
                 }
             }
+
             return null;
         }
 
-        public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount, string InfiniteRefillsPD, Color liquidColor, 
-            ToolItem.ReplenishResources resource, ToolItem.ReplenishUsages replenishUsage, float replenishMult, 
-            StateSprites? fullSprites, StateSprites? emptySprites, 
+        public static ColorData AddToolColor(string name, Color color, bool isAttackType = false)
+        {
+            ColorData newColor = new()
+            {
+                name = name,
+                color = color,
+                isAttackType = isAttackType
+            };
+            newColors.Add(newColor);
+            return newColor;
+        }
+
+        public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
+            string InfiniteRefillsPD, Color liquidColor,
+            ToolItem.ReplenishResources resource, ToolItem.ReplenishUsages replenishUsage, float replenishMult,
+            StateSprites? fullSprites, StateSprites? emptySprites,
             string clip = "Charge Up")
         {
             LiquidToolData data = new()
@@ -77,26 +129,25 @@ namespace Needleforge
             };
 
             newToolData.Add(data);
-            toolEventHooks[$"{data.name} BEFORE ANIM"] = () =>
-            {
-                ModHelper.Log($"BEFORE ANIM for {data.name}");
-            };
-            toolEventHooks[$"{data.name} AFTER ANIM"] = () =>
-            {
-                ModHelper.Log($"AFTER ANIM for {data.name}");
-            };
+            toolEventHooks[$"{data.name} BEFORE ANIM"] = () => { ModHelper.Log($"BEFORE ANIM for {data.name}"); };
+            toolEventHooks[$"{data.name} AFTER ANIM"] = () => { ModHelper.Log($"AFTER ANIM for {data.name}"); };
 
             return data;
         }
 
-        public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount, string InfiniteRefillsPD, Color liquidColor, ToolItem.ReplenishResources resource, ToolItem.ReplenishUsages replenishUsage, float replenishMult)
+        public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
+            string InfiniteRefillsPD, Color liquidColor, ToolItem.ReplenishResources resource,
+            ToolItem.ReplenishUsages replenishUsage, float replenishMult)
         {
-            return AddLiquidTool(name, maxRefills, storageAmount, InfiniteRefillsPD, liquidColor, resource, replenishUsage, replenishMult, null, null, "Charge Up");
+            return AddLiquidTool(name, maxRefills, storageAmount, InfiniteRefillsPD, liquidColor, resource,
+                replenishUsage, replenishMult, null, null, "Charge Up");
         }
 
-        public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount, string InfiniteRefillsPD, Color liquidColor)
+        public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
+            string InfiniteRefillsPD, Color liquidColor)
         {
-            return AddLiquidTool(name, maxRefills, storageAmount, InfiniteRefillsPD, liquidColor, ToolItem.ReplenishResources.Shard, ToolItem.ReplenishUsages.Percentage, 1f);
+            return AddLiquidTool(name, maxRefills, storageAmount, InfiniteRefillsPD, liquidColor,
+                ToolItem.ReplenishResources.Shard, ToolItem.ReplenishUsages.Percentage, 1f);
         }
 
         public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount, Color liquidColor)
@@ -104,7 +155,8 @@ namespace Needleforge
             return AddLiquidTool(name, maxRefills, storageAmount, "", liquidColor);
         }
 
-        public static ToolData AddTool(string name, ToolItemType type, LocalisedString displayName, LocalisedString description, Sprite? InventorySprite)
+        public static ToolData AddTool(string name, ToolItemType type, LocalisedString displayName,
+            LocalisedString description, Sprite? InventorySprite)
         {
             ToolData data = new()
             {
@@ -121,6 +173,7 @@ namespace Needleforge
                 {
                     return data.UnlockedAtStart;
                 }
+
                 return current;
             };
 
@@ -130,7 +183,8 @@ namespace Needleforge
 
         public static ToolData AddTool(string name, ToolItemType type, Sprite? InventorySprite)
         {
-            return AddTool(name, type, new() { Key = $"{name}LocalKey", Sheet = "Mods.your.mod.id" }, new() { Key = $"{name}LocalKeyDesc", Sheet = "Mods.your.mod.id" }, InventorySprite);
+            return AddTool(name, type, new() { Key = $"{name}LocalKey", Sheet = "Mods.your.mod.id" },
+                new() { Key = $"{name}LocalKeyDesc", Sheet = "Mods.your.mod.id" }, InventorySprite);
         }
 
         public static ToolData AddTool(string name, ToolItemType type)
@@ -138,7 +192,8 @@ namespace Needleforge
             return AddTool(name, type, null);
         }
 
-        public static ToolData AddTool(string name, ToolItemType type, LocalisedString displayName, LocalisedString description)
+        public static ToolData AddTool(string name, ToolItemType type, LocalisedString displayName,
+            LocalisedString description)
         {
             return AddTool(name, type, displayName, description, null);
         }
@@ -163,29 +218,26 @@ namespace Needleforge
         /// <param name="RealSprite">Inventory Sprite</param>
         /// <param name="Silhouette">Crest List Sprite</param>
         /// <returns><see cref="CrestData"/></returns>
-        public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description, Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
+        public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
+            Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
         {
             CrestData crestData = new(name, displayName, description, RealSprite, Silhouette, CrestGlow);
 
             newCrestData.Add(crestData);
-            bindEvents[name] = (value, amount, time, fsm) =>
-            {
-                ModHelper.Log($"Running Bind for {name} Crest");
-            };
-            bindCompleteEvents[name] = () =>
-            {
-                ModHelper.Log($"Bind for {name} Crest Complete");
-            };
+            bindEvents[name] = (value, amount, time, fsm) => { ModHelper.Log($"Running Bind for {name} Crest"); };
+            bindCompleteEvents[name] = () => { ModHelper.Log($"Bind for {name} Crest Complete"); };
 
             return crestData;
         }
 
         public static CrestData AddCrest(string name, Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
         {
-            return AddCrest(name, new() { Key = $"{name}LocalKey", Sheet = "Mods.your.mod.id" }, new() { Key = $"{name}LocalKeyDesc", Sheet = "Mods.your.mod.id" }, RealSprite, Silhouette, CrestGlow);
+            return AddCrest(name, new() { Key = $"{name}LocalKey", Sheet = "Mods.your.mod.id" },
+                new() { Key = $"{name}LocalKeyDesc", Sheet = "Mods.your.mod.id" }, RealSprite, Silhouette, CrestGlow);
         }
 
-        public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description, Sprite? RealSprite, Sprite? Silhouette)
+        public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
+            Sprite? RealSprite, Sprite? Silhouette)
         {
             return AddCrest(name, displayName, description, RealSprite, Silhouette, null);
         }
@@ -195,7 +247,8 @@ namespace Needleforge
             return AddCrest(name, RealSprite, Silhouette, null);
         }
 
-        public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description, Sprite? RealSprite)
+        public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
+            Sprite? RealSprite)
         {
             return AddCrest(name, displayName, description, RealSprite, null);
         }
