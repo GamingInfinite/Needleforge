@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Needleforge.Data;
+using UnityEngine;
 
 namespace Needleforge.Patches;
 
@@ -43,6 +44,7 @@ public class MultiSlotNav
                 {
                     forceItemAvailable = toolData.allColorsValid;
                 }
+
                 if (data.ValidTypes.Contains(inventoryItemTool.ToolType) || forceItemAvailable || data.allColorsValid)
                 {
                     __result = nextSelectable;
@@ -129,5 +131,28 @@ public class MultiSlotNav
         }
 
         return true;
+    }
+
+    [HarmonyPatch(typeof(InventoryToolCrestSlot), nameof(InventoryToolCrestSlot.IsSlotInvalid))]
+    [HarmonyPostfix]
+    public static void MultiColorInvalid(ToolItemType type, InventoryToolCrestSlot nextSlot,
+        InventoryToolCrestSlot __instance, ref bool __result)
+    {
+        if (__result)
+        {
+            ToolItemType selToolType = __instance.manager.PickedUpTool.Type;
+            if (nextSlot.EquippedItem != null)
+            {
+                return;
+            }
+
+            if ((int)nextSlot.Type > 3)
+            {
+                ColorData nextData = NeedleforgePlugin.newColors[(int)nextSlot.Type - 4];
+
+                __result = !(nextData.ValidTypes.Contains(selToolType) || nextData.allColorsValid) ||
+                           (nextSlot.IsLocked && !__instance.manager.CanUnlockSlot);
+            }
+        }
     }
 }

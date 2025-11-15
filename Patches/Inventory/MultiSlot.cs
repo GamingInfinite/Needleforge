@@ -26,24 +26,26 @@ public class MultiSlot
         int count = 0;
         foreach (var slot in slots)
         {
-            if (!slot.IsLocked && (slot.EquippedItem == null || !checkEmpty))
+            if (slot.IsLocked && !(slot.EquippedItem == null || !checkEmpty))
             {
-                ToolItemType realToolType = toolType.GetValueOrDefault();
-                if ((int)slot.Type > 3)
+                continue;
+            }
+
+            ToolItemType realToolType = toolType.GetValueOrDefault();
+            if ((int)slot.Type > 3)
+            {
+                ColorData color = NeedleforgePlugin.newColors[(int)slot.Type - 4];
+                if (color.ValidTypes.Contains(realToolType) || color.allColorsValid)
                 {
-                    ColorData color = NeedleforgePlugin.newColors[(int)slot.Type - 4];
-                    if (color.ValidTypes.Contains(realToolType) || color.allColorsValid)
-                    {
-                        count++;
-                    }
+                    count++;
                 }
-                else if ((int)realToolType > 3)
+            }
+            else if ((int)realToolType > 3)
+            {
+                ColorData toolColor = NeedleforgePlugin.newColors[(int)realToolType - 4];
+                if (toolColor.ValidTypes.Contains(slot.Type) || toolColor.allColorsValid)
                 {
-                    ColorData toolColor = NeedleforgePlugin.newColors[(int)realToolType - 4];
-                    if (toolColor.ValidTypes.Contains(slot.Type) || toolColor.allColorsValid)
-                    {
-                        count++;
-                    }
+                    count++;
                 }
             }
         }
@@ -56,33 +58,37 @@ public class MultiSlot
     public static void GetAvailableSlotMultiColor(IEnumerable<InventoryToolCrestSlot> slots, ToolItemType toolType,
         ref InventoryToolCrestSlot __result)
     {
-        if (__result == null)
+        if (__result != null)
         {
-            foreach (var slot in slots)
+            return;
+        }
+
+        foreach (var slot in slots)
+        {
+            if (slot.IsLocked)
             {
-                if (!slot.IsLocked)
+                continue;
+            }
+
+            if ((int)slot.Type > 3)
+            {
+                ColorData color = NeedleforgePlugin.newColors[(int)slot.Type - 4];
+                if (color.ValidTypes.Contains(toolType) || color.allColorsValid)
                 {
-                    if ((int)slot.Type > 3)
+                    if (!slot.EquippedItem)
                     {
-                        ColorData color = NeedleforgePlugin.newColors[(int)slot.Type - 4];
-                        if (color.ValidTypes.Contains(toolType) || color.allColorsValid)
-                        {
-                            if (!slot.EquippedItem)
-                            {
-                                __result = slot;
-                            }
-                        }
+                        __result = slot;
                     }
-                    else if ((int)toolType > 3)
+                }
+            }
+            else if ((int)toolType > 3)
+            {
+                ColorData toolColor = NeedleforgePlugin.newColors[(int)toolType - 4];
+                if (toolColor.ValidTypes.Contains(slot.Type) || toolColor.allColorsValid)
+                {
+                    if (!slot.EquippedItem)
                     {
-                        ColorData toolColor = NeedleforgePlugin.newColors[(int)toolType - 4];
-                        if (toolColor.ValidTypes.Contains(slot.Type) || toolColor.allColorsValid)
-                        {
-                            if (!slot.EquippedItem)
-                            {
-                                __result = slot;
-                            }
-                        }
+                        __result = slot;
                     }
                 }
             }

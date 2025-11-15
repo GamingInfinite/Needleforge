@@ -56,7 +56,7 @@ namespace Needleforge
             pinkTools.AddValidType(ToolItemType.Red);
             pinkTools.AddValidType(ToolItemType.Skill);
 
-            var blackTools = AddToolColor("Black", Color.black, true);
+            var blackTools = AddToolColor("Black", new Color(0.38f, 0.38f, 0.38f, 1f), true);
             blackTools.allColorsValid = true;
 
             var neoCrest = AddCrest("NeoCrest");

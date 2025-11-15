@@ -7,37 +7,29 @@ namespace Needleforge.Patches;
 [HarmonyPatch]
 public class HighlightTools
 {
-    [HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.RefreshTools), [typeof(bool), typeof(bool)])]
+    [HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.RefreshTools),
+        [typeof(bool), typeof(bool)])]
     [HarmonyPostfix]
     public static void RefreshTools(InventoryItemToolManager __instance)
     {
         for (int i = 0; i < __instance.listSectionHeaders.Length; i++)
         {
             Color color = __instance.listSectionHeaders[i].Color;
-            ColorData headerData = null;
-            if (i > 3)
-            {
-                headerData = NeedleforgePlugin.newColors[i - 4];
-            }
+            ColorData? headerData = i <= 3 ? null : NeedleforgePlugin.newColors[i - 4];
 
             if (__instance.SelectedSlot && (int)__instance.SelectedSlot.Type > 3)
             {
-                ColorData slotData =  NeedleforgePlugin.newColors[(int)__instance.SelectedSlot.Type - 4];
-                bool forceIncludeHeader = false;
-                if (headerData != null)
-                {
-                    forceIncludeHeader = headerData.allColorsValid;
-                }
+                bool forceIncludeHeader = headerData?.allColorsValid ?? false;
 
-                if (!(slotData.ValidTypes.Contains((ToolItemType)i) || forceIncludeHeader || slotData.allColorsValid))
+                if (__instance.SelectedSlot is var selected && (int)selected.Type > 3)
                 {
-                    color.a = 0.5f;
+                    ColorData slotData = NeedleforgePlugin.newColors[(int)selected.Type - 4];
+
+                    bool shouldBeHighlighted = slotData.ValidTypes.Contains((ToolItemType)i) || forceIncludeHeader ||
+                                               slotData.allColorsValid;
+
+                    __instance.listSectionHeaders[i].Color = color with { a = shouldBeHighlighted ? 1f : 0.5f };
                 }
-                else
-                {
-                    color.a = 1f;
-                }
-                __instance.listSectionHeaders[i].Color = color;
             }
         }
     }
@@ -57,13 +49,15 @@ public class HighlightTools
                 {
                     itemData = NeedleforgePlugin.newColors[(int)__instance.itemData.Type - 4];
                 }
-                
+
                 bool forceItemAvailable = false;
                 if (itemData != null)
                 {
                     forceItemAvailable = itemData.allColorsValid;
                 }
-                if (!(slotData.ValidTypes.Contains(__instance.itemData.Type) || slotData.allColorsValid || forceItemAvailable))
+
+                if (!(slotData.ValidTypes.Contains(__instance.itemData.Type) || slotData.allColorsValid ||
+                      forceItemAvailable))
                 {
                     color = InventoryToolCrestSlot.InvalidItemColor;
                 }
