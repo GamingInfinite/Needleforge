@@ -5,10 +5,10 @@ using UnityEngine;
 namespace Needleforge.Patches;
 
 [HarmonyPatch(typeof(UI), nameof(UI.GetToolTypeColor))]
-public class UIToolColorArray
+internal class UIToolColorArray
 {
     [HarmonyPrefix]
-    public static bool Prefix(ToolItemType type, ref Color __result)
+    private static bool Prefix(ToolItemType type, ref Color __result)
     {
         if ((int)type > 3)
         {

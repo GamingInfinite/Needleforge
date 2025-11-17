@@ -2,23 +2,22 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Needleforge.Data;
-using UnityEngine;
 
-namespace Needleforge.Patches;
+namespace Needleforge.Patches.Inventory;
 
 [HarmonyPatch]
-public class MultiSlotNav
+internal class MultiSlotNav
 {
     [HarmonyReversePatch]
     [HarmonyPatch(typeof(InventoryItemSelectableDirectional),
         nameof(InventoryItemSelectableDirectional.GetNextSelectable), typeof(InventoryItemManager.SelectionDirection))]
     [MethodImpl(MethodImplOptions.NoInlining)]
-    static InventoryItemSelectable BaseGetNextSelectable(InventoryItemTool instance,
+    private static InventoryItemSelectable BaseGetNextSelectable(InventoryItemTool instance,
         InventoryItemManager.SelectionDirection direction) => null;
 
     [HarmonyPatch(typeof(InventoryItemTool), nameof(InventoryItemTool.GetNextSelectable))]
     [HarmonyPostfix]
-    public static void MultiColorNav(InventoryItemManager.SelectionDirection direction, InventoryItemTool __instance,
+    private static void MultiColorNav(InventoryItemManager.SelectionDirection direction, InventoryItemTool __instance,
         ref InventoryItemSelectable __result)
     {
         if (__instance == __result)
@@ -55,7 +54,7 @@ public class MultiSlotNav
 
     [HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.EndSelection))]
     [HarmonyPrefix]
-    public static bool MultiColorEndSelection(InventoryItemTool tool, InventoryItemToolManager __instance)
+    private static bool MultiColorEndSelection(InventoryItemTool tool, InventoryItemToolManager __instance)
     {
         if ((int)__instance.SelectedSlot.Type > 3)
         {
@@ -98,7 +97,7 @@ public class MultiSlotNav
 
     [HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.StartSelection))]
     [HarmonyPrefix]
-    public static bool MultiColorStartSelection(InventoryToolCrestSlot slot, InventoryItemToolManager __instance)
+    private static bool MultiColorStartSelection(InventoryToolCrestSlot slot, InventoryItemToolManager __instance)
     {
         if ((int)slot.Type > 3)
         {
@@ -135,7 +134,7 @@ public class MultiSlotNav
 
     [HarmonyPatch(typeof(InventoryToolCrestSlot), nameof(InventoryToolCrestSlot.IsSlotInvalid))]
     [HarmonyPostfix]
-    public static void MultiColorInvalid(ToolItemType type, InventoryToolCrestSlot nextSlot,
+    private static void MultiColorInvalid(ToolItemType type, InventoryToolCrestSlot nextSlot,
         InventoryToolCrestSlot __instance, ref bool __result)
     {
         if (__result)
@@ -151,7 +150,7 @@ public class MultiSlotNav
                 ColorData nextData = NeedleforgePlugin.newColors[(int)nextSlot.Type - 4];
 
                 __result = !(nextData.ValidTypes.Contains(selToolType) || nextData.allColorsValid) ||
-                           (nextSlot.IsLocked && !__instance.manager.CanUnlockSlot);
+                           nextSlot.IsLocked && !__instance.manager.CanUnlockSlot;
             }
         }
     }

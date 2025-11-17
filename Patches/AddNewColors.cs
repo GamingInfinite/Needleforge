@@ -5,11 +5,11 @@ using HarmonyLib;
 namespace Needleforge.Patches;
 
 [HarmonyPatch]
-public class AddNewColors
+internal class AddNewColors
 {
     [HarmonyPatch(typeof(Enum), nameof(Enum.GetValues), typeof(Type))]
     [HarmonyPostfix]
-    public static void AddNewColorsUnordered(Type enumType, ref Array __result)
+    private static void AddNewColorsUnordered(Type enumType, ref Array __result)
     {
         if (enumType == typeof(ToolItemType))
         {
@@ -30,7 +30,7 @@ public class AddNewColors
 
     [HarmonyPatch(typeof(EnumExtenstions), nameof(EnumExtenstions.GetValuesWithOrder), typeof(Type))]
     [HarmonyPostfix]
-    public static void AddNewColorsOrdered(Type type, ref IEnumerable<int> __result)
+    private static void AddNewColorsOrdered(Type type, ref IEnumerable<int> __result)
     {
         if (type == typeof(ToolItemType))
         {

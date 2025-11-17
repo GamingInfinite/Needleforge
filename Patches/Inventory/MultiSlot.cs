@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using HarmonyLib;
 using Needleforge.Data;
 
-namespace Needleforge.Patches;
+namespace Needleforge.Patches.Inventory;
 
 [HarmonyPatch]
-public class MultiSlot
+internal class MultiSlot
 {
     [HarmonyPatch(typeof(ToolItemTypeExtensions), nameof(ToolItemTypeExtensions.IsAttackType))]
     [HarmonyPostfix]
-    public static void CustomColorAttackType(ToolItemType type, ref bool __result)
+    private static void CustomColorAttackType(ToolItemType type, ref bool __result)
     {
         if (!__result && (int)type > 3)
         {
@@ -20,7 +20,7 @@ public class MultiSlot
 
     [HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.GetAvailableSlotCount))]
     [HarmonyPostfix]
-    public static void GetAvailableSlotCountMultiColor(IEnumerable<InventoryToolCrestSlot> slots,
+    private static void GetAvailableSlotCountMultiColor(IEnumerable<InventoryToolCrestSlot> slots,
         ToolItemType? toolType, bool checkEmpty, ref int __result)
     {
         int count = 0;
@@ -55,7 +55,7 @@ public class MultiSlot
 
     [HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.GetAvailableSlot))]
     [HarmonyPostfix]
-    public static void GetAvailableSlotMultiColor(IEnumerable<InventoryToolCrestSlot> slots, ToolItemType toolType,
+    private static void GetAvailableSlotMultiColor(IEnumerable<InventoryToolCrestSlot> slots, ToolItemType toolType,
         ref InventoryToolCrestSlot __result)
     {
         if (__result != null)
@@ -97,7 +97,7 @@ public class MultiSlot
 
     [HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.PlaceTool))]
     [HarmonyPrefix]
-    public static bool PlaceMultiColorTool(InventoryItemToolManager __instance, InventoryToolCrestSlot slot,
+    private static bool PlaceMultiColorTool(InventoryItemToolManager __instance, InventoryToolCrestSlot slot,
         bool isManual)
     {
         void Selected()

@@ -2,15 +2,15 @@ using HarmonyLib;
 using Needleforge.Data;
 using UnityEngine;
 
-namespace Needleforge.Patches;
+namespace Needleforge.Patches.Inventory;
 
 [HarmonyPatch]
-public class HighlightTools
+internal class HighlightTools
 {
     [HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.RefreshTools),
         [typeof(bool), typeof(bool)])]
     [HarmonyPostfix]
-    public static void RefreshTools(InventoryItemToolManager __instance)
+    private static void RefreshTools(InventoryItemToolManager __instance)
     {
         for (int i = 0; i < __instance.listSectionHeaders.Length; i++)
         {
@@ -36,7 +36,7 @@ public class HighlightTools
 
     [HarmonyPatch(typeof(InventoryItemTool), nameof(InventoryItemTool.UpdateEquippedDisplay))]
     [HarmonyPostfix]
-    public static void UpdateEquippedDisplay(InventoryItemTool __instance)
+    private static void UpdateEquippedDisplay(InventoryItemTool __instance)
     {
         if (__instance.manager.SelectedSlot != null)
         {

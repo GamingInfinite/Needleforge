@@ -2,14 +2,14 @@ using HarmonyLib;
 using TeamCherry.NestedFadeGroup;
 using UnityEngine;
 
-namespace Needleforge.Patches;
+namespace Needleforge.Patches.Inventory;
 
 [HarmonyPatch]
-public class InventoryCloning
+internal class InventoryCloning
 {
     [HarmonyPatch(typeof(InventoryToolCrest), nameof(InventoryToolCrest.OnValidate))]
     [HarmonyPostfix]
-    public static void AddTemplateSlots(InventoryToolCrest __instance)
+    private static void AddTemplateSlots(InventoryToolCrest __instance)
     {
         foreach (var color in NeedleforgePlugin.newColors)
         {
@@ -26,7 +26,7 @@ public class InventoryCloning
 
     [HarmonyPatch(typeof(InventoryItemTool), nameof(InventoryItemTool.OnValidate))]
     [HarmonyPostfix]
-    public static void AddAnimators(InventoryItemTool __instance)
+    private static void AddAnimators(InventoryItemTool __instance)
     {
         foreach (var color in NeedleforgePlugin.newColors)
         {
@@ -39,7 +39,7 @@ public class InventoryCloning
 
     [HarmonyPatch(typeof(InventoryItemToolManager), nameof(InventoryItemToolManager.OnValidate))]
     [HarmonyPostfix]
-    public static void AddHeaders(InventoryItemToolManager __instance)
+    private static void AddHeaders(InventoryItemToolManager __instance)
     {
         foreach (var color in NeedleforgePlugin.newColors)
         {
