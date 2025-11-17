@@ -21,7 +21,7 @@ internal class AddNewColors
 
             foreach (var color in NeedleforgePlugin.newColors)
             {
-                arrList.Add(color.type);
+                arrList.Add(color.Type);
             }
 
             __result = arrList.ToArray();

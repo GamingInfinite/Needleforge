@@ -7,8 +7,6 @@ using BepInEx.Logging;
 using HarmonyLib;
 using HutongGames.PlayMaker;
 using Needleforge.Data;
-using Needleforge.Makers;
-using Needleforge.Patches;
 using PrepatcherPlugin;
 using TeamCherry.Localization;
 using UnityEngine;
@@ -34,13 +32,35 @@ namespace Needleforge
         public static Dictionary<string, UniqueBindEvent> uniqueBind = new();
 
         public static Dictionary<string, Action> toolEventHooks = new();
-        
-        public static ColorData greenTools = AddToolColor("Green", Color.green);
-        public static ColorData pinkTools = AddToolColor("Pink",
-            new Color32(255, 150, 200, 255),
+
+        /// <summary>
+        /// A custom tool color. Green slots can accept green, blue and yellow tools;
+        /// and green tools can be equipped into green, blue, and yellow slots.
+        /// </summary>
+        public static readonly ColorData GreenTools = AddToolColor(
+            "Green",
+            new Color(0.57f, 0.86f, 0.59f, 1f)
+        );
+
+        /// <summary>
+        /// A custom tool color. Pink slots can accept pink, white and red tools;
+        /// and pink tools can be equipped into pink, white and red slots.
+        /// </summary>
+        public static readonly ColorData PinkTools = AddToolColor(
+            "Pink",
+            new Color(0.96f, 0.74f, 0.72f, 1f),
             true
         );
-        public static ColorData blackTools = AddToolColor("Black", new Color(0.38f, 0.38f, 0.38f, 1f), true);
+
+        /// <summary>
+        /// A custom tool color. Black slots can accept tools of any color;
+        /// and black tools can be equipped into slots of any color.
+        /// </summary>
+        public static readonly ColorData BlackTools = AddToolColor(
+            "Black",
+            new Color(0.40f, 0.40f, 0.40f, 1f),
+            true
+        );
 
         private void Awake()
         {
@@ -50,23 +70,24 @@ namespace Needleforge
             harmony.PatchAll();
 
             newColors.CollectionChanged += NewColors_CollectionChanged;
-            
-            greenTools.AddValidType(ToolItemType.Yellow);
-            greenTools.AddValidType(ToolItemType.Blue);
-            
-            pinkTools.AddValidType(ToolItemType.Red);
-            pinkTools.AddValidType(ToolItemType.Skill);
 
-            blackTools.allColorsValid = true;
+            GreenTools.AddValidTypes(ToolItemType.Yellow, ToolItemType.Blue);
+            PinkTools.AddValidTypes(ToolItemType.Red, ToolItemType.Skill);
+            BlackTools.allColorsValid = true;
 
 #if DEBUG
             var neoCrest = AddCrest("NeoCrest");
-            neoCrest.AddToolSlot(greenTools.type, AttackToolBinding.Neutral, Vector2.zero, false);
-            neoCrest.AddToolSlot(pinkTools.type, AttackToolBinding.Up, new(0, 2), false);
-            neoCrest.AddToolSlot(blackTools.type, AttackToolBinding.Down, new(0, -2), false);
-            neoCrest.ApplyAutoSlotNavigation();
-            AddTool("NeoGreenTool", greenTools.type);
-            AddTool("NeoBlackTool", blackTools.type);
+            neoCrest.AddToolSlot(GreenTools.Type, AttackToolBinding.Neutral, Vector2.zero, false);
+            neoCrest.AddToolSlot(PinkTools.Type, AttackToolBinding.Up, new(0, 2), false);
+            neoCrest.AddToolSlot(BlackTools.Type, AttackToolBinding.Down, new(0, -2), false);
+            neoCrest.AddBlueSlot(new(-2, -1), false);
+            neoCrest.AddYellowSlot(new(2f, -1), false);
+            neoCrest.AddRedSlot(AttackToolBinding.Neutral, new(2f, 1), false);
+            neoCrest.AddSkillSlot(AttackToolBinding.Neutral, new(2f, 1), false);
+            neoCrest.ApplyAutoSlotNavigation(angleRange: 80f);
+
+            AddTool("NeoGreenTool", GreenTools.Type);
+            AddTool("NeoBlackTool", BlackTools.Type);
 #endif
         }
 
