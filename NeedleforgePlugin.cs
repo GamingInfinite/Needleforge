@@ -49,7 +49,7 @@ namespace Needleforge
         public static readonly ColorData PinkTools = AddToolColor(
             "Pink",
             new Color(0.96f, 0.74f, 0.72f, 1f),
-            true
+            ToolItemType.Red
         );
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Needleforge
         public static readonly ColorData BlackTools = AddToolColor(
             "Black",
             new Color(0.40f, 0.40f, 0.40f, 1f),
-            true
+            ToolItemType.Red
         );
 
         private void Awake()
@@ -111,13 +111,16 @@ namespace Needleforge
             return null;
         }
 
-        public static ColorData AddToolColor(string name, Color color, bool isAttackType = false)
+        public static ColorData AddToolColor(
+            string name, Color color,
+            ToolItemType templateType = ToolItemType.Blue
+        )
         {
             ColorData newColor = new()
             {
                 name = name,
                 color = color,
-                isAttackType = isAttackType
+                templateType = templateType
             };
             newColors.Add(newColor);
             return newColor;

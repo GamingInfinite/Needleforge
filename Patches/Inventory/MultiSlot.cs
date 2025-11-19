@@ -11,10 +11,10 @@ internal class MultiSlot
     [HarmonyPostfix]
     private static void CustomColorAttackType(ToolItemType type, ref bool __result)
     {
-        if (!__result && (int)type > 3)
+        if ((int)type > 3)
         {
             ColorData color = NeedleforgePlugin.newColors[(int)type - 4];
-            __result = color.isAttackType;
+            __result = color.DefiningType.IsAttackType();
         }
     }
 

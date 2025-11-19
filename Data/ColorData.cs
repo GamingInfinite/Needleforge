@@ -12,10 +12,15 @@ public class ColorData
     public string name = "";
 
     /// <summary>
-    /// Whether or not this color is considered an attacking type,
-    /// like the red and skill types.
+    /// Various game mechanics will treat tools of this color as though they were tools of its
+    /// template type. This field controls if the tools are usable, if using them consumes tools or
+    /// silk, etc.
     /// </summary>
-    public bool isAttackType = false;
+    public ToolItemType templateType = ToolItemType.Blue;
+
+    internal ToolItemType DefiningType
+        => (int)this.templateType < 4 ? this.templateType
+            : NeedleforgePlugin.newColors[(int)this.templateType - 4].DefiningType;
 
     /// <summary>The visual color slots of this type will use in the inventory.</summary>
     public Color color;
