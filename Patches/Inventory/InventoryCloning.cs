@@ -13,14 +13,8 @@ internal class InventoryCloning
     {
         foreach (var color in NeedleforgePlugin.newColors)
         {
-            if (color.isAttackType)
-            {
-                __instance.templateSlots[(int)color.Type] = __instance.templateSlots[0];
-            }
-            else
-            {
-                __instance.templateSlots[(int)color.Type] = __instance.templateSlots[1];
-            }
+            var template = __instance.templateSlots[(int)color.DefiningType];
+            __instance.templateSlots[(int)color.Type] = template;
         }
     }
 
@@ -31,7 +25,7 @@ internal class InventoryCloning
         foreach (var color in NeedleforgePlugin.newColors)
         {
             RuntimeAnimatorController controller =
-                __instance.slotAnimatorControllers[color.isAttackType ? 0 : 1];
+                __instance.slotAnimatorControllers[(int)color.DefiningType];
 
             __instance.slotAnimatorControllers[(int)color.Type] = controller;
         }
