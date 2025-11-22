@@ -45,6 +45,10 @@ namespace Needleforge.Data
             set => Moveset.HeroConfig = value;
         }
 
+        /// <summary>
+        /// Can be used to customize this crest's moveset.
+        /// The default moveset is copied from Hunter crest.
+        /// </summary>
         public MovesetData Moveset { get; }
 
         public Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM> BindEvent

@@ -23,6 +23,13 @@ public class MovesetData {
         Crest = owner;
     }
 
+    /// <summary>
+    /// Defines how Hornet behaves when this crest is equipped. Properties of this object
+    /// control speed and recovery time for attacks, which of Hornet's animations are
+    /// overridden for this crest, which movement abilities she can use, whether or not
+    /// she can access her inventory or tools, some of the behaviour of charged and down
+    /// slashes, and more.
+    /// </summary>
     public HeroControllerConfig? HeroConfig
     {
         get => _heroConf;
@@ -37,10 +44,25 @@ public class MovesetData {
     }
     private HeroControllerConfig? _heroConf;
 
+    /// <summary>
+    /// Defines the visual, auditory, and damage properties of the default side attack.
+    /// </summary>
     public Attack? Slash { get; set; }
+
+    /// <summary>
+    /// Defines the visual, auditory, and damage properties of the alternate side attack,
+    /// which is used when the player attacks multiple times in quick succession.
+    /// </summary>
     public Attack? SlashAlt { get; set; }
+    
+    /// <summary>
+    /// Defines the visual, auditory, and damage properties of the up attack.
+    /// </summary>
     public Attack? UpSlash { get; set; }
 
+    /// <summary>
+    /// Defines the visual, auditory, and damage properties of the side attack.
+    /// </summary>
     public Attack? WallSlash
     {
         get => _wallSlash;
