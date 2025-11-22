@@ -92,24 +92,31 @@ namespace Needleforge
             neoCrest.Moveset.Slash = new Attack() {
                 Name = "NeoSlash",
                 ColliderPoints = [new(0, 0), new(0, 1), new(-3, 1), new(-3, 0)],
-                Color = Color.green
+                Color = Color.green,
+                KnockbackMult = 0.1f,
             };
 
             neoCrest.Moveset.SlashAlt = new Attack() {
                 Name = "NeoSlashAlt",
                 ColliderPoints = [new(0, 0), new(0, -1), new(-3, -1), new(-3, 0)],
-                Color = Color.magenta
+                Color = Color.magenta,
+                KnockbackMult = 4,
+            };
+
+            neoCrest.Moveset.UpSlash = new Attack() {
+                Name = "NeoSlashUp",
+                ColliderPoints = [new(1, 0), new(1, 3), new(-1, 3), new(-1, 0)],
+                Color = Color.yellow,
             };
 
             neoCrest.Moveset.WallSlash = new Attack() {
                 Name = "NeoSlashWall",
                 ColliderPoints = [new(0, 1.5f), new(0, -1.5f), new(-3, -1.5f), new(-3, 1.5f)],
                 Color = Color.blue,
-                IsWallSlash = true,
             };
 
             // Attacks require an animation to function and I don't feel like adding test assets to needleforge itself
-            neoCrest.Moveset.OnConfigGroupCreated += () => {
+            neoCrest.Moveset.OnInitialized += () => {
                 var hc = HeroController.instance;
 
                 var libobj = new GameObject("NeoAnimLib");
@@ -120,20 +127,20 @@ namespace Needleforge
 
                 var myclip = new tk2dSpriteAnimationClip() {
                     name = "NeoSlashEffect",
-                    fps = 30,
+                    fps = 40,
                     wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
                     frames = [.. oldclip.frames]
                 };
                 myclip.frames[0].triggerEvent = true;
-                myclip.frames[^2].triggerEvent = true;
+                myclip.frames[^1].triggerEvent = true;
 
                 lib.clips = [myclip];
 
-                var cg = neoCrest.Moveset.ConfGroup;
-                GameObject[] objs = [cg.NormalSlashObject, cg.AlternateSlashObject, cg.WallSlashObject];
-                foreach(var slash in objs) {
-                    slash.GetComponent<tk2dSpriteAnimator>().Library = lib;
-                    slash.GetComponent<NailSlash>().animName = myclip.name;
+                Attack[] atks = [neoCrest.Moveset.Slash, neoCrest.Moveset.SlashAlt, neoCrest.Moveset.WallSlash, neoCrest.Moveset.UpSlash];
+
+                for (int i = 0; i < atks.Length; i++) {
+                    atks[i].AnimLibrary = lib;
+                    atks[i].AnimName = myclip.name;
                 }
             };
 

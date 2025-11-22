@@ -12,12 +12,12 @@ internal class AddCrestMoveset {
         ModHelper.Log("Initializing Crest Movesets...");
         foreach (var crest in NeedleforgePlugin.newCrestData)
         {
-            ModHelper.Log($"    Initializing {crest.name} Moveset");
+            ModHelper.Log($"Init {crest.name} Moveset");
             MovesetMaker.InitializeMoveset(crest.Moveset);
 
             if (crest.Moveset.ConfGroup != null)
             {
-                crest.Moveset.ConfigGroupCreated();
+                crest.Moveset.ExtraInitialization();
             }
         }
     }
@@ -33,7 +33,7 @@ internal class DebugMoveset {
     private static void awaking(NailSlash __instance) {
         if (__instance.transform.parent.name != "NeoCrest")
             return;
-        Debug.Log($" -- {__instance.name} ns awake post");
+        Debug.Log($" ++ {__instance.name} ns awake post");
     }
 
     [HarmonyPatch(typeof(NailSlash), nameof(NailSlash.StartSlash))]
@@ -41,6 +41,7 @@ internal class DebugMoveset {
     private static void startslash(NailSlash __instance) {
         if (__instance.transform.parent.name != "NeoCrest")
             return;
+        Debug.Log(new string('-', 40));
         Debug.Log($" -- {__instance.name} ns startslash");
     }
 
