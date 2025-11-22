@@ -1,4 +1,4 @@
-﻿using Needleforge.Patches;
+﻿using Needleforge.Patches.HUD;
 using System;
 using System.Collections;
 using System.Collections.Generic;

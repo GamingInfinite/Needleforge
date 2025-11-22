@@ -11,7 +11,7 @@ using static Needleforge.Utils.ILUtils;
 using BasicFrameAnims = BindOrbHudFrame.BasicFrameAnims;
 using CoroutineFunction = BindOrbHudFrame.CoroutineFunction;
 
-namespace Needleforge.Patches;
+namespace Needleforge.Patches.HUD;
 
 /// <summary>
 /// Patches which enable custom crests to use custom HUD frames in-game.

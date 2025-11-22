@@ -3,7 +3,7 @@ using Needleforge.Data;
 using UnityEngine;
 using CrestTypes = SaveProfileHealthBar.CrestTypes;
 
-namespace Needleforge.Patches;
+namespace Needleforge.Patches.HUD;
 
 /// <summary>
 /// Patches which enable custom crests to use custom HUD frames on the profile menu.

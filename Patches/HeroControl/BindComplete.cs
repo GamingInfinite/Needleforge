@@ -1,13 +1,13 @@
 using HarmonyLib;
 using Needleforge.Data;
 
-namespace Needleforge.Patches;
+namespace Needleforge.Patches.HeroControl;
 
 [HarmonyPatch(typeof(HeroController), nameof(HeroController.BindCompleted))]
-public class BindComplete
+internal class BindComplete
 {
     [HarmonyPostfix]
-    public static void Postfix(HeroController __instance)
+    private static void Postfix()
     {
         foreach (CrestData data in NeedleforgePlugin.newCrestData)
         {
