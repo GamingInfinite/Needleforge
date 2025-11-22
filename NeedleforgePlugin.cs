@@ -83,7 +83,7 @@ namespace Needleforge
             neoCrest.AddToolSlot(BlackTools.Type, AttackToolBinding.Down, new(0, -2), false);
             neoCrest.AddBlueSlot(new(-2, -1), false);
             neoCrest.AddYellowSlot(new(2f, -1), false);
-            neoCrest.AddRedSlot(AttackToolBinding.Neutral, new(2f, 1), false);
+            neoCrest.AddRedSlot(AttackToolBinding.Neutral, new(-2, 1), false);
             neoCrest.AddSkillSlot(AttackToolBinding.Neutral, new(2f, 1), false);
             neoCrest.ApplyAutoSlotNavigation(angleRange: 80f);
 
