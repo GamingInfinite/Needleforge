@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -85,6 +86,56 @@ namespace Needleforge
             neoCrest.AddRedSlot(AttackToolBinding.Neutral, new(2f, 1), false);
             neoCrest.AddSkillSlot(AttackToolBinding.Neutral, new(2f, 1), false);
             neoCrest.ApplyAutoSlotNavigation(angleRange: 80f);
+
+            neoCrest.HudFrame.Preset = VanillaCrest.BEAST;
+
+            neoCrest.Moveset.Slash = new Attack() {
+                Name = "NeoSlash",
+                ColliderPoints = [new(0, 0), new(0, 1), new(-3, 1), new(-3, 0)],
+                Color = Color.green
+            };
+
+            neoCrest.Moveset.SlashAlt = new Attack() {
+                Name = "NeoSlashAlt",
+                ColliderPoints = [new(0, 0), new(0, -1), new(-3, -1), new(-3, 0)],
+                Color = Color.magenta
+            };
+
+            neoCrest.Moveset.WallSlash = new Attack() {
+                Name = "NeoSlashWall",
+                ColliderPoints = [new(0, 1.5f), new(0, -1.5f), new(-3, -1.5f), new(-3, 1.5f)],
+                Color = Color.blue,
+                IsWallSlash = true,
+            };
+
+            // Attacks require an animation to function and I don't feel like adding test assets to needleforge itself
+            neoCrest.Moveset.OnConfigGroupCreated += () => {
+                var hc = HeroController.instance;
+
+                var libobj = new GameObject("NeoAnimLib");
+                DontDestroyOnLoad(libobj);
+                var lib = libobj.AddComponent<tk2dSpriteAnimation>();
+
+                var oldclip = hc.animCtrl.animator.Library.GetClipByName("Dash");
+
+                var myclip = new tk2dSpriteAnimationClip() {
+                    name = "NeoSlashEffect",
+                    fps = 30,
+                    wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
+                    frames = [.. oldclip.frames]
+                };
+                myclip.frames[0].triggerEvent = true;
+                myclip.frames[^2].triggerEvent = true;
+
+                lib.clips = [myclip];
+
+                var cg = neoCrest.Moveset.ConfGroup;
+                GameObject[] objs = [cg.NormalSlashObject, cg.AlternateSlashObject, cg.WallSlashObject];
+                foreach(var slash in objs) {
+                    slash.GetComponent<tk2dSpriteAnimator>().Library = lib;
+                    slash.GetComponent<NailSlash>().animName = myclip.name;
+                }
+            };
 
             AddTool("NeoGreenTool", GreenTools.Type);
             AddTool("NeoBlackTool", BlackTools.Type);

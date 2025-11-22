@@ -267,10 +267,10 @@ public class HudFrameData
     /// <see cref="Root"/>. To control the behaviour of these additional elements, add a
     /// <see cref="Coroutine"/>.
     /// </summary>
-    public event Action? OnRootCreated;
+    public event Action OnRootCreated;
 
     /// <inheritdoc cref="OnRootCreated"/>
-    internal void InitializeRoot() => OnRootCreated?.Invoke();
+    internal void InitializeRoot() => OnRootCreated?.DynamicInvoke();
 
     /// <summary>
     /// <para>

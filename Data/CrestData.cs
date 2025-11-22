@@ -18,7 +18,6 @@ namespace Needleforge.Data
         public Sprite? RealSprite;
         public Sprite? Silhouette;
         public Sprite? CrestGlow;
-        public HeroControllerConfig? AttackConfig;
         public List<SlotInfo> slots = [];
         public int bindCost = 9;
         public string name = "";
@@ -39,6 +38,14 @@ namespace Needleforge.Data
         /// </para>
         /// </summary>
         public HudFrameData HudFrame { get; }
+
+        [Obsolete($"Use {nameof(Moveset)}.{nameof(Moveset.HeroConfig)} instead")]
+        public HeroControllerConfig? AttackConfig {
+            get => Moveset.HeroConfig;
+            set => Moveset.HeroConfig = value;
+        }
+
+        public MovesetData Moveset { get; }
 
         public Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM> BindEvent
         {
@@ -365,6 +372,7 @@ namespace Needleforge.Data
             this.displayName = displayName;
             this.description = description;
             HudFrame = new HudFrameData(this);
+            Moveset = new MovesetData(this);
         }
     }
 }
