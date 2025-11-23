@@ -92,15 +92,17 @@ namespace Needleforge
             neoCrest.Moveset.Slash = new Attack() {
                 Name = "NeoSlash",
                 HitboxPoints = [new(0, 0), new(0, 1), new(-3, 1), new(-3, 0)],
+                KnockbackMult = 0.25f,
+                MultiHitMultipliers = [0.3f, 0.25f, 0.25f, 0.25f],
+                SilkGeneration = HitSilkGeneration.Full,
                 Color = Color.green,
-                KnockbackMult = 0.1f,
             };
 
             neoCrest.Moveset.SlashAlt = new Attack() {
                 Name = "NeoSlashAlt",
                 HitboxPoints = [new(0, 0), new(0, -1), new(-3, -1), new(-3, 0)],
-                Color = Color.magenta,
                 KnockbackMult = 4,
+                Color = Color.magenta,
             };
 
             neoCrest.Moveset.UpSlash = new Attack() {
@@ -126,10 +128,8 @@ namespace Needleforge
                 var oldclip = hc.animCtrl.animator.Library.GetClipByName("Dash");
 
                 var myclip = new tk2dSpriteAnimationClip() {
-                    name = "NeoSlashEffect",
-                    fps = 40,
+                    name = "NeoSlashEffect", fps = 20, frames = [.. oldclip.frames],
                     wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
-                    frames = [.. oldclip.frames]
                 };
                 myclip.frames[0].triggerEvent = true;
                 myclip.frames[^1].triggerEvent = true;

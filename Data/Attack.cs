@@ -1,5 +1,6 @@
 ﻿using GlobalEnums;
 using UnityEngine;
+using EffectsTypes = EnemyHitEffectsProfile.EffectsTypes;
 using static Needleforge.Utils.MathUtils;
 
 namespace Needleforge.Data;
@@ -64,7 +65,7 @@ public class Attack {
     private string _animName = "";
 
     /// <summary>
-    /// Color to tint the attack's effect animation.
+    /// Color to tint the attack's effect animation when it's not imbued with an element.
     /// </summary>
     public Color Color { get; set; } = Color.white;
 
@@ -137,6 +138,7 @@ public class Attack {
 
     /// <summary>
     /// The style of silk generation this attack uses.
+    /// <c>FirstHit</c> and <c>Full</c> are the same unless the attack is a multihitter.
     /// </summary>
     public HitSilkGeneration SilkGeneration {
         get => _silkGen;
@@ -146,10 +148,11 @@ public class Attack {
                 damager!.silkGeneration = value;
         }
     }
-    private HitSilkGeneration _silkGen = HitSilkGeneration.Full;
+    private HitSilkGeneration _silkGen = HitSilkGeneration.FirstHit;
 
     /// <summary>
     /// The amount of stun damage this attack deals when it hits a stunnable boss.
+    /// If this attack is a multihitter, this value is applied to each individual hit.
     /// </summary>
     public float StunDamage {
         get => _stunDamage;
@@ -174,6 +177,57 @@ public class Attack {
         }
     }
     private float _magnitude = 1f;
+
+    /// <summary>
+    /// Setting this with a non-empty array marks this attack as a multi-hitter attack
+    /// which damages enemies as many times as the array's length. Each value in the
+    /// array is a damage multiplier on Hornet's base needle damage which is applied to
+    /// that individual hit; for balance reasons these are usually all &lt; 1.
+    /// </summary>
+    public float[] MultiHitMultipliers {
+        get => _multiHitMults;
+        set {
+            _multiHitMults = value;
+            if (GameObject) {
+                bool isMultiHitter = value.Length > 0;
+
+                damager!.multiHitter = isMultiHitter;
+                damager!.deathEndDamage = isMultiHitter;
+                damager!.hitsUntilDeath = value.Length;
+                damager!.damageMultPerHit = value;
+            }
+        }
+    }
+    private float[] _multiHitMults = [];
+
+    /// <summary>
+    /// Determines the visual effect applied to each hit of a multi-hitting attack after
+    /// the first one.
+    /// </summary>
+    public EffectsTypes MultiHitEffects {
+        get => _multiHitEffects;
+        set {
+            _multiHitEffects = value;
+            if (GameObject)
+                damager!.multiHitEffects = value;
+        }
+    }
+    private EffectsTypes _multiHitEffects = EffectsTypes.LagHit;
+
+    /// <summary>
+    /// Number of frames between individual hits of a multi-hitting attack. Make sure
+    /// the effect animation (see <see cref="AnimName"/> and <see cref="AnimLibrary"/>)
+    /// for this attack lasts long enough for all hits to occur.
+    /// </summary>
+    public int FramesBetweenMultiHits {
+        get => _multiSteps;
+        set {
+            _multiSteps = value;
+            if (GameObject)
+                damager!.stepsPerHit = value;
+        }
+    }
+    private int _multiSteps = 2;
 
     #endregion
 
@@ -242,11 +296,12 @@ public class Attack {
         damager.stunDamage = StunDamage;
         damager.silkGeneration = SilkGeneration;
 
-        //if (IsDownSlash) {
-        //    var downAttack = attack.AddComponent<HeroDownAttack>();
-        //    downAttack.hc = hc;
-        //    downAttack.attack = nailSlash;
-        //}
+        bool isMultiHitter = MultiHitMultipliers.Length > 0;
+        damager.multiHitter = isMultiHitter;
+        damager.deathEndDamage = isMultiHitter;
+        damager.hitsUntilDeath = MultiHitMultipliers.Length;
+        damager.damageMultPerHit = MultiHitMultipliers;
+        damager.stepsPerHit = FramesBetweenMultiHits;
 
         // Set up - visuals & sound
 
@@ -262,9 +317,6 @@ public class Attack {
         audioPriority.sourceType = AudioSourcePriority.SourceType.Hero;
 
         AttachTinker();
-
-        // TODO imbuement
-        //AttachImbuement();
 
         GameObject.SetActive(true);
         return GameObject;

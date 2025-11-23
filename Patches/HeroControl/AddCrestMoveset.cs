@@ -7,16 +7,14 @@ namespace Needleforge.Patches.HeroControl;
 [HarmonyPatch(typeof(HeroController), nameof(HeroController.Awake))]
 internal class AddCrestMoveset {
     [HarmonyPostfix]
-    private static void Postfix()
+    private static void InitMovesets()
     {
         ModHelper.Log("Initializing Crest Movesets...");
-        foreach (var crest in NeedleforgePlugin.newCrestData)
-        {
+        foreach (var crest in NeedleforgePlugin.newCrestData) {
             ModHelper.Log($"Init {crest.name} Moveset");
             MovesetMaker.InitializeMoveset(crest.Moveset);
 
-            if (crest.Moveset.ConfGroup != null)
-            {
+            if (crest.Moveset.ConfGroup != null) {
                 crest.Moveset.ExtraInitialization();
             }
         }
