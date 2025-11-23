@@ -91,29 +91,31 @@ namespace Needleforge
 
             neoCrest.Moveset.Slash = new Attack() {
                 Name = "NeoSlash",
-                HitboxPoints = [new(0, 0), new(0, 1), new(-3, 1), new(-3, 0)],
-                KnockbackMult = 0.25f,
-                MultiHitMultipliers = [0.3f, 0.25f, 0.25f, 0.25f],
-                SilkGeneration = HitSilkGeneration.Full,
+                Hitbox = [new(0, 0), new(0, 1), new(-3, 1), new(-3, 0)],
                 Color = Color.green,
             };
 
             neoCrest.Moveset.SlashAlt = new Attack() {
                 Name = "NeoSlashAlt",
-                HitboxPoints = [new(0, 0), new(0, -1), new(-3, -1), new(-3, 0)],
+                Hitbox = [new(0, 0), new(0, -1), new(-3, -1), new(-3, 0)],
+                Scale = new(2, 1.25f),
+                DamageMult = 4,
                 KnockbackMult = 4,
                 Color = Color.magenta,
             };
 
             neoCrest.Moveset.UpSlash = new Attack() {
                 Name = "NeoSlashUp",
-                HitboxPoints = [new(1, 0), new(1, 3), new(-1, 3), new(-1, 0)],
+                Hitbox = [new(1, 0), new(1, 3), new(-1, 3), new(-1, 0)],
+                KnockbackMult = 0.1f,
+                MultiHitMultipliers = [0.3f, 0.25f, 0.25f, 0.25f],
+                SilkGeneration = HitSilkGeneration.Full,
                 Color = Color.yellow,
             };
 
             neoCrest.Moveset.WallSlash = new Attack() {
                 Name = "NeoSlashWall",
-                HitboxPoints = [new(0, 1.5f), new(0, -1.5f), new(-3, -1.5f), new(-3, 1.5f)],
+                Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-3, -1.5f), new(-3, 1.5f)],
                 Color = Color.blue,
             };
 

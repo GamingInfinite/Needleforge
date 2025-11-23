@@ -7,7 +7,6 @@ namespace Needleforge.Data;
 
 TODO:
 
-- Multihits on standard attacks - see architect
 - Special handling for DownSlash, DashSlash, and ChargedSlash - possibly different classes
 - FSM edits...
 - Make sure everything is thoroughly documented
@@ -54,14 +53,14 @@ public class MovesetData {
     /// which is used when the player attacks multiple times in quick succession.
     /// </summary>
     public Attack? SlashAlt { get; set; }
-    
+
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the up attack.
     /// </summary>
     public Attack? UpSlash { get; set; }
 
     /// <summary>
-    /// Defines the visual, auditory, and damage properties of the side attack.
+    /// Defines the visual, auditory, and damage properties of the wall-sliding attack.
     /// </summary>
     public Attack? WallSlash
     {

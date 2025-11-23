@@ -34,7 +34,7 @@ public class Attack {
     /// <para id="anim-info">
     /// The effect animation for an attack should not loop, and MUST have two frames for
     /// which <see cref="tk2dSpriteAnimationFrame.triggerEvent"/> = <c>true</c>;
-    /// these frames determine when the attack's collider is enabled and disabled.
+    /// these frames determine when the attack's hitbox is enabled and disabled.
     /// </para>
     /// </summary>
     public tk2dSpriteAnimation? AnimLibrary
@@ -89,52 +89,65 @@ public class Attack {
     /// Negative X values are in front of Hornet.
     /// </span>
     /// </summary>
-    public Vector2[] HitboxPoints {
-        get => _hitboxPoints;
+    public Vector2[] Hitbox {
+        get => _hitbox;
         set {
-            _hitboxPoints = value;
+            _hitbox = value;
             if (GameObject)
                 collider!.points = value;
 
-            if (_autoTinkerPoints)
+            if (_autoTinkerHitbox)
             {
-                _tinkerPoints = ScalePolygon(value, 0.8f);
+                _tinkerHitbox = ScalePolygon(value, 0.8f);
                 if (GameObject)
-                    tinkCollider!.points = _tinkerPoints;
+                    tinkCollider!.points = _tinkerHitbox;
             }
         }
     }
-    private Vector2[] _hitboxPoints = [];
+    private Vector2[] _hitbox = [];
 
     /// <summary>
     /// <para>
     /// Points which define the shape of the "tinker" hitbox which causes a visual and
     /// sound effect, and sometimes recoil, when the attack hits the level geometry.
-    /// <inheritdoc cref="HitboxPoints" path="//*[@id='collider-info']"/>
+    /// <inheritdoc cref="Hitbox" path="//*[@id='collider-info']"/>
     /// </para><para>
-    /// If left unset or set to <c>null</c>, will automatically use a scaled-down copy
-    /// of <see cref="HitboxPoints"/>.
+    /// If left unset or set to <c>null</c>,
+    /// will default to the <see cref="Hitbox"/> at 80% size.
     /// </para>
     /// </summary>
-    public Vector2[]? TinkerPoints {
-        get => _tinkerPoints;
+    public Vector2[]? TinkerHitbox {
+        get => _tinkerHitbox;
         set {
-            _autoTinkerPoints = value == null;
-            if (_autoTinkerPoints)
+            _autoTinkerHitbox = value == null;
+            if (_autoTinkerHitbox)
             {
-                _tinkerPoints = ScalePolygon(_hitboxPoints, 0.8f);
+                _tinkerHitbox = ScalePolygon(_hitbox, 0.8f);
                 if (GameObject)
-                    tinkCollider!.points = _tinkerPoints;
+                    tinkCollider!.points = _tinkerHitbox;
             }
             else {
-                _tinkerPoints = value;
+                _tinkerHitbox = value;
                 if (GameObject)
                     tinkCollider!.points = value ?? [];
             }
         }
     }
-    private Vector2[]? _tinkerPoints = [];
-    private bool _autoTinkerPoints = true;
+    private Vector2[]? _tinkerHitbox = [];
+    private bool _autoTinkerHitbox = true;
+
+    /// <summary>
+    /// Multiplier on the overall size of the attack.
+    /// </summary>
+    public Vector2 Scale {
+        get => _scale;
+        set {
+            _scale = value;
+            if (GameObject)
+                nailSlash!.scale = value.MultiplyElements(_wallSlashFlipper);
+        }
+    }
+    private Vector3 _scale = Vector2.one;
 
     /// <summary>
     /// The style of silk generation this attack uses.
@@ -149,6 +162,19 @@ public class Attack {
         }
     }
     private HitSilkGeneration _silkGen = HitSilkGeneration.FirstHit;
+
+    /// <summary>
+    /// Multiplier on base nail damage for this attack.
+    /// </summary>
+    public float DamageMult {
+        get => _damageMult;
+        set {
+            _damageMult = value;
+            if (GameObject)
+                damager!.nailDamageMultiplier = value;
+        }
+    }
+    private float _damageMult = 1f;
 
     /// <summary>
     /// The amount of stun damage this attack deals when it hits a stunnable boss.
@@ -169,14 +195,14 @@ public class Attack {
     /// hits them. Must be non-negative.
     /// </summary>
     public float KnockbackMult {
-        get => _magnitude;
+        get => _knockback;
         set {
-            _magnitude = value;
+            _knockback = value;
             if (GameObject)
                 damager!.magnitudeMult = value;
         }
     }
-    private float _magnitude = 1f;
+    private float _knockback = 1f;
 
     /// <summary>
     /// Setting this with a non-empty array marks this attack as a multi-hitter attack
@@ -243,7 +269,24 @@ public class Attack {
     /// </summary>
     public GameObject? GameObject { get; private set; }
 
-    internal bool IsWallSlash = false;
+    /// <summary>
+    /// <para>
+    /// Whether or not this attack is a wall slash. Setting this to <c>true</c> causes
+    /// the attack's scale to flip on the X axis, so that the attack actually points in
+    /// front of Hornet when she's wall-sliding.
+    /// </para><para>
+    /// When setting this attack on a <see cref="MovesetData.WallSlash"/> property,
+    /// this will be set automatically.
+    /// </para>
+    /// </summary>
+    internal bool IsWallSlash {
+        get => _wallSlashFlipper.x < 0;
+        set =>
+            _wallSlashFlipper = Vector3.one with {
+                x = value ? -1 : 1
+            };
+    }
+    private Vector3 _wallSlashFlipper = Vector3.one;
 
     private tk2dSprite? sprite;
     private tk2dSpriteAnimator? animator;
@@ -282,17 +325,16 @@ public class Attack {
         // Set up - damage
 
         collider.isTrigger = true;
-        collider.points = HitboxPoints;
+        collider.points = Hitbox;
 
         nailSlash.hc = hc;
         nailSlash.activateOnSlash = [];
         nailSlash.enemyDamager = damager;
-        nailSlash.scale = Vector3.one;
-        if (IsWallSlash)
-            nailSlash.scale = Vector3.one with { x = -1 };
+        nailSlash.scale = _scale.MultiplyElements(_wallSlashFlipper);
 
         DamagerInit();
         damager.magnitudeMult = KnockbackMult;
+        damager.nailDamageMultiplier = DamageMult;
         damager.stunDamage = StunDamage;
         damager.silkGeneration = SilkGeneration;
 
@@ -334,7 +376,6 @@ public class Attack {
 
         // miscellaneous (some of which may need investigation for API purposes)
         damager!.lagHitOptions = new LagHitOptions() { DamageType = LagHitDamageType.None, HitCount = 0 };
-        damager!.damageMultPerHit = [];
         damager!.corpseDirection = new TeamCherry.SharedUtils.OverrideFloat();
         damager!.corpseMagnitudeMult = new TeamCherry.SharedUtils.OverrideFloat();
         damager!.currencyMagnitudeMult = new TeamCherry.SharedUtils.OverrideFloat();
@@ -363,7 +404,7 @@ public class Attack {
         tinkCollider = clashTink.AddComponent<PolygonCollider2D>();
         var tinkRb = clashTink.AddComponent<Rigidbody2D>();
 
-        tinkCollider.points = TinkerPoints ?? [];
+        tinkCollider.points = TinkerHitbox ?? [];
 
         tinkRb.bodyType = RigidbodyType2D.Kinematic;
         tinkRb.simulated = true;
