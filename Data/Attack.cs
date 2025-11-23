@@ -253,7 +253,7 @@ public class Attack {
         animator.library = AnimLibrary;
         nailSlash.animName = AnimName;
 
-        nailSlash.AttackStarting += () => sprite.color = Color;
+        nailSlash.AttackStarting += TintIfNotImbued;
 
         audioSrc.outputAudioMixerGroup = hc.gameObject.GetComponent<AudioSource>().outputAudioMixerGroup;
         audioSrc.playOnAwake = false;
@@ -264,6 +264,7 @@ public class Attack {
         AttachTinker();
 
         // TODO imbuement
+        //AttachImbuement();
 
         GameObject.SetActive(true);
         return GameObject;
@@ -317,6 +318,11 @@ public class Attack {
         tinkRb.useFullKinematicContacts = true;
 
         clashTink.SetActive(true);
+    }
+
+    private void TintIfNotImbued() {
+        if (damager!.NailElement == NailElements.None)
+            sprite!.color = Color;
     }
 
 }
