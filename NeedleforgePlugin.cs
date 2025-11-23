@@ -91,27 +91,27 @@ namespace Needleforge
 
             neoCrest.Moveset.Slash = new Attack() {
                 Name = "NeoSlash",
-                ColliderPoints = [new(0, 0), new(0, 1), new(-3, 1), new(-3, 0)],
+                HitboxPoints = [new(0, 0), new(0, 1), new(-3, 1), new(-3, 0)],
                 Color = Color.green,
                 KnockbackMult = 0.1f,
             };
 
             neoCrest.Moveset.SlashAlt = new Attack() {
                 Name = "NeoSlashAlt",
-                ColliderPoints = [new(0, 0), new(0, -1), new(-3, -1), new(-3, 0)],
+                HitboxPoints = [new(0, 0), new(0, -1), new(-3, -1), new(-3, 0)],
                 Color = Color.magenta,
                 KnockbackMult = 4,
             };
 
             neoCrest.Moveset.UpSlash = new Attack() {
                 Name = "NeoSlashUp",
-                ColliderPoints = [new(1, 0), new(1, 3), new(-1, 3), new(-1, 0)],
+                HitboxPoints = [new(1, 0), new(1, 3), new(-1, 3), new(-1, 0)],
                 Color = Color.yellow,
             };
 
             neoCrest.Moveset.WallSlash = new Attack() {
                 Name = "NeoSlashWall",
-                ColliderPoints = [new(0, 1.5f), new(0, -1.5f), new(-3, -1.5f), new(-3, 1.5f)],
+                HitboxPoints = [new(0, 1.5f), new(0, -1.5f), new(-3, -1.5f), new(-3, 1.5f)],
                 Color = Color.blue,
             };
 

@@ -1,10 +1,11 @@
 ﻿using GlobalEnums;
 using UnityEngine;
+using static Needleforge.Utils.MathUtils;
 
 namespace Needleforge.Data;
 
 /// <summary>
-/// Represents a custom attack in a crest moveset.
+/// Represents the visual, auditory, and damage properties of an attack in a crest moveset.
 /// </summary>
 public class Attack {
 
@@ -29,7 +30,7 @@ public class Attack {
     /// <para>
     /// A reference to the library where this attack's effect animation is found.
     /// </para>
-    /// <para id="animreqs">
+    /// <para id="anim-info">
     /// The effect animation for an attack should not loop, and MUST have two frames for
     /// which <see cref="tk2dSpriteAnimationFrame.triggerEvent"/> = <c>true</c>;
     /// these frames determine when the attack's collider is enabled and disabled.
@@ -50,7 +51,7 @@ public class Attack {
     /// <para>
     /// The name of the animation clip to use for this attack's effect.
     /// </para>
-    /// <inheritdoc cref="AnimLibrary" path="//para[@id='animreqs']"/>
+    /// <inheritdoc cref="AnimLibrary" path="//*[@id='anim-info']"/>
     /// </summary>
     public string AnimName {
         get => _animName;
@@ -81,19 +82,58 @@ public class Attack {
     private AudioClip? _sound;
 
     /// <summary>
-    /// Points which define the shape of this attack's hitbox.
+    /// Points which define the shape of this attack's damaging hitbox.
+    /// <span id="collider-info">
     /// (0, 0) is at the center of Hornet's idle sprite.
     /// Negative X values are in front of Hornet.
+    /// </span>
     /// </summary>
-    public Vector2[] ColliderPoints {
-        get => _colliderPoints;
+    public Vector2[] HitboxPoints {
+        get => _hitboxPoints;
         set {
-            _colliderPoints = value;
+            _hitboxPoints = value;
             if (GameObject)
-                collider!.points = ColliderPoints;
+                collider!.points = value;
+
+            if (_autoTinkerPoints)
+            {
+                _tinkerPoints = ScalePolygon(value, 0.8f);
+                if (GameObject)
+                    tinkCollider!.points = _tinkerPoints;
+            }
         }
     }
-    private Vector2[] _colliderPoints = [];
+    private Vector2[] _hitboxPoints = [];
+
+    /// <summary>
+    /// <para>
+    /// Points which define the shape of the "tinker" hitbox which causes a visual and
+    /// sound effect, and sometimes recoil, when the attack hits the level geometry.
+    /// <inheritdoc cref="HitboxPoints" path="//*[@id='collider-info']"/>
+    /// </para><para>
+    /// If left unset or set to <c>null</c>, will automatically use a scaled-down copy
+    /// of <see cref="HitboxPoints"/>.
+    /// </para>
+    /// </summary>
+    public Vector2[]? TinkerPoints {
+        get => _tinkerPoints;
+        set {
+            _autoTinkerPoints = value == null;
+            if (_autoTinkerPoints)
+            {
+                _tinkerPoints = ScalePolygon(_hitboxPoints, 0.8f);
+                if (GameObject)
+                    tinkCollider!.points = _tinkerPoints;
+            }
+            else {
+                _tinkerPoints = value;
+                if (GameObject)
+                    tinkCollider!.points = value ?? [];
+            }
+        }
+    }
+    private Vector2[]? _tinkerPoints = [];
+    private bool _autoTinkerPoints = true;
 
     /// <summary>
     /// The style of silk generation this attack uses.
@@ -159,6 +199,10 @@ public class Attack {
     private DamageEnemies? damager;
     private AudioSourcePriority? audioPriority;
 
+    private PolygonCollider2D? tinkCollider;
+
+    private const string NAIL_ATTACK_TAG = "Nail Attack";
+
     internal GameObject CreateGameObject(GameObject parent, HeroController hc)
     {
         if (GameObject)
@@ -167,7 +211,7 @@ public class Attack {
         GameObject = new(Name);
         Object.DontDestroyOnLoad(GameObject);
         GameObject.transform.SetParent(parent.transform);
-        GameObject.tag = "Nail Attack";
+        GameObject.tag = NAIL_ATTACK_TAG;
         GameObject.layer = (int)PhysLayers.HERO_ATTACK;
         GameObject.transform.localPosition = new(0, 0, 0);
 
@@ -184,7 +228,7 @@ public class Attack {
         // Set up - damage
 
         collider.isTrigger = true;
-        collider.points = ColliderPoints;
+        collider.points = HitboxPoints;
 
         nailSlash.hc = hc;
         nailSlash.activateOnSlash = [];
@@ -217,7 +261,8 @@ public class Attack {
 
         audioPriority.sourceType = AudioSourcePriority.SourceType.Hero;
 
-        // TODO clash tink
+        AttachTinker();
+
         // TODO imbuement
 
         GameObject.SetActive(true);
@@ -249,6 +294,29 @@ public class Attack {
         damager!.targetRecordedFSMEvent = "";
         damager!.Tinked = new UnityEngine.Events.UnityEvent();
         damager!.ignoreInvuln = false;
+    }
+
+    private void AttachTinker() {
+        GameObject clashTink = new("Clash Tink");
+        Object.DontDestroyOnLoad(clashTink);
+        clashTink.transform.SetParent(GameObject!.transform);
+        clashTink.tag = NAIL_ATTACK_TAG;
+        clashTink.layer = (int)PhysLayers.TINKER;
+        clashTink.transform.localPosition = new(0, 0, 0);
+
+        clashTink.SetActive(false); // VERY IMPORTANT
+
+        clashTink.AddComponent<NailSlashTerrainThunk>();
+        tinkCollider = clashTink.AddComponent<PolygonCollider2D>();
+        var tinkRb = clashTink.AddComponent<Rigidbody2D>();
+
+        tinkCollider.points = TinkerPoints ?? [];
+
+        tinkRb.bodyType = RigidbodyType2D.Kinematic;
+        tinkRb.simulated = true;
+        tinkRb.useFullKinematicContacts = true;
+
+        clashTink.SetActive(true);
     }
 
 }
