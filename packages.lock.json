@@ -54,14 +54,14 @@
       "Silksong.GameLibs": {
         "type": "Direct",
         "requested": "[*-*, )",
-        "resolved": "1.1.0-silksong1.0.29242",
-        "contentHash": "Be1zJ8J3KWL2H7sUr+2qmHlwtaZk9mA/0aLzqrmFC140OPRGluEuXnbl7u1ZFTRRdMW9QlQY7MdH8JVyYQjsqw=="
+        "resolved": "1.1.0-silksong1.0.29315",
+        "contentHash": "HHAt52uzuBXi8cn90/D7WC7YEptcW9yST5fo43lThzRaN6d/TLiXhy7d1Cv3UyACTnryKqINSYPqa2hSbLR+Qg=="
       },
       "Silksong.PrepatcherPlugin": {
         "type": "Direct",
-        "requested": "[1.1.0, )",
-        "resolved": "1.1.0",
-        "contentHash": "ttzXgqWGLu5MQaTKDG0HlchbCQaRfI69A6kWrUl+t/8tLovlrJRzlZLDBQvn+C0TqmTJH3djCPRew18zSBU2rQ==",
+        "requested": "[1.1.1, )",
+        "resolved": "1.1.1",
+        "contentHash": "3d4j6fhikvtW5ezmwIYZsnMBHsH93jhpt3f52KDti3ZwMKApUrsjhpbERmbg2IeUur3oHmjbjEmy1GxWfSBbJg==",
         "dependencies": {
           "BepInEx.Core": "5.4.21",
           "HarmonyX": "2.9.0",
