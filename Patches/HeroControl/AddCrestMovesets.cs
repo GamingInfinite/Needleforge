@@ -5,9 +5,8 @@ using UnityEngine;
 namespace Needleforge.Patches.HeroControl;
 
 [HarmonyPatch(typeof(HeroController), nameof(HeroController.Awake))]
-internal class AddCrestMoveset {
-    [HarmonyPostfix]
-    private static void InitMovesets()
+internal class AddCrestMovesets {
+    private static void Postfix()
     {
         ModHelper.Log("Initializing Crest Movesets...");
         foreach (var crest in NeedleforgePlugin.newCrestData) {

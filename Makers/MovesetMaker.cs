@@ -1,7 +1,6 @@
 ﻿using Needleforge.Data;
 using System.Linq;
 using UnityEngine;
-using static iTween;
 using ConfigGroup = HeroController.ConfigGroup;
 
 namespace Needleforge.Makers;
@@ -12,56 +11,58 @@ internal class MovesetMaker {
     internal static void InitializeMoveset(MovesetData moveset)
     {
         if (!TryFindDefaultMoveset())
-        {
-            ModHelper.LogError($"Failed to initialize moveset for {moveset.Crest.name}; HeroController not found.");
             return;
-        }
 
         if (!moveset.HeroConfig)
-        {
-            moveset.HeroConfig = Object.Instantiate(hunter.Config);
-        }
+            moveset.HeroConfig = Object.Instantiate(hunter!.Config);
 
         HeroController hc = HeroController.instance;
 
-        // We have to copy the hunter root directly to get default copies of its attacks to work, for some reason
-        GameObject root = Object.Instantiate(hunter.ActiveRoot, hunter.ActiveRoot.transform.parent);
-        GameObject chargedDefault = Object.Instantiate(hunter.ChargeSlash, root.transform);
-
-        root.name = moveset.Crest.name;
-        chargedDefault.name = chargedDefault.name.Replace("(Clone)", "");
-
-        // Only use copied hunter attacks for attacks the moveset doesn't define
+        GameObject root = new(moveset.Crest.name);
+        root.transform.SetParent(hunter!.ActiveRoot.transform.parent);
+        root.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
         moveset.ConfGroup = new ConfigGroup()
         {
             ActiveRoot = root,
             Config = moveset.HeroConfig,
 
-            NormalSlashObject = AttackOrDefault(moveset.Slash, hunter.NormalSlashObject, root, hc),
-            AlternateSlashObject = AttackOrDefault(moveset.SlashAlt, hunter.AlternateSlashObject, root, hc),
-            UpSlashObject = AttackOrDefault(moveset.UpSlash, hunter.UpSlashObject, root, hc),
-            WallSlashObject = AttackOrDefault(moveset.WallSlash, hunter.WallSlashObject, root, hc),
+            // If the moveset doesn't define one of the minimum required attacks
+            // for crests to function, copy it from Hunter
+            NormalSlashObject = AttackOrDefault(moveset.Slash, hunter.NormalSlashObject),
+            UpSlashObject =     AttackOrDefault(moveset.UpSlash, hunter.UpSlashObject),
+            WallSlashObject =   AttackOrDefault(moveset.WallSlash, hunter.WallSlashObject),
+            DownSlashObject =   AttackOrDefault(moveset.DownSlash, hunter.DownSlashObject),
+            DashStab =          AttackOrDefault(null, hunter.DashStab),
+            ChargeSlash =       AttackOrDefault(null, hunter.ChargeSlash),
+            TauntSlash =        AttackOrDefault(null, hunter.TauntSlash),
 
-            DownSlashObject = AttackOrDefault(null, hunter.DownSlashObject, root, hc),
-            DashStab = AttackOrDefault(null, hunter.DashStab, root, hc),
-            ChargeSlash = AttackOrDefault(null, hunter.ChargeSlash, root, hc),
+            AlternateSlashObject = moveset.AltSlash?.CreateGameObject(root, hc),
+            AltUpSlashObject =     moveset.AltUpSlash?.CreateGameObject(root, hc),
+            AltDownSlashObject =   moveset.AltDownSlash?.CreateGameObject(root, hc),
+            DashStabAlt =          null,
         };
 
         hc.configs = [.. hc.configs, moveset.ConfGroup];
 
+        moveset.ExtraInitialization();
         moveset.ConfGroup.Setup();
-    }
 
-    private static GameObject AttackOrDefault(Attack? attack, GameObject _default, GameObject parent, HeroController hc)
-    {
-        GameObject defaultCopy = parent.transform.Find(_default.name).gameObject;
-
-        if (attack == null)
-            return defaultCopy;
-
-        Object.Destroy(defaultCopy);
-        return attack.CreateGameObject(parent, hc);
+        GameObject? AttackOrDefault(Attack? attack, GameObject? _default)
+        {
+            if (attack == null)
+            {
+                if (!_default)
+                    return null;
+                else
+                {
+                    GameObject clone = Object.Instantiate(_default, root.transform);
+                    clone.name = clone.name.Replace("(Clone)", "");
+                    return clone;
+                }
+            }
+            return attack.CreateGameObject(root, hc);
+        }
     }
 
     private static bool TryFindDefaultMoveset() {
@@ -71,9 +72,7 @@ internal class MovesetMaker {
             return false;
 
         if (hunter == null || !hunter.NormalSlashObject)
-        {
             hunter = hc.configs.First(c => c.Config.name == "Default");
-        }
 
         return true;
     }

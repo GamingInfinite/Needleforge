@@ -89,13 +89,13 @@ namespace Needleforge
 
             neoCrest.HudFrame.Preset = VanillaCrest.BEAST;
 
-            neoCrest.Moveset.Slash = new Attack() {
-                Name = "NeoSlash",
-                Hitbox = [new(0, 0), new(0, 1), new(-3, 1), new(-3, 0)],
-                Color = Color.green,
-            };
+            //neoCrest.Moveset.Slash = new Attack() {
+            //    Name = "NeoSlash",
+            //    Hitbox = [new(0, 0), new(0, 1), new(-3, 1), new(-3, 0)],
+            //    Color = Color.green,
+            //};
 
-            neoCrest.Moveset.SlashAlt = new Attack() {
+            neoCrest.Moveset.AltSlash = new Attack() {
                 Name = "NeoSlashAlt",
                 Hitbox = [new(0, 0), new(0, -1), new(-3, -1), new(-3, 0)],
                 Scale = new(2, 1.25f),
@@ -119,7 +119,8 @@ namespace Needleforge
                 Color = Color.blue,
             };
 
-            // Attacks require an animation to function and I don't feel like adding test assets to needleforge itself
+            // Attacks require an animation to function and adding test assets
+            // to needleforge itself seemed unnecessary
             neoCrest.Moveset.OnInitialized += () => {
                 var hc = HeroController.instance;
 
@@ -127,10 +128,9 @@ namespace Needleforge
                 DontDestroyOnLoad(libobj);
                 var lib = libobj.AddComponent<tk2dSpriteAnimation>();
 
-                var oldclip = hc.animCtrl.animator.Library.GetClipByName("Dash");
-
                 var myclip = new tk2dSpriteAnimationClip() {
-                    name = "NeoSlashEffect", fps = 20, frames = [.. oldclip.frames],
+                    name = "NeoSlashEffect", fps = 20,
+                    frames = [.. hc.animCtrl.animator.Library.GetClipByName("Dash").frames],
                     wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
                 };
                 myclip.frames[0].triggerEvent = true;
@@ -138,7 +138,12 @@ namespace Needleforge
 
                 lib.clips = [myclip];
 
-                Attack[] atks = [neoCrest.Moveset.Slash, neoCrest.Moveset.SlashAlt, neoCrest.Moveset.WallSlash, neoCrest.Moveset.UpSlash];
+                Attack[] atks = [
+                    //neoCrest.Moveset.Slash,
+                    neoCrest.Moveset.AltSlash,
+                    neoCrest.Moveset.UpSlash,
+                    neoCrest.Moveset.WallSlash,
+                ];
 
                 for (int i = 0; i < atks.Length; i++) {
                     atks[i].AnimLibrary = lib;

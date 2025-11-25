@@ -47,7 +47,8 @@ namespace Needleforge.Data
 
         /// <summary>
         /// Can be used to customize this crest's moveset.
-        /// The default moveset is copied from Hunter crest.
+        /// By default, custom crests will use Hunter crest's hero configuration,
+        /// and the minimum set of Hunter crest's attacks needed for a crest to function.
         /// </summary>
         public MovesetData Moveset { get; }
 

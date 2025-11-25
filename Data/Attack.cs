@@ -7,6 +7,8 @@ namespace Needleforge.Data;
 
 /// <summary>
 /// Represents the visual, auditory, and damage properties of an attack in a crest moveset.
+/// Changes to an attack's properties will update the <see cref="UnityEngine.GameObject"/>
+/// it represents, if one has been created.
 /// </summary>
 public class Attack {
 
@@ -14,6 +16,10 @@ public class Attack {
 
     /// <summary>
     /// A name for this attack's <see cref="GameObject"/>.
+    /// <span id="prop-updates-go">
+    /// Changing this property will update the <see cref="UnityEngine.GameObject"/>
+    /// this attack represents, if one has been created.
+    /// </span>
     /// </summary>
     public string Name
     {
@@ -30,6 +36,7 @@ public class Attack {
     /// <summary>
     /// <para>
     /// A reference to the library where this attack's effect animation is found.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </para>
     /// <para id="anim-info">
     /// The effect animation for an attack should not loop, and MUST have two frames for
@@ -51,6 +58,7 @@ public class Attack {
     /// <summary>
     /// <para>
     /// The name of the animation clip to use for this attack's effect.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </para>
     /// <inheritdoc cref="AnimLibrary" path="//*[@id='anim-info']"/>
     /// </summary>
@@ -66,11 +74,13 @@ public class Attack {
 
     /// <summary>
     /// Color to tint the attack's effect animation when it's not imbued with an element.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
     public Color Color { get; set; } = Color.white;
 
     /// <summary>
     /// Sound effect to play when this attack is used.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
     public AudioClip? Sound {
         get => _sound;
@@ -88,6 +98,7 @@ public class Attack {
     /// (0, 0) is at the center of Hornet's idle sprite.
     /// Negative X values are in front of Hornet.
     /// </span>
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
     public Vector2[] Hitbox {
         get => _hitbox;
@@ -111,6 +122,7 @@ public class Attack {
     /// Points which define the shape of the "tinker" hitbox which causes a visual and
     /// sound effect, and sometimes recoil, when the attack hits the level geometry.
     /// <inheritdoc cref="Hitbox" path="//*[@id='collider-info']"/>
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </para><para>
     /// If left unset or set to <c>null</c>,
     /// will default to the <see cref="Hitbox"/> at 80% size.
@@ -138,6 +150,7 @@ public class Attack {
 
     /// <summary>
     /// Multiplier on the overall size of the attack.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
     public Vector2 Scale {
         get => _scale;
@@ -152,6 +165,7 @@ public class Attack {
     /// <summary>
     /// The style of silk generation this attack uses.
     /// <c>FirstHit</c> and <c>Full</c> are the same unless the attack is a multihitter.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
     public HitSilkGeneration SilkGeneration {
         get => _silkGen;
@@ -165,6 +179,7 @@ public class Attack {
 
     /// <summary>
     /// Multiplier on base nail damage for this attack.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
     public float DamageMult {
         get => _damageMult;
@@ -179,6 +194,7 @@ public class Attack {
     /// <summary>
     /// The amount of stun damage this attack deals when it hits a stunnable boss.
     /// If this attack is a multihitter, this value is applied to each individual hit.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
     public float StunDamage {
         get => _stunDamage;
@@ -193,6 +209,7 @@ public class Attack {
     /// <summary>
     /// A multiplier on how far away from Hornet an enemy is pushed when this attack
     /// hits them. Must be non-negative.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
     public float KnockbackMult {
         get => _knockback;
@@ -208,7 +225,8 @@ public class Attack {
     /// Setting this with a non-empty array marks this attack as a multi-hitter attack
     /// which damages enemies as many times as the array's length. Each value in the
     /// array is a damage multiplier on Hornet's base needle damage which is applied to
-    /// that individual hit; for balance reasons these are usually all &lt; 1.
+    /// that individual hit; these are usually all &lt; 1.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
     public float[] MultiHitMultipliers {
         get => _multiHitMults;
@@ -229,6 +247,7 @@ public class Attack {
     /// <summary>
     /// Determines the visual effect applied to each hit of a multi-hitting attack after
     /// the first one.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
     public EffectsTypes MultiHitEffects {
         get => _multiHitEffects;
@@ -244,6 +263,7 @@ public class Attack {
     /// Number of frames between individual hits of a multi-hitting attack. Make sure
     /// the effect animation (see <see cref="AnimName"/> and <see cref="AnimLibrary"/>)
     /// for this attack lasts long enough for all hits to occur.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
     public int FramesBetweenMultiHits {
         get => _multiSteps;
@@ -259,12 +279,12 @@ public class Attack {
 
     /// <summary>
     /// <para>
-    /// After the moveset this attack is attached to has initialized
-    /// (see <see cref="MovesetData.OnInitialized"/>), this will reference the GameObject
-    /// that this Attack represents.
+    /// After the moveset this attack is attached to has initialized, this will reference
+    /// the <see cref="UnityEngine.GameObject"/> that this Attack represents.
     /// </para><para>
-    /// Modifying this object directly should only be done with caution and if no other
-    /// properties of this class can make the modification you need.
+    /// Unlike changes to the other properties, modifications made directly to this
+    /// object will not be reproduced if a player quits to menu and loads a new save;
+    /// consider making such modifications in <see cref="MovesetData.OnInitialized"/>.
     /// </para>
     /// </summary>
     public GameObject? GameObject { get; private set; }
@@ -314,6 +334,8 @@ public class Attack {
 
         GameObject.SetActive(false); // VERY IMPORTANT
 
+        // Common component initialization
+
         sprite = GameObject.AddComponent<tk2dSprite>();
         animator = GameObject.AddComponent<tk2dSpriteAnimator>();
         nailSlash = GameObject.AddComponent<NailSlash>();
@@ -322,17 +344,26 @@ public class Attack {
         damager = GameObject.AddComponent<DamageEnemies>();
         audioPriority = GameObject.AddComponent<AudioSourcePriority>();
 
-        // Set up - damage
-
         collider.isTrigger = true;
-        collider.points = Hitbox;
 
         nailSlash.hc = hc;
         nailSlash.activateOnSlash = [];
         nailSlash.enemyDamager = damager;
-        nailSlash.scale = _scale.MultiplyElements(_wallSlashFlipper);
+        nailSlash.AttackStarting += TintIfNotImbued;
 
         DamagerInit();
+
+        audioSrc.outputAudioMixerGroup = hc.gameObject.GetComponent<AudioSource>().outputAudioMixerGroup;
+        audioSrc.playOnAwake = false;
+
+        audioPriority.sourceType = AudioSourcePriority.SourceType.Hero;
+
+        // Customizations
+
+        collider.points = Hitbox;
+
+        nailSlash.scale = _scale.MultiplyElements(_wallSlashFlipper);
+
         damager.magnitudeMult = KnockbackMult;
         damager.nailDamageMultiplier = DamageMult;
         damager.stunDamage = StunDamage;
@@ -345,18 +376,9 @@ public class Attack {
         damager.damageMultPerHit = MultiHitMultipliers;
         damager.stepsPerHit = FramesBetweenMultiHits;
 
-        // Set up - visuals & sound
-
         animator.library = AnimLibrary;
         nailSlash.animName = AnimName;
-
-        nailSlash.AttackStarting += TintIfNotImbued;
-
-        audioSrc.outputAudioMixerGroup = hc.gameObject.GetComponent<AudioSource>().outputAudioMixerGroup;
-        audioSrc.playOnAwake = false;
         audioSrc.clip = Sound;
-
-        audioPriority.sourceType = AudioSourcePriority.SourceType.Hero;
 
         AttachTinker();
 
