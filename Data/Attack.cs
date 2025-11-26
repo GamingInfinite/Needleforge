@@ -3,17 +3,21 @@
 namespace Needleforge.Data;
 
 /// <summary>
-/// Represents the visual, auditory, and damage properties of an attack in a crest moveset.
-/// Changes to an attack's properties will update the <see cref="UnityEngine.GameObject"/>
+/// Represents the visual, auditory, and damage properties of a standard attack in a
+/// crest moveset.
+/// Changes to an attack's properties will update the <see cref="GameObject"/>
 /// it represents, if one has been created.
 /// </summary>
-public class Attack : AttackBase {
+public class Attack : AttackBase
+{
 
     #region API
 
-    public override string AnimName {
+    public override string AnimName
+    {
         get => _animName;
-        set {
+        set
+        {
             _animName = value;
             if (GameObject)
                 nailSlash!.animName = value;
@@ -21,9 +25,11 @@ public class Attack : AttackBase {
     }
     private string _animName = "";
 
-    public override Vector2 Scale {
+    public override Vector2 Scale
+    {
         get => base.Scale;
-        set {
+        set
+        {
             base.Scale = value;
             if (GameObject)
                 nailSlash!.scale = value.MultiplyElements(_wallSlashFlipper);
@@ -51,30 +57,18 @@ public class Attack : AttackBase {
     }
     private Vector3 _wallSlashFlipper = Vector3.one;
 
-    private NailSlash? nailSlash;
-    protected override NailAttackBase? NailAttackBase => nailSlash;
+    protected NailSlash? nailSlash;
+    protected override NailAttackBase? NailAttack => nailSlash;
 
-    internal override GameObject CreateGameObject(GameObject parent, HeroController hc)
+    protected override void AddComponents(HeroController hc)
     {
-        base.CreateGameObject(parent, hc);
-        GameObject!.SetActive(false); // VERY IMPORTANT
-
-        // Common component initialization
-
         nailSlash = GameObject!.AddComponent<NailSlash>();
-
-        nailSlash.hc = hc;
-        nailSlash.activateOnSlash = [];
-        nailSlash.enemyDamager = damager;
-
-        // Customizations
-
-        nailSlash.scale = Scale.MultiplyElements(_wallSlashFlipper);
         nailSlash.animName = AnimName;
-        nailSlash.AttackStarting += TintIfNotImbued;
+    }
 
-        GameObject!.SetActive(true);
-        return GameObject!;
+    protected override void LateInitializeComponents(HeroController hc)
+    {
+        nailSlash!.scale = Scale.MultiplyElements(_wallSlashFlipper);
     }
 
 }

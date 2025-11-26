@@ -11,6 +11,7 @@ TODO:
 - Special handling for DownSlash, DashSlash, and ChargedSlash - possibly different classes
 - FSM edits...
 - Make sure everything is thoroughly documented
+- idea: custom down attack type that has some configuration options (antic time, attack duration/velocity/gravity, etc) that allows making things similar to shaman/beast/reaper downslash without dealing in fsms? maybe?
 
 */
 
@@ -86,7 +87,14 @@ public class MovesetData {
     private Attack? _wallSlash;
 
     /// <summary>
+    /// <para>
     /// Defines the visual, auditory, and damage properties of the down attack.
+    /// </para><para>
+    /// The type and behaviour of down attacks are determined by properties of
+    /// <see cref="HeroConfig"/>, particularly
+    /// <see cref="HeroControllerConfig.downSlashType">downSlashType</see>, which must
+    /// be set <i>before</i> the moveset is initialized.
+    /// </para>
     /// </summary>
     public DownAttack? DownSlash
     {
@@ -115,9 +123,16 @@ public class MovesetData {
     public Attack? AltUpSlash { get; set; }
 
     /// <summary>
+    /// <para>
     /// Defines the visual, auditory, and damage properties of the alternate down attack,
     /// which is used when the player attacks multiple times in quick succession.
     /// Optional.
+    /// </para><para>
+    /// The type and behaviour of down attacks are determined by properties of
+    /// <see cref="HeroConfig"/>, particularly
+    /// <see cref="HeroControllerConfig.downSlashType">downSlashType</see>, which must
+    /// be set <i>before</i> the moveset is initialized.
+    /// </para>
     /// </summary>
     public DownAttack? AltDownSlash
     {

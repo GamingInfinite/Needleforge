@@ -1,10 +1,17 @@
 ﻿using GlobalEnums;
+using TeamCherry.SharedUtils;
 using UnityEngine;
+using UnityEngine.Events;
 using EffectsTypes = EnemyHitEffectsProfile.EffectsTypes;
 using static Needleforge.Utils.MathUtils;
 
 namespace Needleforge.Data;
 
+/// <summary>
+/// Represents the visual, auditory, and damage properties of an attack in a crest moveset.
+/// Changes to an attack's properties will update the <see cref="UnityEngine.GameObject"/>
+/// it represents, if one has been created.
+/// </summary>
 public abstract class AttackBase
 {
     #region API
@@ -46,7 +53,7 @@ public abstract class AttackBase
         {
             _animLibrary = value;
             if (GameObject)
-                animator!.Library = value;
+                Animator!.Library = value;
         }
     }
     private tk2dSpriteAnimation? _animLibrary;
@@ -68,7 +75,7 @@ public abstract class AttackBase
         {
             _sound = value;
             if (GameObject)
-                audioSrc!.clip = Sound;
+                AudioSrc!.clip = Sound;
         }
     }
     private AudioClip? _sound;
@@ -87,13 +94,13 @@ public abstract class AttackBase
         set {
             _hitbox = value;
             if (GameObject)
-                collider!.points = value;
+                Collider!.points = value;
 
             if (_autoTinkerHitbox)
             {
                 _tinkerHitbox = ScalePolygon(value, 0.8f);
                 if (GameObject)
-                    tinkCollider!.points = _tinkerHitbox;
+                    TinkCollider!.points = _tinkerHitbox;
             }
         }
     }
@@ -122,23 +129,41 @@ public abstract class AttackBase
                 _tinkerHitbox = value;
 
             if (GameObject)
-                tinkCollider!.points = _tinkerHitbox ?? [];
+                TinkCollider!.points = _tinkerHitbox ?? [];
         }
     }
     private Vector2[]? _tinkerHitbox = [];
     private bool _autoTinkerHitbox = true;
 
     /// <summary>
+    /// Multiplier on the overall size of the attack.
+    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
+    /// </summary>
+    public virtual Vector2 Scale
+    {
+        get => _scale;
+        set
+        {
+            _scale = value;
+            if (GameObject)
+                NailAttack!.scale = value;
+        }
+    }
+    private Vector3 _scale = Vector2.one;
+
+    /// <summary>
     /// The style of silk generation this attack uses.
     /// <c>FirstHit</c> and <c>Full</c> are the same unless the attack is a multihitter.
     /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
-    public HitSilkGeneration SilkGeneration {
+    public HitSilkGeneration SilkGeneration
+    {
         get => _silkGen;
-        set {
+        set
+        {
             _silkGen = value;
             if (GameObject)
-                damager!.silkGeneration = value;
+                Damager!.silkGeneration = value;
         }
     }
     private HitSilkGeneration _silkGen = HitSilkGeneration.FirstHit;
@@ -147,12 +172,14 @@ public abstract class AttackBase
     /// Multiplier on base nail damage for this attack.
     /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
-    public float DamageMult {
+    public float DamageMult
+    {
         get => _damageMult;
-        set {
+        set
+        {
             _damageMult = value;
             if (GameObject)
-                damager!.nailDamageMultiplier = value;
+                Damager!.nailDamageMultiplier = value;
         }
     }
     private float _damageMult = 1f;
@@ -162,12 +189,14 @@ public abstract class AttackBase
     /// If this attack is a multihitter, this value is applied to each individual hit.
     /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
-    public float StunDamage {
+    public float StunDamage
+    {
         get => _stunDamage;
-        set {
+        set
+        {
             _stunDamage = value;
             if (GameObject)
-                damager!.stunDamage = value;
+                Damager!.stunDamage = value;
         }
     }
     private float _stunDamage = 1f;
@@ -177,12 +206,14 @@ public abstract class AttackBase
     /// hits them. Must be non-negative.
     /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
-    public float KnockbackMult {
+    public float KnockbackMult
+    {
         get => _knockback;
-        set {
+        set
+        {
             _knockback = value;
             if (GameObject)
-                damager!.magnitudeMult = value;
+                Damager!.magnitudeMult = value;
         }
     }
     private float _knockback = 1f;
@@ -194,17 +225,20 @@ public abstract class AttackBase
     /// that individual hit; these are usually all &lt; 1.
     /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
-    public float[] MultiHitMultipliers {
+    public float[] MultiHitMultipliers
+    {
         get => _multiHitMults;
-        set {
+        set
+        {
             _multiHitMults = value;
-            if (GameObject) {
+            if (GameObject)
+            {
                 bool isMultiHitter = value.Length > 0;
 
-                damager!.multiHitter = isMultiHitter;
-                damager!.deathEndDamage = isMultiHitter;
-                damager!.hitsUntilDeath = value.Length;
-                damager!.damageMultPerHit = value;
+                Damager!.multiHitter = isMultiHitter;
+                Damager!.deathEndDamage = isMultiHitter;
+                Damager!.hitsUntilDeath = value.Length;
+                Damager!.damageMultPerHit = value;
             }
         }
     }
@@ -215,12 +249,14 @@ public abstract class AttackBase
     /// the first one.
     /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
-    public EffectsTypes MultiHitEffects {
+    public EffectsTypes MultiHitEffects
+    {
         get => _multiHitEffects;
-        set {
+        set
+        {
             _multiHitEffects = value;
             if (GameObject)
-                damager!.multiHitEffects = value;
+                Damager!.multiHitEffects = value;
         }
     }
     private EffectsTypes _multiHitEffects = EffectsTypes.LagHit;
@@ -231,19 +267,21 @@ public abstract class AttackBase
     /// for this attack lasts long enough for all hits to occur.
     /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </summary>
-    public int FramesBetweenMultiHits {
+    public int FramesBetweenMultiHits
+    {
         get => _multiSteps;
-        set {
+        set
+        {
             _multiSteps = value;
             if (GameObject)
-                damager!.stepsPerHit = value;
+                Damager!.stepsPerHit = value;
         }
     }
     private int _multiSteps = 2;
 
     #endregion
 
-    #region Overrideable API
+    #region Required API
 
     /// <summary>
     /// <para>
@@ -254,21 +292,44 @@ public abstract class AttackBase
     /// </summary>
     public abstract string AnimName { get; set; }
 
+    #endregion
+
+    #region Required Initialization
+
     /// <summary>
-    /// Multiplier on the overall size of the attack.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
+    /// Should return a reference to a MonoBehaviour descended from
+    /// <see cref="NailAttackBase"/> which is added to the <see cref="GameObject"/>
+    /// in <see cref="AddComponents"/>. This is needed for some standard initialization.
     /// </summary>
-    public virtual Vector2 Scale {
-        get => _scale;
-        set {
-            _scale = value;
-            if (GameObject)
-                NailAttackBase!.scale = value;
-        }
-    }
-    private Vector3 _scale = Vector2.one;
+    protected abstract NailAttackBase? NailAttack { get; }
+
+    /// <summary>
+    /// <para>
+    /// This is called immediately after all standard attack components are added to
+    /// this attack's <see cref="GameObject"/>, and should be used to add and initialize
+    /// any needed additional components to the GameObject.
+    /// At least one of these should be a MonoBehaviour descended from
+    /// <see cref="NailAttackBase"/>, the same one returned by <see cref="NailAttack"/>.
+    /// </para><para>
+    /// If the added components need to reference some value from the standard components,
+    /// or the standard components need to be modified in some way,
+    /// that should be done in an override of <see cref="LateInitializeComponents"/>.
+    /// </para>
+    /// </summary>
+    /// <param name="hc">A reference to the current HeroController.</param>
+    protected abstract void AddComponents(HeroController hc);
+
+    /// <summary>
+    /// This is called after all standard component initialization has occurred. If the
+    /// components added in <see cref="AddComponents"/> need to reference some value from
+    /// the standard components, or the standard components need to modified in some way,
+    /// that should be done here.
+    /// </summary>
+    /// <param name="hc">A reference to the current HeroController.</param>
+    protected virtual void LateInitializeComponents(HeroController hc) { }
 
     #endregion
+
 
     /// <summary>
     /// <para>
@@ -282,20 +343,16 @@ public abstract class AttackBase
     /// </summary>
     public GameObject? GameObject { get; private set; }
 
-    protected abstract NailAttackBase? NailAttackBase { get; }
+    protected tk2dSprite? Sprite { get; private set; }
+    protected tk2dSpriteAnimator? Animator { get; private set; }
+    protected AudioSource? AudioSrc { get; private set; }
+    protected PolygonCollider2D? Collider { get; private set; }
+    protected PolygonCollider2D? TinkCollider { get; private set; }
+    protected DamageEnemies? Damager { get; private set; }
+    protected AudioSourcePriority? AudioPriority { get; private set; }
 
-    protected tk2dSprite? sprite;
-    protected tk2dSpriteAnimator? animator;
-    protected AudioSource? audioSrc;
-    protected PolygonCollider2D? collider;
-    protected DamageEnemies? damager;
-    protected AudioSourcePriority? audioPriority;
-
-    protected PolygonCollider2D? tinkCollider;
-
-    protected const string NAIL_ATTACK_TAG = "Nail Attack";
-
-    internal virtual GameObject CreateGameObject(GameObject parent, HeroController hc) {
+    internal GameObject CreateGameObject(GameObject parent, HeroController hc)
+    {
         if (GameObject)
             Object.DestroyImmediate(GameObject);
 
@@ -310,73 +367,89 @@ public abstract class AttackBase
 
         // Common component initialization
 
-        sprite = GameObject.AddComponent<tk2dSprite>();
-        animator = GameObject.AddComponent<tk2dSpriteAnimator>();
-        audioSrc = GameObject.AddComponent<AudioSource>();
-        collider = GameObject.AddComponent<PolygonCollider2D>();
-        damager = GameObject.AddComponent<DamageEnemies>();
-        audioPriority = GameObject.AddComponent<AudioSourcePriority>();
+        Sprite = GameObject.AddComponent<tk2dSprite>();
+        Animator = GameObject.AddComponent<tk2dSpriteAnimator>();
+        AudioSrc = GameObject.AddComponent<AudioSource>();
+        Collider = GameObject.AddComponent<PolygonCollider2D>();
+        Damager = GameObject.AddComponent<DamageEnemies>();
+        AudioPriority = GameObject.AddComponent<AudioSourcePriority>();
 
-        collider.isTrigger = true;
+        AddComponents(hc);
+
+        Collider.isTrigger = true;
 
         DamagerInit();
 
-        audioSrc.outputAudioMixerGroup = hc.gameObject.GetComponent<AudioSource>().outputAudioMixerGroup;
-        audioSrc.playOnAwake = false;
+        AudioSrc.outputAudioMixerGroup = hc.gameObject.GetComponent<AudioSource>().outputAudioMixerGroup;
+        AudioSrc.playOnAwake = false;
 
-        audioPriority.sourceType = AudioSourcePriority.SourceType.Hero;
+        AudioPriority.sourceType = AudioSourcePriority.SourceType.Hero;
+
+        NailAttack!.hc = hc;
+        NailAttack!.enemyDamager = Damager;
+        NailAttack!.activateOnSlash = [];
 
         // Customizations
 
-        collider.points = Hitbox;
+        Collider.points = Hitbox;
 
-        damager.magnitudeMult = KnockbackMult;
-        damager.nailDamageMultiplier = DamageMult;
-        damager.stunDamage = StunDamage;
-        damager.silkGeneration = SilkGeneration;
+        Damager.magnitudeMult = KnockbackMult;
+        Damager.nailDamageMultiplier = DamageMult;
+        Damager.stunDamage = StunDamage;
+        Damager.silkGeneration = SilkGeneration;
 
         bool isMultiHitter = MultiHitMultipliers.Length > 0;
-        damager.multiHitter = isMultiHitter;
-        damager.deathEndDamage = isMultiHitter;
-        damager.hitsUntilDeath = MultiHitMultipliers.Length;
-        damager.damageMultPerHit = MultiHitMultipliers;
-        damager.stepsPerHit = FramesBetweenMultiHits;
-        damager.multiHitEffects = MultiHitEffects;
+        Damager.multiHitter = isMultiHitter;
+        Damager.deathEndDamage = isMultiHitter;
+        Damager.hitsUntilDeath = MultiHitMultipliers.Length;
+        Damager.damageMultPerHit = MultiHitMultipliers;
+        Damager.stepsPerHit = FramesBetweenMultiHits;
+        Damager.multiHitEffects = MultiHitEffects;
 
-        animator.library = AnimLibrary;
-        audioSrc.clip = Sound;
+        Animator.library = AnimLibrary;
+        AudioSrc.clip = Sound;
+
+        NailAttack!.scale = Scale;
+        NailAttack!.AttackStarting += TintIfNotImbued;
 
         AttachTinker();
 
+        LateInitializeComponents(hc);
+
+        GameObject.SetActive(true);
         return GameObject;
     }
 
-    private void DamagerInit() {
+    private const string NAIL_ATTACK_TAG = "Nail Attack";
+
+    private void DamagerInit()
+    {
         // making absolutely certain this is considered needle damage from hornet
-        damager!.useNailDamage = true;
-        damager!.isHeroDamage = true;
-        damager!.sourceIsHero = true;
-        damager!.isNailAttack = true;
-        damager!.attackType = AttackTypes.Nail;
-        damager!.nailDamageMultiplier = 1f;
+        Damager!.useNailDamage = true;
+        Damager!.isHeroDamage = true;
+        Damager!.sourceIsHero = true;
+        Damager!.isNailAttack = true;
+        Damager!.attackType = AttackTypes.Nail;
+        Damager!.nailDamageMultiplier = 1f;
 
         // miscellaneous (some of which may need investigation for API purposes)
-        damager!.lagHitOptions = new LagHitOptions() { DamageType = LagHitDamageType.None, HitCount = 0 };
-        damager!.corpseDirection = new TeamCherry.SharedUtils.OverrideFloat();
-        damager!.corpseMagnitudeMult = new TeamCherry.SharedUtils.OverrideFloat();
-        damager!.currencyMagnitudeMult = new TeamCherry.SharedUtils.OverrideFloat();
-        damager!.slashEffectOverrides = [];
-        damager!.DealtDamage = new UnityEngine.Events.UnityEvent();
-        damager!.contactFSMEvent = "";
-        damager!.damageFSMEvent = "";
-        damager!.dealtDamageFSMEvent = "";
-        damager!.deathEvent = "";
-        damager!.targetRecordedFSMEvent = "";
-        damager!.Tinked = new UnityEngine.Events.UnityEvent();
-        damager!.ignoreInvuln = false;
+        Damager!.lagHitOptions = new LagHitOptions() { DamageType = LagHitDamageType.None, HitCount = 0 };
+        Damager!.corpseDirection = new OverrideFloat();
+        Damager!.corpseMagnitudeMult = new OverrideFloat();
+        Damager!.currencyMagnitudeMult = new OverrideFloat();
+        Damager!.slashEffectOverrides = [];
+        Damager!.DealtDamage = new UnityEvent();
+        Damager!.contactFSMEvent = "";
+        Damager!.damageFSMEvent = "";
+        Damager!.dealtDamageFSMEvent = "";
+        Damager!.deathEvent = "";
+        Damager!.targetRecordedFSMEvent = "";
+        Damager!.Tinked = new UnityEvent();
+        Damager!.ignoreInvuln = false;
     }
 
-    private void AttachTinker() {
+    private void AttachTinker()
+    {
         GameObject clashTink = new("Clash Tink");
         Object.DontDestroyOnLoad(clashTink);
         clashTink.transform.SetParent(GameObject!.transform);
@@ -386,11 +459,11 @@ public abstract class AttackBase
 
         clashTink.SetActive(false); // VERY IMPORTANT
 
-        tinkCollider = clashTink.AddComponent<PolygonCollider2D>();
+        TinkCollider = clashTink.AddComponent<PolygonCollider2D>();
         var tinkThunk = clashTink.AddComponent<NailSlashTerrainThunk>();
         var tinkRb = clashTink.AddComponent<Rigidbody2D>();
 
-        tinkCollider.points = TinkerHitbox ?? [];
+        TinkCollider.points = TinkerHitbox ?? [];
 
         tinkRb.bodyType = RigidbodyType2D.Kinematic;
         tinkRb.simulated = true;
@@ -401,9 +474,10 @@ public abstract class AttackBase
         clashTink.SetActive(true);
     }
 
-    protected void TintIfNotImbued() {
-        if (damager!.NailElement == NailElements.None)
-            sprite!.color = Color;
+    private void TintIfNotImbued()
+    {
+        if (Damager!.NailElement == NailElements.None)
+            Sprite!.color = Color;
     }
 
 }

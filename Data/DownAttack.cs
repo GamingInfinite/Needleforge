@@ -3,6 +3,19 @@ using DownSlashTypes = HeroControllerConfig.DownSlashTypes;
 
 namespace Needleforge.Data;
 
+/// <summary>
+/// <para>
+/// Represents the visual, auditory, and damage properties of a down attack in a crest
+/// moveset.
+/// Changes to an attack's properties will update the <see cref="GameObject"/>
+/// it represents, if one has been created.
+/// </para><para>
+/// The type and behaviour of down attacks are determined by properties of
+/// <see cref="MovesetData.HeroConfig"/>, particularly
+/// <see cref="HeroControllerConfig.downSlashType">downSlashType</see>, which must
+/// be set <i>before</i> the moveset is initialized.
+/// </para>
+/// </summary>
 public class DownAttack : AttackBase
 {
     private static readonly HeroSlashBounceConfig defaultBounceConfig;
@@ -88,83 +101,70 @@ public class DownAttack : AttackBase
     private Downspike? downspike;
     private NailSlash? nailSlash;
 
-    protected override NailAttackBase? NailAttackBase
+    protected override NailAttackBase? NailAttack =>
+        heroDownAttack ? heroDownAttack.attack : null;
+
+    protected override void AddComponents(HeroController hc)
     {
-        get =>
-            HeroConfig!.downSlashType switch
-            {
-                DownSlashTypes.Slash => nailSlash,
-                DownSlashTypes.DownSpike => downspike,
-                _ => throw new System.NotImplementedException()
-            };
-    }
-
-    internal override GameObject CreateGameObject(GameObject parent, HeroController hc)
-    {
-        base.CreateGameObject(parent, hc);
-        GameObject!.SetActive(false); // VERY IMPORTANT
-
-        heroDownAttack = GameObject.AddComponent<HeroDownAttack>();
-        heroDownAttack.hc = hc;
-
         if (!HeroConfig)
-            throw new System.Exception($"{nameof(HeroConfig)} must be set for a down attack to know what kind of down attack it is.");
+        {
+            throw new System.InvalidOperationException(
+                $"{nameof(HeroConfig)} must be set for a down attack to " +
+                 "know what kind of down attack it is."
+            );
+        }
+
+        heroDownAttack = GameObject!.AddComponent<HeroDownAttack>();
+        heroDownAttack.hc = hc;
 
         switch (HeroConfig.downSlashType) {
             case DownSlashTypes.DownSpike:
-                // Common component initialization
-
                 downspike = GameObject.AddComponent<Downspike>();
                 heroDownAttack.attack = downspike;
-
-                downspike.hc = hc;
-                downspike.activateOnSlash = [];
-                downspike.enemyDamager = damager;
-                downspike.heroBox = hc.heroBox;
-                downspike.horizontalKnockbackDamager = hc.transform.Find("Attacks/Downspike Knockback Top").GetComponent<DamageEnemies>();
-                downspike.verticalKnockbackDamager = hc.transform.Find("Attacks/Downspike Knockback Bottom").GetComponent<DamageEnemies>();
-                downspike.leftExtraDirection = 135;
-                downspike.rightExtraDirection = 45;
-
-                damager!.manualTrigger = true;
-                damager!.forceSpikeUpdate = true;
-
-                // Customizations
-                downspike.animName = AnimName;
-
                 break;
             case DownSlashTypes.Slash:
-                // Common component initialization
-
                 nailSlash = GameObject.AddComponent<NailSlash>();
                 heroDownAttack.attack = nailSlash;
-
-                nailSlash.hc = hc;
-                nailSlash.activateOnSlash = [];
-                nailSlash.enemyDamager = damager;
-
-                damager!.corpseDirection =
-                    new TeamCherry.SharedUtils.OverrideFloat()
-                    {
-                        IsEnabled = true,
-                        Value = DirectionUtils.GetAngle(DirectionUtils.Down)
-                    };
-
-                // Customizations
-                nailSlash.animName = AnimName;
-                nailSlash.bounceConfig = BounceConfig;
-
                 break;
             default:
                 throw new System.NotImplementedException();
         }
-
-        NailAttackBase!.scale = Scale;
-        NailAttackBase!.AttackStarting += TintIfNotImbued;
-
-        damager!.direction = DirectionUtils.GetAngle(DirectionUtils.Down);
-
-        GameObject.SetActive(true);
-        return GameObject!;
     }
+
+    protected override void LateInitializeComponents(HeroController hc)
+    {
+        float downAngle = DirectionUtils.GetAngle(DirectionUtils.Down);
+
+        Damager!.direction = downAngle;
+
+        switch (HeroConfig!.downSlashType) {
+            case DownSlashTypes.DownSpike:
+                downspike!.animName = AnimName;
+                downspike!.heroBox = hc.heroBox;
+                downspike!.horizontalKnockbackDamager =
+                    hc.transform.Find($"Attacks/Downspike Knockback Top").GetComponent<DamageEnemies>();
+                downspike!.verticalKnockbackDamager =
+                    hc.transform.Find($"Attacks/Downspike Knockback Bottom").GetComponent<DamageEnemies>();
+                downspike!.leftExtraDirection = 135;
+                downspike!.rightExtraDirection = 45;
+
+                Damager!.manualTrigger = true;
+                Damager!.forceSpikeUpdate = true;
+                break;
+
+            case DownSlashTypes.Slash:
+                nailSlash!.animName = AnimName;
+                nailSlash!.bounceConfig = BounceConfig;
+                Damager!.corpseDirection =
+                    new TeamCherry.SharedUtils.OverrideFloat() {
+                        IsEnabled = true,
+                        Value = downAngle
+                    };
+                break;
+
+            default:
+                throw new System.NotImplementedException();
+        }
+    }
+
 }

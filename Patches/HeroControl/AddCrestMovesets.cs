@@ -16,7 +16,7 @@ internal class AddCrestMovesets {
     }
 }
 
-#if DEBUG
+#if DEBUG && false
 
 [HarmonyPatch]
 internal class DebugMoveset {
