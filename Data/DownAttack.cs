@@ -42,9 +42,7 @@ public class DownAttack : AttackBase
 
     internal override GameObject CreateGameObject(GameObject parent, HeroController hc)
     {
-        Debug.LogWarning("I am going to scream");
         base.CreateGameObject(parent, hc);
-        Debug.LogWarning("please print dude im begging you");
         GameObject!.SetActive(false); // VERY IMPORTANT
 
         heroDownAttack = GameObject.AddComponent<HeroDownAttack>();
@@ -55,7 +53,6 @@ public class DownAttack : AttackBase
 
         switch (HeroConfig.downSlashType) {
             case DownSlashTypes.DownSpike:
-                Debug.LogWarning("DOWNSPIKE");
                 // Common component initialization
 
                 downspike = GameObject.AddComponent<Downspike>();
@@ -69,13 +66,10 @@ public class DownAttack : AttackBase
                 downspike.verticalKnockbackDamager = hc.transform.Find("Attacks/Downspike Knockback Bottom").GetComponent<DamageEnemies>();
 
                 // Customizations
-
                 downspike.animName = AnimName;
-                Debug.LogWarning("DOWNSPIKE DONE");
 
                 break;
             case DownSlashTypes.Slash:
-                Debug.LogWarning("DOWNSLASH NOT A SPIKE");
                 // Common component initialization
 
                 nailSlash = GameObject.AddComponent<NailSlash>();
@@ -86,9 +80,7 @@ public class DownAttack : AttackBase
                 nailSlash.enemyDamager = damager;
 
                 // Customizations
-
                 nailSlash.animName = AnimName;
-                Debug.LogWarning("DOWNSLASH NOT A SPIKE DONE");
 
                 break;
             default:
@@ -97,10 +89,6 @@ public class DownAttack : AttackBase
 
         NailAttackBase!.scale = Scale;
         NailAttackBase!.AttackStarting += TintIfNotImbued;
-
-        foreach(var component in GameObject.GetComponents<Component>()) {
-            Debug.LogWarning($"  D ATTACK HAS {component.GetType().Name}");
-        }
 
         GameObject.SetActive(true);
         return GameObject!;
