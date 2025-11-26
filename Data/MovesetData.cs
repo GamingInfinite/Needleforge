@@ -48,8 +48,14 @@ public class MovesetData {
             if (value) value.name = Crest.name;
 
             _heroConf = value;
-            if (Crest.ToolCrest) Crest.ToolCrest.heroConfig = value;
-            if (ConfGroup != null) ConfGroup.Config = value;
+            if (Crest.ToolCrest)
+                Crest.ToolCrest.heroConfig = value;
+            if (ConfGroup != null)
+                ConfGroup.Config = value;
+            if (DownSlash != null)
+                DownSlash.HeroConfig = value;
+            if (AltDownSlash != null)
+                AltDownSlash.HeroConfig = value;
         }
     }
     private HeroControllerConfig? _heroConf;
@@ -78,11 +84,21 @@ public class MovesetData {
         }
     }
     private Attack? _wallSlash;
-    
+
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the down attack.
     /// </summary>
-    public Attack? DownSlash { get; set; }
+    public DownAttack? DownSlash
+    {
+        get => _downSlash;
+        set
+        {
+            if (value != null)
+                value.HeroConfig = HeroConfig;
+            _downSlash = value;
+        }
+    }
+    private DownAttack? _downSlash;
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the alternate side attack,
@@ -103,7 +119,17 @@ public class MovesetData {
     /// which is used when the player attacks multiple times in quick succession.
     /// Optional.
     /// </summary>
-    public Attack? AltDownSlash { get; set; }
+    public DownAttack? AltDownSlash
+    {
+        get => _altDownSlash;
+        set
+        {
+            if (value != null)
+                value.HeroConfig = HeroConfig;
+            _altDownSlash = value;
+        }
+    }
+    private DownAttack? _altDownSlash;
 
     // TODO down slash
     // TODO dash slash

@@ -119,6 +119,30 @@ namespace Needleforge
                 Color = Color.blue,
             };
 
+            neoCrest.Moveset.DownSlash = new DownAttack() {
+                Name = "NeoSlashDown",
+                Hitbox = [new(2, 0), new(2, -3), new(-2, -3), new(-2, 0)],
+                Color = Color.red,
+            };
+
+            neoCrest.Moveset.HeroConfig = new() {
+                downSlashType = HeroControllerConfig.DownSlashTypes.DownSpike,
+                downspikeAnticTime = 0.4f,
+                downspikeTime = 0.5f,
+                downspikeSpeed = 10,
+                downspikeRecoveryTime = 0.2f,
+                downspikeBurstEffect = true,
+                downspikeThrusts = true,
+                attackDuration = 0.5f,
+                attackCooldownTime = 0.2f,
+                attackRecoveryTime = 0.6f,
+                wallSlashSlowdown = true,
+                chargeSlashChain = 0,
+                chargeSlashLungeDeceleration = 0.5f,
+                chargeSlashLungeSpeed = 0.5f,
+                chargeSlashRecoils = true,
+            };
+
             // Attacks require an animation to function and adding test assets
             // to needleforge itself seemed unnecessary
             neoCrest.Moveset.OnInitialized += () => {
@@ -136,19 +160,26 @@ namespace Needleforge
                 myclip.frames[0].triggerEvent = true;
                 myclip.frames[^1].triggerEvent = true;
 
-                lib.clips = [myclip];
+                lib.clips = [
+                    myclip,
+                    // hornet override anim for testing the regular downslash,
+                    // as opposed to the downspike
+                    hc.configs.First(c => c.Config.name == "Wanderer").Config.heroAnimOverrideLib.GetClipByName("DownSlash")
+                ];
 
-                Attack[] atks = [
+                AttackBase[] atks = [
                     //neoCrest.Moveset.Slash,
                     neoCrest.Moveset.AltSlash,
                     neoCrest.Moveset.UpSlash,
                     neoCrest.Moveset.WallSlash,
+                    neoCrest.Moveset.DownSlash,
                 ];
 
                 for (int i = 0; i < atks.Length; i++) {
                     atks[i].AnimLibrary = lib;
                     atks[i].AnimName = myclip.name;
                 }
+                neoCrest.Moveset.HeroConfig.heroAnimOverrideLib = lib;
             };
 
             AddTool("NeoGreenTool", GreenTools.Type);
