@@ -89,12 +89,6 @@ namespace Needleforge
 
             neoCrest.HudFrame.Preset = VanillaCrest.BEAST;
 
-            //neoCrest.Moveset.Slash = new Attack() {
-            //    Name = "NeoSlash",
-            //    Hitbox = [new(0, 0), new(0, 1), new(-3, 1), new(-3, 0)],
-            //    Color = Color.green,
-            //};
-
             neoCrest.Moveset.AltSlash = new Attack() {
                 Name = "NeoSlashAlt",
                 Hitbox = [new(0, 0), new(0, -1), new(-3, -1), new(-3, 0)],
@@ -121,16 +115,18 @@ namespace Needleforge
 
             neoCrest.Moveset.DownSlash = new DownAttack() {
                 Name = "NeoSlashDown",
-                Hitbox = [new(2, 0), new(2, -3), new(-2, -3), new(-2, 0)],
+                Hitbox = [new(1, 0), new(1, -3), new(-1, -3), new(-1, 0)],
+                Scale = new(2, 1),
                 Color = Color.red,
             };
 
             neoCrest.Moveset.HeroConfig = new() {
                 downSlashType = HeroControllerConfig.DownSlashTypes.DownSpike,
+                //downSlashType = HeroControllerConfig.DownSlashTypes.Slash,
                 downspikeAnticTime = 0.4f,
                 downspikeTime = 0.5f,
-                downspikeSpeed = 10,
-                downspikeRecoveryTime = 0.2f,
+                downspikeSpeed = 20,
+                downspikeRecoveryTime = 0.6f,
                 downspikeBurstEffect = true,
                 downspikeThrusts = true,
                 attackDuration = 0.5f,
@@ -147,28 +143,38 @@ namespace Needleforge
             // to needleforge itself seemed unnecessary
             neoCrest.Moveset.OnInitialized += () => {
                 var hc = HeroController.instance;
-
                 var libobj = new GameObject("NeoAnimLib");
                 DontDestroyOnLoad(libobj);
                 var lib = libobj.AddComponent<tk2dSpriteAnimation>();
 
-                var myclip = new tk2dSpriteAnimationClip() {
-                    name = "NeoSlashEffect", fps = 20,
-                    frames = [.. hc.animCtrl.animator.Library.GetClipByName("Dash").frames],
+                var frames = hc.animCtrl.animator.Library.GetClipByName("Sprint").frames;
+                tk2dSpriteAnimationFrame[] CloneFrames() => [..
+                    frames.Select(f => new tk2dSpriteAnimationFrame() {
+                        spriteCollection = f.spriteCollection, spriteId = f.spriteId, triggerEvent = false
+                    })
+                ];
+
+                var standardclip = new tk2dSpriteAnimationClip() {
+                    name = "NeoSlashEffect", fps = 20, frames = CloneFrames(),
                     wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
                 };
-                myclip.frames[0].triggerEvent = true;
-                myclip.frames[^1].triggerEvent = true;
+                standardclip.frames[0].triggerEvent = true;
+                standardclip.frames[^1].triggerEvent = true;
+
+                var downspikeclip = new tk2dSpriteAnimationClip() {
+                    name = "NeoSlashDownEffect", fps = 20, frames = CloneFrames(),
+                    wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
+                };
 
                 lib.clips = [
-                    myclip,
+                    standardclip,
+                    downspikeclip,
                     // hornet override anim for testing the regular downslash,
                     // as opposed to the downspike
                     hc.configs.First(c => c.Config.name == "Wanderer").Config.heroAnimOverrideLib.GetClipByName("DownSlash")
                 ];
 
                 AttackBase[] atks = [
-                    //neoCrest.Moveset.Slash,
                     neoCrest.Moveset.AltSlash,
                     neoCrest.Moveset.UpSlash,
                     neoCrest.Moveset.WallSlash,
@@ -177,8 +183,9 @@ namespace Needleforge
 
                 for (int i = 0; i < atks.Length; i++) {
                     atks[i].AnimLibrary = lib;
-                    atks[i].AnimName = myclip.name;
+                    atks[i].AnimName = standardclip.name;
                 }
+                neoCrest.Moveset.DownSlash.AnimName = downspikeclip.name;
                 neoCrest.Moveset.HeroConfig.heroAnimOverrideLib = lib;
             };
 

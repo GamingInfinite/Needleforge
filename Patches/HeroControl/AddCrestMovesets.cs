@@ -12,10 +12,6 @@ internal class AddCrestMovesets {
         foreach (var crest in NeedleforgePlugin.newCrestData) {
             ModHelper.Log($"Init {crest.name} Moveset");
             MovesetMaker.InitializeMoveset(crest.Moveset);
-
-            if (crest.Moveset.ConfGroup != null) {
-                crest.Moveset.ExtraInitialization();
-            }
         }
     }
 }
@@ -96,6 +92,30 @@ internal class DebugMoveset {
         if (__instance.transform.parent.name != "NeoCrest")
             return;
         Debug.Log($" -- {__instance.name} ns cancelattack");
+    }
+
+    [HarmonyPatch(typeof(Downspike), nameof(Downspike.QueueBounce))]
+    [HarmonyPrefix]
+    private static void downspikequeuebounce(Downspike __instance) {
+        //if (__instance.transform.parent.name != "NeoCrest")
+        //    return;
+        Debug.Log($" -- {__instance.name} ds queuebounce | queuedBounce: {__instance.queuedBounce} | waitForTrigger: {__instance.waitForBounceTrigger} | triggerHit: {__instance.bounceTriggerHit} | cancustomrecoil: {HeroController.instance.CanCustomRecoil()} | {System.Environment.StackTrace}");
+    }
+
+    [HarmonyPatch(typeof(Downspike), nameof(Downspike.TryDownBounce))]
+    [HarmonyPrefix]
+    private static void downspiketrybounce(Downspike __instance) {
+        //if (__instance.transform.parent.name != "NeoCrest")
+        //    return;
+        Debug.Log($" -- {__instance.name} ds trybounce | queuedBounce: {__instance.queuedBounce} | waitForTrigger: {__instance.waitForBounceTrigger} | triggerHit: {__instance.bounceTriggerHit} | cancustomrecoil: {HeroController.instance.CanCustomRecoil()} | {System.Environment.StackTrace}");
+    }
+
+    [HarmonyPatch(typeof(Downspike), nameof(Downspike.OnAnimationEventTriggered))]
+    [HarmonyPrefix]
+    private static void downspikeonanimevttrig(Downspike __instance) {
+        //if (__instance.transform.parent.name != "NeoCrest")
+        //    return;
+        Debug.Log($" -- {__instance.name} ds onAnimEvtTriggered.. which shouldnt be possible... | {System.Environment.StackTrace}");
     }
 
 }

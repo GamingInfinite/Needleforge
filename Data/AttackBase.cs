@@ -34,8 +34,8 @@ public abstract class AttackBase
     /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </para>
     /// <para id="anim-info">
-    /// The effect animation for an attack should not loop, and MUST have two frames for
-    /// which <see cref="tk2dSpriteAnimationFrame.triggerEvent"/> = <c>true</c>;
+    /// The effect animation for an attack should not loop, and must have <b>two</b> frames
+    /// for which <see cref="tk2dSpriteAnimationFrame.triggerEvent"/> = <c>true</c>;
     /// these frames determine when the attack's hitbox is enabled and disabled.
     /// </para>
     /// </summary>
@@ -386,8 +386,8 @@ public abstract class AttackBase
 
         clashTink.SetActive(false); // VERY IMPORTANT
 
-        clashTink.AddComponent<NailSlashTerrainThunk>();
         tinkCollider = clashTink.AddComponent<PolygonCollider2D>();
+        var tinkThunk = clashTink.AddComponent<NailSlashTerrainThunk>();
         var tinkRb = clashTink.AddComponent<Rigidbody2D>();
 
         tinkCollider.points = TinkerHitbox ?? [];
@@ -395,6 +395,8 @@ public abstract class AttackBase
         tinkRb.bodyType = RigidbodyType2D.Kinematic;
         tinkRb.simulated = true;
         tinkRb.useFullKinematicContacts = true;
+
+        tinkThunk.doRecoil = true;
 
         clashTink.SetActive(true);
     }
