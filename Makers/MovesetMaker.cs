@@ -48,7 +48,7 @@ internal class MovesetMaker {
         moveset.ExtraInitialization();
         moveset.ConfGroup.Setup();
 
-        GameObject? AttackOrDefault(Attack? attack, GameObject? _default)
+        GameObject? AttackOrDefault(AttackBase? attack, GameObject? _default)
         {
             if (attack == null)
             {
