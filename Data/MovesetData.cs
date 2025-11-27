@@ -11,7 +11,6 @@ TODO:
 - Special handling for DownSlash, DashSlash, and ChargedSlash - possibly different classes
 - FSM edits...
 - Make sure everything is thoroughly documented
-- idea: custom down attack type that has some configuration options (antic time, attack duration/velocity/gravity, etc) that allows making things similar to shaman/beast/reaper downslash without dealing in fsms? maybe?
 
 */
 

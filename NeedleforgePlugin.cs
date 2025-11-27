@@ -118,15 +118,16 @@ namespace Needleforge
                 Hitbox = [new(1, 0), new(1, -3), new(-1, -3), new(-1, 0)],
                 Scale = new(2, 1),
                 Color = Color.red,
+                DownspikeAngle = 120,
+                DownspikeAcceleration = new(-40, -100)
             };
 
             neoCrest.Moveset.HeroConfig = new() {
                 downSlashType = HeroControllerConfig.DownSlashTypes.DownSpike,
-                //downSlashType = HeroControllerConfig.DownSlashTypes.Slash,
                 downspikeAnticTime = 0.4f,
                 downspikeTime = 0.5f,
                 downspikeSpeed = 20,
-                downspikeRecoveryTime = 0.6f,
+                downspikeRecoveryTime = 0.2f,
                 downspikeBurstEffect = true,
                 downspikeThrusts = true,
                 attackDuration = 0.5f,
@@ -142,8 +143,11 @@ namespace Needleforge
             // Attacks require an animation to function and adding test assets
             // to needleforge itself seemed unnecessary
             neoCrest.Moveset.OnInitialized += () => {
+                if (GameObject.Find("NeoAnimLib") is GameObject libobj)
+                    return;
+
                 var hc = HeroController.instance;
-                var libobj = new GameObject("NeoAnimLib");
+                libobj = new GameObject("NeoAnimLib");
                 DontDestroyOnLoad(libobj);
                 var lib = libobj.AddComponent<tk2dSpriteAnimation>();
 
