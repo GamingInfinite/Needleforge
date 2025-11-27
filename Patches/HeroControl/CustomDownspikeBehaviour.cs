@@ -8,15 +8,8 @@ namespace Needleforge.Patches.HeroControl;
 internal class CustomDownspikeBehaviour
 {
     [HarmonyPatch(typeof(HeroController), nameof(HeroController.Downspike))]
-    [HarmonyPrefix]
-    private static void GetOriginalYVel(HeroController __instance, out float __state)
-    {
-        __state = __instance.rb2d.linearVelocity.y;
-    }
-
-    [HarmonyPatch(typeof(HeroController), nameof(HeroController.Downspike))]
     [HarmonyPostfix]
-    private static void SetVelocity(HeroController __instance, float __state)
+    private static void SetVelocity(HeroController __instance)
     {
         if (
             (__instance.downSpikeTimer - Time.deltaTime) <= __instance.Config.DownSpikeTime
