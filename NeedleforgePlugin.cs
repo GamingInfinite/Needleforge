@@ -118,27 +118,31 @@ namespace Needleforge
                 Hitbox = [new(1, 0), new(1, -3), new(-1, -3), new(-1, 0)],
                 Scale = new(2, 1),
                 Color = Color.red,
-                DownspikeAngle = 120,
-                DownspikeAcceleration = new(-40, -100)
             };
 
-            neoCrest.Moveset.HeroConfig = new() {
-                downSlashType = HeroControllerConfig.DownSlashTypes.DownSpike,
-                downspikeAnticTime = 0.4f,
-                downspikeTime = 0.5f,
-                downspikeSpeed = 20,
-                downspikeRecoveryTime = 0.2f,
-                downspikeBurstEffect = true,
-                downspikeThrusts = true,
-                attackDuration = 0.5f,
-                attackCooldownTime = 0.2f,
-                attackRecoveryTime = 0.6f,
-                wallSlashSlowdown = true,
-                chargeSlashChain = 0,
-                chargeSlashLungeDeceleration = 0.5f,
-                chargeSlashLungeSpeed = 0.5f,
-                chargeSlashRecoils = true,
-            };
+            var cfg = ScriptableObject.CreateInstance<HeroConfigNeedleforge>();
+
+            cfg.downSlashType = HeroControllerConfig.DownSlashTypes.DownSpike;
+            cfg.downspikeAnticTime = 0.4f;
+            cfg.downspikeTime = 0.5f;
+            cfg.downspikeSpeed = 10;
+            //cfg.DownspikeVelocity = new(-20, 20);
+            //cfg.DownspikeAcceleration = new(-40, -100);
+            cfg.downspikeRecoveryTime = 0.2f;
+            cfg.downspikeBurstEffect = true;
+            cfg.downspikeThrusts = true;
+            cfg.attackDuration = 0.5f;
+            cfg.attackCooldownTime = 0.2f;
+            cfg.attackRecoveryTime = 0.6f;
+            cfg.wallSlashSlowdown = true;
+            cfg.chargeSlashChain = 0;
+            cfg.chargeSlashLungeDeceleration = 0.5f;
+            cfg.chargeSlashLungeSpeed = 0.5f;
+            cfg.chargeSlashRecoils = true;
+            cfg.canBind = true;
+            cfg.CanUseAbilities = true;
+
+            neoCrest.Moveset.HeroConfig = cfg;
 
             // Attacks require an animation to function and adding test assets
             // to needleforge itself seemed unnecessary

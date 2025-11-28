@@ -40,7 +40,7 @@ public class MovesetData {
     /// any time during gameplay.
     /// </para>
     /// </summary>
-    public HeroControllerConfig? HeroConfig
+    public HeroConfigNeedleforge? HeroConfig
     {
         get => _heroConf;
         set
@@ -58,7 +58,7 @@ public class MovesetData {
                 AltDownSlash.HeroConfig = value;
         }
     }
-    private HeroControllerConfig? _heroConf;
+    private HeroConfigNeedleforge? _heroConf;
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the side attack.

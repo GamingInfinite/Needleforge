@@ -14,7 +14,7 @@ internal class MovesetMaker {
             return;
 
         if (!moveset.HeroConfig)
-            moveset.HeroConfig = Object.Instantiate(hunter!.Config);
+            moveset.HeroConfig = (HeroConfigNeedleforge)Object.Instantiate(hunter!.Config);
 
         HeroController hc = HeroController.instance;
 

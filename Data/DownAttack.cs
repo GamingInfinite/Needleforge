@@ -19,15 +19,6 @@ namespace Needleforge.Data;
 /// </summary>
 public class DownAttack : AttackBase
 {
-    private static readonly HeroSlashBounceConfig defaultBounceConfig;
-
-    static DownAttack() {
-        defaultBounceConfig = ScriptableObject.CreateInstance<HeroSlashBounceConfig>();
-        defaultBounceConfig.jumpedSteps = -20;
-        defaultBounceConfig.jumpSteps = 8;
-        defaultBounceConfig.hideSlashOnBounceCancel = false;
-    }
-
     #region API
 
     /// <summary>
@@ -94,50 +85,14 @@ public class DownAttack : AttackBase
                 downspike.bounceConfig = value;
         }
     }
-    private HeroSlashBounceConfig _bounceConfig = Object.Instantiate(defaultBounceConfig);
-
-    /// <summary>
-    /// <para>
-    /// If the moveset's down attacks are type <see cref="DownSlashTypes.DownSpike"/>,
-    /// this is angle in degrees of Hornet's movement during the attack. This and
-    /// <see cref="HeroControllerConfig.downspikeSpeed"/> together determine
-    /// Hornet's starting velocity.
-    /// </para><para>
-    /// 0 moves Hornet backwards, 90 moves her up.
-    /// The default is 225 - i.e. a downward 45 degree angle like Hunter crest.
-    /// </para>
-    /// </summary>
-    public float DownspikeAngle {
-        get => _angle;
-        set {
-            _angle = value;
-            if (downspike)
-                downspike.slashAngle = value;
-        }
-    }
-    private float _angle = 225;
-
-    /// <summary>
-    /// If the moveset's down attacks are type <see cref="DownSlashTypes.DownSpike"/>,
-    /// this is an acceleration (in meters per second) applied to Hornet's velocity
-    /// over the attack's lifetime. The default is (0,0).
-    /// </summary>
-    public Vector2 DownspikeAcceleration {
-        get => _accel;
-        set {
-            _accel = value;
-            if (downspike)
-                downspike.acceleration = value;
-        }
-    }
-    private Vector2 _accel = new(0, 0);
+    private HeroSlashBounceConfig _bounceConfig = Object.Instantiate(HeroSlashBounceConfig.Default);
 
     #endregion
 
     internal HeroControllerConfig? HeroConfig;
 
     private HeroDownAttack? heroDownAttack;
-    private NeedleforgeDownspike? downspike;
+    private DownspikeWithBounceConfig? downspike;
     private NailSlash? nailSlash;
 
     protected override NailAttackBase? NailAttack =>
@@ -158,7 +113,7 @@ public class DownAttack : AttackBase
 
         switch (HeroConfig.downSlashType) {
             case DownSlashTypes.DownSpike:
-                downspike = GameObject.AddComponent<NeedleforgeDownspike>();
+                downspike = GameObject.AddComponent<DownspikeWithBounceConfig>();
                 heroDownAttack.attack = downspike;
                 break;
             case DownSlashTypes.Slash:
@@ -187,8 +142,7 @@ public class DownAttack : AttackBase
                 downspike!.leftExtraDirection = 135;
                 downspike!.rightExtraDirection = 45;
 
-                downspike!.slashAngle = DownspikeAngle;
-                downspike!.acceleration = DownspikeAcceleration;
+                downspike!.bounceConfig = BounceConfig;
 
                 Damager!.manualTrigger = true;
                 Damager!.forceSpikeUpdate = true;

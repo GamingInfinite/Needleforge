@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using Needleforge.Components;
+using Needleforge.Data;
 using UnityEngine;
 
 namespace Needleforge.Patches.HeroControl;
@@ -15,10 +16,12 @@ internal class CustomDownspikeBehaviour
             (__instance.downSpikeTimer - Time.deltaTime) <= __instance.Config.DownSpikeTime
             && __instance.Config.DownspikeThrusts
             && __instance.cState.downSpiking
-            && __instance.currentDownspike is NeedleforgeDownspike nds
+            && __instance.Config is HeroConfigNeedleforge cfg
         ) {
+            Vector2 heroFacing = __instance.cState.facingRight ? new(-1, 1) : Vector2.one;
+
             __instance.rb2d.linearVelocity =
-                nds.Velocity + (nds.acceleration * __instance.downSpikeTimer);
+                (cfg.DownspikeVelocity + (cfg.DownspikeAcceleration * __instance.downSpikeTimer)) * heroFacing;
         }
     }
 
@@ -26,7 +29,8 @@ internal class CustomDownspikeBehaviour
     [HarmonyPrefix]
     private static void SetBounceConfig(HeroController __instance, ref HeroSlashBounceConfig bounceConfig)
     {
-        if (__instance.currentDownspike is NeedleforgeDownspike nds) {
+        if (__instance.currentDownspike is DownspikeWithBounceConfig nds)
+        {
             bounceConfig = nds.bounceConfig;
         }
     }
