@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HutongGames.PlayMaker;
+using UnityEngine;
 using DownSlashTypes = HeroControllerConfig.DownSlashTypes;
 
 namespace Needleforge.Data;
@@ -9,6 +10,14 @@ namespace Needleforge.Data;
 /// </summary>
 public class HeroConfigNeedleforge : HeroControllerConfig
 {
+    /// <summary>
+    /// Sets whether or not Hornet can use her movement abilities, needolin, and needle strike.
+    /// </summary>
+    public bool CanUseAbilities
+    {
+        set => canBrolly = canDoubleJump = canHarpoonDash = canPlayNeedolin = canNailCharge = value;
+    }
+
     /// <summary>
     /// If <see cref="HeroControllerConfig.downSlashType"/> = <see cref="DownSlashTypes.DownSpike"/>
     /// and <see cref="HeroControllerConfig.downspikeThrusts"/> = <c>true</c>,
@@ -33,10 +42,22 @@ public class HeroConfigNeedleforge : HeroControllerConfig
     public Vector2 DownspikeAcceleration { get; set; } = new(0, 0);
 
     /// <summary>
-    /// Sets whether or not Hornet can use her movement abilities, needolin, and needle strike.
+    /// <para>
+    /// If <see cref="HeroControllerConfig.downSlashType"/> = <see cref="DownSlashTypes.Custom"/>,
+    /// this function defines an FSM edit for this crest's down attacks.
+    /// See Hornet's "crest_attacks" FSM.
+    /// </para><para>
+    /// Make any FSM edits you need to off of <c>anticState</c>, then set
+    /// <c>endState</c> to the end state of a downslash that missed and
+    /// <c>bounceEndState</c> to the end state of a downslash that hit something.
+    /// </para><para>
+    /// Needleforge adds the necessary transitions between those three states and the
+    /// rest of the FSM.
+    /// </para>
     /// </summary>
-    public bool CanUseAbilities
-    {
-        set => canBrolly = canDoubleJump = canHarpoonDash = canPlayNeedolin = canNailCharge = value;
-    }
+    public DownSlashFsmEdit? DownSlashFsmSetup { get; set; }
+
+    /// <inheritdoc cref="DownSlashFsmSetup"/>
+    public delegate void DownSlashFsmEdit(PlayMakerFSM downslashFsm, FsmState anticState, out FsmState endState, out FsmState bounceEndState);
+
 }

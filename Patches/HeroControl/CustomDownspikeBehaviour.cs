@@ -13,10 +13,11 @@ internal class CustomDownspikeBehaviour
     private static void SetVelocity(HeroController __instance)
     {
         if (
-            (__instance.downSpikeTimer - Time.deltaTime) <= __instance.Config.DownSpikeTime
+            __instance.Config.DownSlashType == HeroControllerConfig.DownSlashTypes.DownSpike
             && __instance.Config.DownspikeThrusts
             && __instance.cState.downSpiking
             && __instance.Config is HeroConfigNeedleforge cfg
+            && (__instance.downSpikeTimer - Time.deltaTime) <= __instance.Config.DownSpikeTime
         ) {
             Vector2 heroFacing = __instance.cState.facingRight ? new(-1, 1) : Vector2.one;
 
@@ -29,9 +30,9 @@ internal class CustomDownspikeBehaviour
     [HarmonyPrefix]
     private static void SetBounceConfig(HeroController __instance, ref HeroSlashBounceConfig bounceConfig)
     {
-        if (__instance.currentDownspike is DownspikeWithBounceConfig nds)
+        if (__instance.currentDownspike is DownspikeWithBounceConfig ds)
         {
-            bounceConfig = nds.bounceConfig;
+            bounceConfig = ds.bounceConfig;
         }
     }
 }

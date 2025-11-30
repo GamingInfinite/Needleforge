@@ -1,16 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Linq;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using HutongGames.PlayMaker;
 using Needleforge.Data;
 using PrepatcherPlugin;
+using Silksong.FsmUtil;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.IO;
+using System.Linq;
 using TeamCherry.Localization;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Needleforge
 {
@@ -63,6 +67,7 @@ namespace Needleforge
             true
         );
 
+        internal static FsmLog fsmlogger;
         private void Awake()
         {
             logger = Logger;
@@ -122,18 +127,12 @@ namespace Needleforge
 
             var cfg = ScriptableObject.CreateInstance<HeroConfigNeedleforge>();
 
-            cfg.downSlashType = HeroControllerConfig.DownSlashTypes.DownSpike;
-            cfg.downspikeAnticTime = 0.4f;
-            cfg.downspikeTime = 0.5f;
-            cfg.downspikeSpeed = 10;
-            //cfg.DownspikeVelocity = new(-20, 20);
-            //cfg.DownspikeAcceleration = new(-40, -100);
-            cfg.downspikeRecoveryTime = 0.2f;
-            cfg.downspikeBurstEffect = true;
-            cfg.downspikeThrusts = true;
+            cfg.downSlashType = HeroControllerConfig.DownSlashTypes.Custom;
+            cfg.DownSlashFsmSetup = DownslashFsmTest;
+            cfg.downSlashEvent = "NEO DOWNSLASH";
             cfg.attackDuration = 0.5f;
             cfg.attackCooldownTime = 0.2f;
-            cfg.attackRecoveryTime = 0.6f;
+            cfg.attackRecoveryTime = 0.2f;
             cfg.wallSlashSlowdown = true;
             cfg.chargeSlashChain = 0;
             cfg.chargeSlashLungeDeceleration = 0.5f;
@@ -141,6 +140,19 @@ namespace Needleforge
             cfg.chargeSlashRecoils = true;
             cfg.canBind = true;
             cfg.CanUseAbilities = true;
+
+            void DownslashFsmTest(PlayMakerFSM fsm, FsmState antic, out FsmState end, out FsmState bounce) {
+                var hc = HeroController.instance;
+                antic.AddLambdaMethod(finished => {
+                    Debug.Log("custom downslash fsm edit");
+                    hc.QueueCancelDownAttack();
+                    hc.cState.downAttacking = true;
+                    neoCrest.Moveset.DownSlash!.GameObject!.GetComponent<NailSlash>().StartSlash();
+                    hc.rb2d.linearVelocity = new(0, 20);
+                    finished();
+                });
+                bounce = end = antic;
+            }
 
             neoCrest.Moveset.HeroConfig = cfg;
 
@@ -175,10 +187,11 @@ namespace Needleforge
                 };
 
                 lib.clips = [
+                    // effect animations
                     standardclip,
                     downspikeclip,
-                    // hornet override anim for testing the regular downslash,
-                    // as opposed to the downspike
+
+                    // hornet anim for testing the regular downslash
                     hc.configs.First(c => c.Config.name == "Wanderer").Config.heroAnimOverrideLib.GetClipByName("DownSlash")
                 ];
 
@@ -193,7 +206,7 @@ namespace Needleforge
                     atks[i].AnimLibrary = lib;
                     atks[i].AnimName = standardclip.name;
                 }
-                neoCrest.Moveset.DownSlash.AnimName = downspikeclip.name;
+                //neoCrest.Moveset.DownSlash.AnimName = downspikeclip.name;
                 neoCrest.Moveset.HeroConfig.heroAnimOverrideLib = lib;
             };
 

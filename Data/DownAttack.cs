@@ -1,6 +1,11 @@
-﻿using Needleforge.Components;
+﻿using HutongGames.PlayMaker;
+using Needleforge.Components;
+using System;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using DownSlashTypes = HeroControllerConfig.DownSlashTypes;
+using UObject = UnityEngine.Object;
 
 namespace Needleforge.Data;
 
@@ -85,7 +90,7 @@ public class DownAttack : AttackBase
                 downspike.bounceConfig = value;
         }
     }
-    private HeroSlashBounceConfig _bounceConfig = Object.Instantiate(HeroSlashBounceConfig.Default);
+    private HeroSlashBounceConfig _bounceConfig = UObject.Instantiate(HeroSlashBounceConfig.Default);
 
     #endregion
 
@@ -117,11 +122,10 @@ public class DownAttack : AttackBase
                 heroDownAttack.attack = downspike;
                 break;
             case DownSlashTypes.Slash:
+            case DownSlashTypes.Custom:
                 nailSlash = GameObject.AddComponent<NailSlash>();
                 heroDownAttack.attack = nailSlash;
                 break;
-            default:
-                throw new System.NotImplementedException();
         }
     }
 
@@ -149,6 +153,7 @@ public class DownAttack : AttackBase
                 break;
 
             case DownSlashTypes.Slash:
+            case DownSlashTypes.Custom:
                 nailSlash!.animName = AnimName;
                 nailSlash!.bounceConfig = BounceConfig;
                 Damager!.corpseDirection =
@@ -157,9 +162,6 @@ public class DownAttack : AttackBase
                         Value = downAngle
                     };
                 break;
-
-            default:
-                throw new System.NotImplementedException();
         }
     }
 
