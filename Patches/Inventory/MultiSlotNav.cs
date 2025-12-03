@@ -151,6 +151,9 @@ internal class MultiSlotNav
 
                 __result = !(nextData.ValidTypes.Contains(selToolType) || nextData.allColorsValid) ||
                            nextSlot.IsLocked && !__instance.manager.CanUnlockSlot;
+            } else if (selToolType == nextSlot.Type)
+            {
+                __result = nextSlot.IsLocked && !__instance.manager.CanUnlockSlot;
             }
         }
     }

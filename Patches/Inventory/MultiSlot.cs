@@ -58,11 +58,6 @@ internal class MultiSlot
     private static void GetAvailableSlotMultiColor(IEnumerable<InventoryToolCrestSlot> slots, ToolItemType toolType,
         ref InventoryToolCrestSlot __result)
     {
-        if (__result != null)
-        {
-            return;
-        }
-
         foreach (var slot in slots)
         {
             if (slot.IsLocked)
@@ -75,7 +70,7 @@ internal class MultiSlot
                 ColorData color = NeedleforgePlugin.newColors[(int)slot.Type - 4];
                 if (color.ValidTypes.Contains(toolType) || color.allColorsValid)
                 {
-                    if (!slot.EquippedItem)
+                    if (slot.EquippedItem == null)
                     {
                         __result = slot;
                     }
@@ -86,7 +81,7 @@ internal class MultiSlot
                 ColorData toolColor = NeedleforgePlugin.newColors[(int)toolType - 4];
                 if (toolColor.ValidTypes.Contains(slot.Type) || toolColor.allColorsValid)
                 {
-                    if (!slot.EquippedItem)
+                    if (slot.EquippedItem == null)
                     {
                         __result = slot;
                     }

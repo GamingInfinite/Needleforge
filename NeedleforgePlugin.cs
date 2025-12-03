@@ -53,7 +53,7 @@ namespace Needleforge
         /// </summary>
         public static readonly ColorData PinkTools = AddToolColor(
             "Pink",
-            new Color(0.96f, 0.74f, 0.72f, 1f),
+            new Color(1f, 0.59f, 0.78f, 1f),
             true
         );
 
