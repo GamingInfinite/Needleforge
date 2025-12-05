@@ -41,12 +41,12 @@ public abstract class AttackBase
     /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
     /// </para>
     /// <para id="anim-info">
-    /// The effect animation for an attack should not loop, and must have <b>two</b> frames
+    /// Effect animations for attacks should not loop, and must have <b>two</b> frames
     /// for which <see cref="tk2dSpriteAnimationFrame.triggerEvent"/> = <c>true</c>;
     /// these frames determine when the attack's hitbox is enabled and disabled.
     /// </para>
     /// </summary>
-    public tk2dSpriteAnimation? AnimLibrary
+    public virtual tk2dSpriteAnimation? AnimLibrary
     {
         get => _animLibrary;
         set
@@ -281,19 +281,6 @@ public abstract class AttackBase
 
     #endregion
 
-    #region Required API
-
-    /// <summary>
-    /// <para>
-    /// The name of the animation clip to use for this attack's effect.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </para>
-    /// <inheritdoc cref="AnimLibrary" path="//*[@id='anim-info']"/>
-    /// </summary>
-    public abstract string AnimName { get; set; }
-
-    #endregion
-
     #region Required Initialization
 
     /// <summary>
@@ -341,7 +328,7 @@ public abstract class AttackBase
     /// consider making such modifications in <see cref="MovesetData.OnInitialized"/>.
     /// </para>
     /// </summary>
-    public GameObject? GameObject { get; private set; }
+    public GameObject? GameObject { get; protected set; }
 
     protected tk2dSprite? Sprite { get; private set; }
     protected tk2dSpriteAnimator? Animator { get; private set; }
@@ -351,7 +338,7 @@ public abstract class AttackBase
     protected DamageEnemies? Damager { get; private set; }
     protected AudioSourcePriority? AudioPriority { get; private set; }
 
-    internal GameObject CreateGameObject(GameObject parent, HeroController hc)
+    public virtual GameObject CreateGameObject(GameObject parent, HeroController hc)
     {
         if (GameObject)
             Object.DestroyImmediate(GameObject);
@@ -361,7 +348,7 @@ public abstract class AttackBase
         GameObject.transform.SetParent(parent.transform);
         GameObject.tag = NAIL_ATTACK_TAG;
         GameObject.layer = (int)PhysLayers.HERO_ATTACK;
-        GameObject.transform.localPosition = new(0, 0, 0);
+        GameObject.transform.localPosition = Vector3.zero;
 
         GameObject.SetActive(false); // VERY IMPORTANT
 
@@ -420,7 +407,7 @@ public abstract class AttackBase
         return GameObject;
     }
 
-    private const string NAIL_ATTACK_TAG = "Nail Attack";
+    protected const string NAIL_ATTACK_TAG = "Nail Attack";
 
     private void DamagerInit()
     {

@@ -11,6 +11,7 @@ TODO:
 - Special handling for DownSlash, DashSlash, and ChargedSlash - possibly different classes
 - FSM edits...
 - Make sure everything is thoroughly documented
+- Maybe some way to allow users to set an AnimName on dash attacks, to be consistent with the others? Would require more FSM edits on the single/multi default paths to find the appropriate names, and possibly a custom component...
 
 */
 
@@ -52,10 +53,16 @@ public class MovesetData {
                 Crest.ToolCrest.heroConfig = value;
             if (ConfGroup != null)
                 ConfGroup.Config = value;
+
             if (DownSlash != null)
                 DownSlash.HeroConfig = value;
             if (AltDownSlash != null)
                 AltDownSlash.HeroConfig = value;
+
+            if (DashSlash != null)
+                DashSlash.HeroConfig = value;
+            if (AltDashSlash != null)
+                AltDashSlash.HeroConfig = value;
         }
     }
     private HeroConfigNeedleforge? _heroConf;
@@ -86,15 +93,14 @@ public class MovesetData {
     private Attack? _wallSlash;
 
     /// <summary>
-    /// <para>
     /// Defines the visual, auditory, and damage properties of the down attack.
-    /// </para><para>
+    /// </summary>
+    /// <remarks>
     /// The type and behaviour of down attacks are determined by properties of
     /// <see cref="HeroConfig"/>, particularly
     /// <see cref="HeroControllerConfig.downSlashType">downSlashType</see>, which must
     /// be set <i>before</i> the moveset is initialized.
-    /// </para>
-    /// </summary>
+    /// </remarks>
     public DownAttack? DownSlash
     {
         get => _downSlash;
@@ -106,6 +112,43 @@ public class MovesetData {
         }
     }
     private DownAttack? _downSlash;
+
+	/// <summary>
+	/// Defines the visual and damage properties of the dash attack.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// The type and behaviour of dash attacks are determined by properties of
+	/// <see cref="HeroConfig"/>, particularly
+	/// <c><see cref="HeroControllerConfig.dashStabSteps">dashStabSteps</see></c> and
+    /// <see cref="HeroConfigNeedleforge.DownSlashFsmEdit"/>, which cannot be changed
+    /// after the moveset is initialized.
+	/// </para><para>
+	/// If <c>dashStabSteps &lt;= 1</c>, this attack's GameObject will initialize as a
+    /// single dash attack with the components necessary to function.
+    /// If <c>dashStabSteps &gt; 1</c>, this attack's GameObject will be a parent object
+    /// of multiple functioning dash attacks, named "Dash Stab 1", "Dash Stab 2", etc;
+    /// see <see cref="DashAttack.AttackSteps"/> to control the damage properties of
+    /// each step of a multi-step attack.
+	/// </para><para>
+	/// If <c>DownSlashFsmEdit</c> is null, this attack will function similarly to the
+    /// dash attack from Hunter (if <c>dashStabSteps &lt;= 1</c>) or
+    /// Witch (if <c>dashStabSteps &gt; 1</c>).
+    /// See <see cref="DashAttack.AnimLibrary"/> for required animations if you aren't
+    /// setting an FSM edit.
+	/// </para>
+	/// </remarks>
+	public DashAttack? DashSlash
+    {
+        get => _dashSlash;
+        set
+        {
+            if (value != null)
+                value.HeroConfig = HeroConfig;
+            _dashSlash = value;
+        }
+    }
+    private DashAttack? _dashSlash;
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the alternate side attack,
@@ -122,17 +165,11 @@ public class MovesetData {
     public Attack? AltUpSlash { get; set; }
 
     /// <summary>
-    /// <para>
     /// Defines the visual, auditory, and damage properties of the alternate down attack,
     /// which is used when the player attacks multiple times in quick succession.
     /// Optional.
-    /// </para><para>
-    /// The type and behaviour of down attacks are determined by properties of
-    /// <see cref="HeroConfig"/>, particularly
-    /// <see cref="HeroControllerConfig.downSlashType">downSlashType</see>, which must
-    /// be set <i>before</i> the moveset is initialized.
-    /// </para>
     /// </summary>
+    /// <inheritdoc cref="DownSlash" path="/remarks"/>
     public DownAttack? AltDownSlash
     {
         get => _altDownSlash;
@@ -144,6 +181,24 @@ public class MovesetData {
         }
     }
     private DownAttack? _altDownSlash;
+
+	/// <summary>
+	/// Defines the visual, auditory, and damage properties of the alternate dash attack,
+	/// which is used when the player attacks multiple times in quick succession.
+	/// Optional.
+	/// </summary>
+	/// <inheritdoc cref="DashSlash" path="/remarks"/>
+	public DashAttack? AltDashSlash
+    {
+        get => _altDashSlash;
+        set
+        {
+            if (value != null)
+                value.HeroConfig = HeroConfig;
+            _altDashSlash = value;
+        }
+    }
+    private DashAttack? _altDashSlash;
 
     // TODO down slash
     // TODO dash slash

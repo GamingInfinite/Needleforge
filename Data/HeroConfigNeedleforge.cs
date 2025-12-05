@@ -45,13 +45,26 @@ public class HeroConfigNeedleforge : HeroControllerConfig
     public Vector2 DownspikeAcceleration { get; set; } = new(0, 0);
 
     /// <summary>
-    /// <para>
     /// If <see cref="HeroControllerConfig.downSlashType"/> = <see cref="DownSlashTypes.Custom"/>,
     /// this function defines an FSM edit for Hornet's behaviour during down attacks on a custom crest.
     /// See Hornet's "crest_attacks" FSM.
     /// </summary>
     /// <inheritdoc cref="AttackFsmEdit" path="/remarks"/>
     public AttackFsmEdit? DownSlashFsmEdit { get; set; } = null;
+
+	/// <summary>
+	/// Defines an FSM edit for Hornet's behaviour during dash attacks on a custom crest.
+	/// See Hornet's "Sprint" FSM.
+	/// </summary>
+	/// <inheritdoc cref="AttackFsmEdit" path="/remarks"/>
+	public AttackFsmEdit? DashSlashFsmEdit { get; set; } = null;
+
+	/// <summary>
+	/// Defines an FSM edit for Hornet's behaviour during charged attacks on a custom crest.
+	/// See Hornet's "Nail Arts" FSM.
+	/// </summary>
+	/// <inheritdoc cref="AttackFsmEdit" path="/remarks"/>
+	public AttackFsmEdit? ChargedSlashFsmEdit { get; set; } = null;
 
     /// <summary>
     /// Defines an FSM edit for Hornet's behaviour during an FSM-controlled attack
@@ -64,7 +77,6 @@ public class HeroConfigNeedleforge : HeroControllerConfig
     /// <c>hitReactionState</c> to the end state of an attack that hit something.
     /// </para><para>
     /// Needleforge adds the necessary transitions between those states and the rest of the FSM.
-    /// rest of the FSM.
     /// </para>
     /// </remarks>
     public delegate void AttackFsmEdit(
@@ -74,7 +86,7 @@ public class HeroConfigNeedleforge : HeroControllerConfig
 
 	/// <summary>
 	/// Copies all fields of the supplied config object to a new <see cref="HeroConfigNeedleforge"/> object.
-    /// </summary>
+	/// </summary>
 	public static HeroConfigNeedleforge Copy(HeroControllerConfig hcc)
     {
         var clone = ScriptableObject.CreateInstance<HeroConfigNeedleforge>();

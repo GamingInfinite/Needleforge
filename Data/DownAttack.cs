@@ -22,16 +22,15 @@ namespace Needleforge.Data;
 /// be set <i>before</i> the moveset is initialized.
 /// </para>
 /// </summary>
-public class DownAttack : AttackBase
+public class DownAttack : AttackBase, IAttackWithOwnEffectAnim, IAttackWithHeroConfigAccess
 {
     #region API
 
     /// <summary>
-    /// <para>
     /// A reference to the library where this attack's effect animation is found.
     /// <inheritdoc cref="AttackBase.Name" path="//*[@id='prop-updates-go']"/>
-    /// </para>
-    /// <div id="anim-info">
+    /// </summary>
+    /// <remarks>
     /// <para>
     /// The effect animation for a down attack should not loop.
     /// </para><para>
@@ -44,8 +43,7 @@ public class DownAttack : AttackBase
     /// <see cref="tk2dSpriteAnimationFrame.triggerEvent"/> = <c>true</c>;
     /// these frames determine when the attack's hitbox is enabled and disabled.
     /// </para>
-    /// </div>
-    /// </summary>
+    /// </remarks>
     public new tk2dSpriteAnimation? AnimLibrary
     {
         get => base.AnimLibrary;
@@ -53,13 +51,11 @@ public class DownAttack : AttackBase
     }
 
     /// <summary>
-    /// <para>
     /// The name of the animation clip to use for this attack's effect.
     /// <inheritdoc cref="AttackBase.Name" path="//*[@id='prop-updates-go']"/>
-    /// </para>
-    /// <inheritdoc cref="AnimLibrary" path="//*[@id='anim-info']"/>
     /// </summary>
-    public override string AnimName
+    /// <inheritdoc cref="AnimLibrary" path="/remarks"/>
+    public string AnimName
     {
         get => _animName;
         set {
@@ -94,7 +90,7 @@ public class DownAttack : AttackBase
 
     #endregion
 
-    internal HeroControllerConfig? HeroConfig;
+    public HeroControllerConfig? HeroConfig { get; set; }
 
     private HeroDownAttack? heroDownAttack;
     private DownspikeWithBounceConfig? downspike;

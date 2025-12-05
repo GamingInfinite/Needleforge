@@ -8,12 +8,19 @@ namespace Needleforge.Data;
 /// Changes to an attack's properties will update the <see cref="GameObject"/>
 /// it represents, if one has been created.
 /// </summary>
-public class Attack : AttackBase
+public class Attack : AttackBase, IAttackWithOwnEffectAnim
 {
 
     #region API
 
-    public override string AnimName
+    /// <summary>
+    /// The name of the animation clip to use for this attack's effect.
+    /// <inheritdoc cref="AttackBase.Name" path="//*[@id='prop-updates-go']"/>
+    /// </summary>
+    /// <remarks>
+    /// <inheritdoc cref="AttackBase.AnimLibrary" path="//*[@id='anim-info']"/>
+    /// </remarks>
+    public string AnimName
     {
         get => _animName;
         set

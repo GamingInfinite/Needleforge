@@ -67,7 +67,6 @@ namespace Needleforge
             true
         );
 
-        internal static FsmLog fsmlogger;
         private void Awake()
         {
             logger = Logger;
@@ -125,31 +124,49 @@ namespace Needleforge
                 Color = Color.red,
             };
 
+            neoCrest.Moveset.DashSlash = new DashAttack() {
+                Name = "NeoSlashDash",
+                Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-6, 0)],
+                Color = Color.gray,
+                AttackSteps = [
+                    new DashAttack.AttackStep() {
+                        Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-3, 0)],
+                        Scale = new(2, 0.5f),
+                        Color = Color.cyan,
+                    }
+                ],
+            };
+
             var cfg = ScriptableObject.CreateInstance<HeroConfigNeedleforge>();
 
             cfg.downSlashType = HeroControllerConfig.DownSlashTypes.Custom;
-            cfg.DownSlashFsmSetup = DownslashFsmTest;
+            cfg.DownSlashFsmEdit = DownslashFsmTest;
             cfg.downSlashEvent = "NEO DOWNSLASH";
             cfg.attackDuration = 0.5f;
             cfg.attackCooldownTime = 0.2f;
             cfg.attackRecoveryTime = 0.2f;
             cfg.wallSlashSlowdown = true;
+            cfg.dashStabSpeed = -80;
+            cfg.dashStabSteps = 1;
+            cfg.dashStabTime = 0.5f;
+            cfg.dashStabBounceJumpSpeed = 40;
             cfg.chargeSlashChain = 0;
             cfg.chargeSlashLungeDeceleration = 0.5f;
             cfg.chargeSlashLungeSpeed = 0.5f;
             cfg.chargeSlashRecoils = true;
             cfg.canBind = true;
-            cfg.CanUseAbilities = true;
+            cfg.SetCanUseAbilities(true);
 
-            void DownslashFsmTest(PlayMakerFSM fsm, FsmState antic, out FsmState end, out FsmState bounce) {
-                var hc = HeroController.instance;
-                antic.AddLambdaMethod(finished => {
+            void DownslashFsmTest(PlayMakerFSM fsm, FsmState antic, out FsmState end, out FsmState bounce)
+            {
+                antic.AddLambdaMethod(actionFinished => {
                     Debug.Log("custom downslash fsm edit");
+                    var hc = HeroController.instance;
                     hc.QueueCancelDownAttack();
                     hc.cState.downAttacking = true;
+                    hc.rb2d.linearVelocity = new(5, 20);
                     neoCrest.Moveset.DownSlash!.GameObject!.GetComponent<NailSlash>().StartSlash();
-                    hc.rb2d.linearVelocity = new(0, 20);
-                    finished();
+                    actionFinished();
                 });
                 bounce = end = antic;
             }
@@ -186,13 +203,33 @@ namespace Needleforge
                     wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
                 };
 
+                var dashstep1 = new tk2dSpriteAnimationClip() {
+                    name = "DashStabEffect 1", fps = 20, frames = CloneFrames(),
+                    wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
+                };
+                dashstep1.frames[0].triggerEvent = true;
+
+                var dashstep2 = new tk2dSpriteAnimationClip() {
+                    name = "DashStabEffect 2", fps = 20, frames = CloneFrames(),
+                    wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
+                };
+                dashstep2.frames[0].triggerEvent = true;
+
                 lib.clips = [
                     // effect animations
                     standardclip,
                     downspikeclip,
 
                     // hornet anim for testing the regular downslash
-                    hc.configs.First(c => c.Config.name == "Wanderer").Config.heroAnimOverrideLib.GetClipByName("DownSlash")
+                    hc.configs.First(c => c.Config.name == "Wanderer").Config.heroAnimOverrideLib.GetClipByName("DownSlash"),
+
+                    // anims for testing multi-step dash attacks
+                    hc.configs.First(c => c.Config.name == "Whip").Config.heroAnimOverrideLib.GetClipByName("Dash Attack Antic 1"),
+                    hc.configs.First(c => c.Config.name == "Whip").Config.heroAnimOverrideLib.GetClipByName("Dash Attack Antic 2"),
+                    hc.configs.First(c => c.Config.name == "Whip").Config.heroAnimOverrideLib.GetClipByName("Dash Attack 1"),
+                    hc.configs.First(c => c.Config.name == "Whip").Config.heroAnimOverrideLib.GetClipByName("Dash Attack 2"),
+                    dashstep1,
+                    dashstep2,
                 ];
 
                 AttackBase[] atks = [
@@ -200,11 +237,13 @@ namespace Needleforge
                     neoCrest.Moveset.UpSlash,
                     neoCrest.Moveset.WallSlash,
                     neoCrest.Moveset.DownSlash,
+                    neoCrest.Moveset.DashSlash,
                 ];
 
                 for (int i = 0; i < atks.Length; i++) {
                     atks[i].AnimLibrary = lib;
-                    atks[i].AnimName = standardclip.name;
+                    if (atks[i] is IAttackWithOwnEffectAnim atkWithOwnAnim)
+                        atkWithOwnAnim.AnimName = standardclip.name;
                 }
                 //neoCrest.Moveset.DownSlash.AnimName = downspikeclip.name;
                 neoCrest.Moveset.HeroConfig.heroAnimOverrideLib = lib;
