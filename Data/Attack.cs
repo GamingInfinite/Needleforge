@@ -50,10 +50,14 @@ public class Attack : AttackBase
     /// </summary>
     internal bool IsWallSlash {
         get => _wallSlashFlipper.x < 0;
-        set =>
+        set
+        {
             _wallSlashFlipper = Vector3.one with {
                 x = value ? -1 : 1
             };
+            if (GameObject)
+                nailSlash!.scale = Scale.MultiplyElements(_wallSlashFlipper);
+        }
     }
     private Vector3 _wallSlashFlipper = Vector3.one;
 

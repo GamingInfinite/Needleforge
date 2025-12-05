@@ -1,4 +1,5 @@
 ﻿using HutongGames.PlayMaker;
+using System.Reflection;
 using UnityEngine;
 using DownSlashTypes = HeroControllerConfig.DownSlashTypes;
 
@@ -10,12 +11,14 @@ namespace Needleforge.Data;
 /// </summary>
 public class HeroConfigNeedleforge : HeroControllerConfig
 {
+
     /// <summary>
-    /// Sets whether or not Hornet can use her movement abilities, needolin, and needle strike.
+    /// Bulk setter for whether or not Hornet can use her movement abilities,
+    /// needolin, and needle strike.
     /// </summary>
-    public bool CanUseAbilities
+    public void SetCanUseAbilities(bool value)
     {
-        set => canBrolly = canDoubleJump = canHarpoonDash = canPlayNeedolin = canNailCharge = value;
+        canBrolly = canDoubleJump = canHarpoonDash = canPlayNeedolin = canNailCharge = value;
     }
 
     /// <summary>
@@ -44,20 +47,49 @@ public class HeroConfigNeedleforge : HeroControllerConfig
     /// <summary>
     /// <para>
     /// If <see cref="HeroControllerConfig.downSlashType"/> = <see cref="DownSlashTypes.Custom"/>,
-    /// this function defines an FSM edit for this crest's down attacks.
+    /// this function defines an FSM edit for Hornet's behaviour during down attacks on a custom crest.
     /// See Hornet's "crest_attacks" FSM.
-    /// </para><para>
+    /// </summary>
+    /// <inheritdoc cref="AttackFsmEdit" path="/remarks"/>
+    public AttackFsmEdit? DownSlashFsmEdit { get; set; } = null;
+
+    /// <summary>
+    /// Defines an FSM edit for Hornet's behaviour during an FSM-controlled attack
+    /// on a custom crest.
+    /// </summary>
+    /// <remarks>
+    /// <para>
     /// Make any FSM edits you need to off of <c>anticState</c>, then set
-    /// <c>endState</c> to the end state of a downslash that missed and
-    /// <c>bounceEndState</c> to the end state of a downslash that hit something.
+    /// <c>endState</c> to the end state of an attack that missed and
+    /// <c>hitReactionState</c> to the end state of an attack that hit something.
     /// </para><para>
-    /// Needleforge adds the necessary transitions between those three states and the
+    /// Needleforge adds the necessary transitions between those states and the rest of the FSM.
     /// rest of the FSM.
     /// </para>
-    /// </summary>
-    public DownSlashFsmEdit? DownSlashFsmSetup { get; set; }
+    /// </remarks>
+    public delegate void AttackFsmEdit(
+        PlayMakerFSM fsm, FsmState anticState,
+        out FsmState endState, out FsmState hitReactionState
+    );
 
-    /// <inheritdoc cref="DownSlashFsmSetup"/>
-    public delegate void DownSlashFsmEdit(PlayMakerFSM downslashFsm, FsmState anticState, out FsmState endState, out FsmState bounceEndState);
+	/// <summary>
+	/// Copies all fields of the supplied config object to a new <see cref="HeroConfigNeedleforge"/> object.
+    /// </summary>
+	public static HeroConfigNeedleforge Copy(HeroControllerConfig hcc)
+    {
+        var clone = ScriptableObject.CreateInstance<HeroConfigNeedleforge>();
+
+        var fields = typeof(HeroControllerConfig)
+            .GetAllFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        foreach (var f in fields)
+        {
+            if (f.Name.StartsWith("m_"))
+                continue;
+            f.SetValue(clone, f.GetValue(hcc));
+        }
+
+        return clone;
+    }
 
 }

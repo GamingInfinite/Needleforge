@@ -14,7 +14,7 @@ internal class MovesetMaker {
             return;
 
         if (!moveset.HeroConfig)
-            moveset.HeroConfig = (HeroConfigNeedleforge)Object.Instantiate(hunter!.Config);
+            moveset.HeroConfig = HeroConfigNeedleforge.Copy(hunter!.Config);
 
         HeroController hc = HeroController.instance;
 
@@ -71,7 +71,7 @@ internal class MovesetMaker {
         if (!hc)
             return false;
 
-        if (hunter == null || !hunter.NormalSlashObject)
+        if (hunter == null || !hunter.Config || !hunter.NormalSlashObject)
             hunter = hc.configs.First(c => c.Config.name == "Default");
 
         return true;
