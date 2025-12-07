@@ -58,11 +58,6 @@ public class MovesetData {
                 DownSlash.HeroConfig = value;
             if (AltDownSlash != null)
                 AltDownSlash.HeroConfig = value;
-
-            if (DashSlash != null)
-                DashSlash.HeroConfig = value;
-            if (AltDashSlash != null)
-                AltDashSlash.HeroConfig = value;
         }
     }
     private HeroConfigNeedleforge? _heroConf;
@@ -138,24 +133,14 @@ public class MovesetData {
     /// setting an FSM edit.
 	/// </para>
 	/// </remarks>
-	public DashAttack? DashSlash
-    {
-        get => _dashSlash;
-        set
-        {
-            if (value != null)
-                value.HeroConfig = HeroConfig;
-            _dashSlash = value;
-        }
-    }
-    private DashAttack? _dashSlash;
+	public DashAttack? DashSlash { get; set; }
 
-    /// <summary>
-    /// Defines the visual, auditory, and damage properties of the alternate side attack,
-    /// which is used when the player attacks multiple times in quick succession.
-    /// Optional.
-    /// </summary>
-    public Attack? AltSlash { get; set; }
+	/// <summary>
+	/// Defines the visual, auditory, and damage properties of the alternate side attack,
+	/// which is used when the player attacks multiple times in quick succession.
+	/// Optional.
+	/// </summary>
+	public Attack? AltSlash { get; set; }
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the alternate up attack,
@@ -182,26 +167,6 @@ public class MovesetData {
     }
     private DownAttack? _altDownSlash;
 
-	/// <summary>
-	/// Defines the visual, auditory, and damage properties of the alternate dash attack,
-	/// which is used when the player attacks multiple times in quick succession.
-	/// Optional.
-	/// </summary>
-	/// <inheritdoc cref="DashSlash" path="/remarks"/>
-	public DashAttack? AltDashSlash
-    {
-        get => _altDashSlash;
-        set
-        {
-            if (value != null)
-                value.HeroConfig = HeroConfig;
-            _altDashSlash = value;
-        }
-    }
-    private DashAttack? _altDashSlash;
-
-    // TODO down slash
-    // TODO dash slash
     // TODO charged slash
 
     /// <summary>

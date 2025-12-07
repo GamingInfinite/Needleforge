@@ -12,41 +12,22 @@ namespace Needleforge.Data;
 /// Changes to an attack's properties will update the <see cref="UnityEngine.GameObject"/>
 /// it represents, if one has been created.
 /// </summary>
-public abstract class AttackBase
+public abstract class AttackBase : GameObjectProxy
 {
-    #region API
+	#region API
 
-    /// <summary>
-    /// A name for this attack's <see cref="GameObject"/>.
-    /// <span id="prop-updates-go">
-    /// Changing this property will update the <see cref="UnityEngine.GameObject"/>
-    /// this attack represents, if one has been created.
-    /// </span>
-    /// </summary>
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            _name = value;
-            if (GameObject)
-                GameObject.name = value;
-        }
-    }
-    private string _name = "";
-
-    /// <summary>
-    /// <para>
-    /// A reference to the library where this attack's effect animation is found.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </para>
-    /// <para id="anim-info">
-    /// Effect animations for attacks should not loop, and must have <b>two</b> frames
-    /// for which <see cref="tk2dSpriteAnimationFrame.triggerEvent"/> = <c>true</c>;
-    /// these frames determine when the attack's hitbox is enabled and disabled.
-    /// </para>
-    /// </summary>
-    public virtual tk2dSpriteAnimation? AnimLibrary
+	/// <summary>
+	/// <para>
+	/// A reference to the library where this attack's effect animation is found.
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </para>
+	/// <para id="anim-info">
+	/// Effect animations for attacks should not loop, and must have <b>two</b> frames
+	/// for which <see cref="tk2dSpriteAnimationFrame.triggerEvent"/> = <c>true</c>;
+	/// these frames determine when the attack's hitbox is enabled and disabled.
+	/// </para>
+	/// </summary>
+	public virtual tk2dSpriteAnimation? AnimLibrary
     {
         get => _animLibrary;
         set
@@ -58,17 +39,17 @@ public abstract class AttackBase
     }
     private tk2dSpriteAnimation? _animLibrary;
 
-    /// <summary>
-    /// Color to tint the attack's effect animation when it's not imbued with an element.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    public Color Color { get; set; } = Color.white;
+	/// <summary>
+	/// Color to tint the attack's effect animation when it's not imbued with an element.
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </summary>
+	public Color Color { get; set; } = Color.white;
 
-    /// <summary>
-    /// Sound effect to play when this attack is used.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    public AudioClip? Sound
+	/// <summary>
+	/// Sound effect to play when this attack is used.
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </summary>
+	public AudioClip? Sound
     {
         get => _sound;
         set
@@ -80,15 +61,15 @@ public abstract class AttackBase
     }
     private AudioClip? _sound;
 
-    /// <summary>
-    /// Points which define the shape of this attack's damaging hitbox.
-    /// <span id="collider-info">
-    /// (0, 0) is at the center of Hornet's idle sprite.
-    /// Negative X values are in front of Hornet.
-    /// </span>
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    public Vector2[] Hitbox
+	/// <summary>
+	/// Points which define the shape of this attack's damaging hitbox.
+	/// <span id="collider-info">
+	/// (0, 0) is at the center of Hornet's idle sprite.
+	/// Negative X values are in front of Hornet.
+	/// </span>
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </summary>
+	public Vector2[] Hitbox
     {
         get => _hitbox;
         set {
@@ -106,18 +87,18 @@ public abstract class AttackBase
     }
     private Vector2[] _hitbox = [];
 
-    /// <summary>
-    /// <para>
-    /// Points which define the shape of the "tinker" hitbox which causes a visual and
-    /// sound effect, and sometimes recoil, when the attack hits the level geometry.
-    /// <inheritdoc cref="Hitbox" path="//*[@id='collider-info']"/>
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </para><para>
-    /// If left unset or set to <c>null</c>,
-    /// will default to the <see cref="Hitbox"/> at 80% size.
-    /// </para>
-    /// </summary>
-    public Vector2[]? TinkerHitbox
+	/// <summary>
+	/// <para>
+	/// Points which define the shape of the "tinker" hitbox which causes a visual and
+	/// sound effect, and sometimes recoil, when the attack hits the level geometry.
+	/// <inheritdoc cref="Hitbox" path="//*[@id='collider-info']"/>
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </para><para>
+	/// If left unset or set to <c>null</c>,
+	/// will default to the <see cref="Hitbox"/> at 80% size.
+	/// </para>
+	/// </summary>
+	public Vector2[]? TinkerHitbox
     {
         get => _tinkerHitbox;
         set
@@ -135,11 +116,11 @@ public abstract class AttackBase
     private Vector2[]? _tinkerHitbox = [];
     private bool _autoTinkerHitbox = true;
 
-    /// <summary>
-    /// Multiplier on the overall size of the attack.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    public virtual Vector2 Scale
+	/// <summary>
+	/// Multiplier on the overall size of the attack.
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </summary>
+	public virtual Vector2 Scale
     {
         get => _scale;
         set
@@ -151,12 +132,12 @@ public abstract class AttackBase
     }
     private Vector3 _scale = Vector2.one;
 
-    /// <summary>
-    /// The style of silk generation this attack uses.
-    /// <c>FirstHit</c> and <c>Full</c> are the same unless the attack is a multihitter.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    public HitSilkGeneration SilkGeneration
+	/// <summary>
+	/// The style of silk generation this attack uses.
+	/// <c>FirstHit</c> and <c>Full</c> are the same unless the attack is a multihitter.
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </summary>
+	public HitSilkGeneration SilkGeneration
     {
         get => _silkGen;
         set
@@ -168,11 +149,11 @@ public abstract class AttackBase
     }
     private HitSilkGeneration _silkGen = HitSilkGeneration.FirstHit;
 
-    /// <summary>
-    /// Multiplier on base nail damage for this attack.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    public float DamageMult
+	/// <summary>
+	/// Multiplier on base nail damage for this attack.
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </summary>
+	public float DamageMult
     {
         get => _damageMult;
         set
@@ -184,12 +165,12 @@ public abstract class AttackBase
     }
     private float _damageMult = 1f;
 
-    /// <summary>
-    /// The amount of stun damage this attack deals when it hits a stunnable boss.
-    /// If this attack is a multihitter, this value is applied to each individual hit.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    public float StunDamage
+	/// <summary>
+	/// The amount of stun damage this attack deals when it hits a stunnable boss.
+	/// If this attack is a multihitter, this value is applied to each individual hit.
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </summary>
+	public float StunDamage
     {
         get => _stunDamage;
         set
@@ -201,12 +182,12 @@ public abstract class AttackBase
     }
     private float _stunDamage = 1f;
 
-    /// <summary>
-    /// A multiplier on how far away from Hornet an enemy is pushed when this attack
-    /// hits them. Must be non-negative.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    public float KnockbackMult
+	/// <summary>
+	/// A multiplier on how far away from Hornet an enemy is pushed when this attack
+	/// hits them. Must be non-negative.
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </summary>
+	public float KnockbackMult
     {
         get => _knockback;
         set
@@ -218,14 +199,14 @@ public abstract class AttackBase
     }
     private float _knockback = 1f;
 
-    /// <summary>
-    /// Setting this with a non-empty array marks this attack as a multi-hitter attack
-    /// which damages enemies as many times as the array's length. Each value in the
-    /// array is a damage multiplier on Hornet's base needle damage which is applied to
-    /// that individual hit; these are usually all &lt; 1.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    public float[] MultiHitMultipliers
+	/// <summary>
+	/// Setting this with a non-empty array marks this attack as a multi-hitter attack
+	/// which damages enemies as many times as the array's length. Each value in the
+	/// array is a damage multiplier on Hornet's base needle damage which is applied to
+	/// that individual hit; these are usually all &lt; 1.
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </summary>
+	public float[] MultiHitMultipliers
     {
         get => _multiHitMults;
         set
@@ -244,12 +225,12 @@ public abstract class AttackBase
     }
     private float[] _multiHitMults = [];
 
-    /// <summary>
-    /// Determines the visual effect applied to each hit of a multi-hitting attack after
-    /// the first one.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    public EffectsTypes MultiHitEffects
+	/// <summary>
+	/// Determines the visual effect applied to each hit of a multi-hitting attack after
+	/// the first one.
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </summary>
+	public EffectsTypes MultiHitEffects
     {
         get => _multiHitEffects;
         set
@@ -261,13 +242,13 @@ public abstract class AttackBase
     }
     private EffectsTypes _multiHitEffects = EffectsTypes.LagHit;
 
-    /// <summary>
-    /// Number of frames between individual hits of a multi-hitting attack. Make sure
-    /// the effect animation (see <see cref="AnimName"/> and <see cref="AnimLibrary"/>)
-    /// for this attack lasts long enough for all hits to occur.
-    /// <inheritdoc cref="Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    public int FramesBetweenMultiHits
+	/// <summary>
+	/// Number of frames between individual hits of a multi-hitting attack. Make sure
+	/// the effect animation (see <see cref="AnimName"/> and <see cref="AnimLibrary"/>)
+	/// for this attack lasts long enough for all hits to occur.
+	/// <inheritdoc cref="GameObjectProxy.Name" path="//*[@id='prop-updates-go']"/>
+	/// </summary>
+	public int FramesBetweenMultiHits
     {
         get => _multiSteps;
         set
@@ -317,19 +298,6 @@ public abstract class AttackBase
 
     #endregion
 
-
-    /// <summary>
-    /// <para>
-    /// After the moveset this attack is attached to has initialized, this will reference
-    /// the <see cref="UnityEngine.GameObject"/> that this Attack represents.
-    /// </para><para>
-    /// Unlike changes to the other properties, modifications made directly to this
-    /// object will not be reproduced if a player quits to menu and loads a new save;
-    /// consider making such modifications in <see cref="MovesetData.OnInitialized"/>.
-    /// </para>
-    /// </summary>
-    public GameObject? GameObject { get; protected set; }
-
     protected tk2dSprite? Sprite { get; private set; }
     protected tk2dSpriteAnimator? Animator { get; private set; }
     protected AudioSource? AudioSrc { get; private set; }
@@ -338,18 +306,12 @@ public abstract class AttackBase
     protected DamageEnemies? Damager { get; private set; }
     protected AudioSourcePriority? AudioPriority { get; private set; }
 
-    public virtual GameObject CreateGameObject(GameObject parent, HeroController hc)
+    public override GameObject CreateGameObject(GameObject parent, HeroController hc)
     {
-        if (GameObject)
-            Object.DestroyImmediate(GameObject);
+        GameObject = base.CreateGameObject(parent, hc);
 
-        GameObject = new(Name);
-        Object.DontDestroyOnLoad(GameObject);
-        GameObject.transform.SetParent(parent.transform);
         GameObject.tag = NAIL_ATTACK_TAG;
         GameObject.layer = (int)PhysLayers.HERO_ATTACK;
-        GameObject.transform.localPosition = Vector3.zero;
-
         GameObject.SetActive(false); // VERY IMPORTANT
 
         // Common component initialization

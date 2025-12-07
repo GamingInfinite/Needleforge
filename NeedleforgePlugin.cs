@@ -81,6 +81,8 @@ namespace Needleforge
             BlackTools.allColorsValid = true;
 
 #if DEBUG
+            Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.Full);
+
             var neoCrest = AddCrest("NeoCrest");
             neoCrest.AddToolSlot(GreenTools.Type, AttackToolBinding.Neutral, Vector2.zero, false);
             neoCrest.AddToolSlot(PinkTools.Type, AttackToolBinding.Up, new(0, 2), false);
@@ -126,14 +128,21 @@ namespace Needleforge
 
             neoCrest.Moveset.DashSlash = new DashAttack() {
                 Name = "NeoSlashDash",
-                Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-6, 0)],
-                Color = Color.gray,
                 AttackSteps = [
                     new DashAttack.AttackStep() {
-                        Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-3, 0)],
-                        Scale = new(2, 0.5f),
+                        Name = "NeoDash A",
+                        Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
+                        Scale = new(2, 0.2f),
                         Color = Color.cyan,
-                    }
+                        AnimName = "DownSlash",
+                    },
+                    new DashAttack.AttackStep() {
+                        Name = "NeoDash B",
+                        Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
+                        Scale = new(2, 0.2f),
+                        Color = Color.yellow,
+                        AnimName = "DownSlash",
+                    },
                 ],
             };
 
@@ -203,17 +212,8 @@ namespace Needleforge
                     wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
                 };
 
-                var dashstep1 = new tk2dSpriteAnimationClip() {
-                    name = "DashStabEffect 1", fps = 20, frames = CloneFrames(),
-                    wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
-                };
-                dashstep1.frames[0].triggerEvent = true;
-
-                var dashstep2 = new tk2dSpriteAnimationClip() {
-                    name = "DashStabEffect 2", fps = 20, frames = CloneFrames(),
-                    wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
-                };
-                dashstep2.frames[0].triggerEvent = true;
+                var wanderer = hc.configs.First(c => c.Config.name == "Wanderer").Config.heroAnimOverrideLib;
+                var witch = hc.configs.First(c => c.Config.name == "Whip").Config.heroAnimOverrideLib;
 
                 lib.clips = [
                     // effect animations
@@ -221,15 +221,13 @@ namespace Needleforge
                     downspikeclip,
 
                     // hornet anim for testing the regular downslash
-                    hc.configs.First(c => c.Config.name == "Wanderer").Config.heroAnimOverrideLib.GetClipByName("DownSlash"),
+                    wanderer.GetClipByName("DownSlash"),
 
-                    // anims for testing multi-step dash attacks
-                    hc.configs.First(c => c.Config.name == "Whip").Config.heroAnimOverrideLib.GetClipByName("Dash Attack Antic 1"),
-                    hc.configs.First(c => c.Config.name == "Whip").Config.heroAnimOverrideLib.GetClipByName("Dash Attack Antic 2"),
-                    hc.configs.First(c => c.Config.name == "Whip").Config.heroAnimOverrideLib.GetClipByName("Dash Attack 1"),
-                    hc.configs.First(c => c.Config.name == "Whip").Config.heroAnimOverrideLib.GetClipByName("Dash Attack 2"),
-                    dashstep1,
-                    dashstep2,
+                    // anims for testing dash attacks
+                    witch.GetClipByName("Dash Attack Antic 1"),
+                    witch.GetClipByName("Dash Attack Antic 2"),
+                    witch.GetClipByName("Dash Attack 1"),
+                    witch.GetClipByName("Dash Attack 2"),
                 ];
 
                 AttackBase[] atks = [
@@ -237,7 +235,6 @@ namespace Needleforge
                     neoCrest.Moveset.UpSlash,
                     neoCrest.Moveset.WallSlash,
                     neoCrest.Moveset.DownSlash,
-                    neoCrest.Moveset.DashSlash,
                 ];
 
                 for (int i = 0; i < atks.Length; i++) {
@@ -246,6 +243,7 @@ namespace Needleforge
                         atkWithOwnAnim.AnimName = standardclip.name;
                 }
                 //neoCrest.Moveset.DownSlash.AnimName = downspikeclip.name;
+                neoCrest.Moveset.DashSlash?.SetAnimLibrary(lib);
                 neoCrest.Moveset.HeroConfig.heroAnimOverrideLib = lib;
             };
 
