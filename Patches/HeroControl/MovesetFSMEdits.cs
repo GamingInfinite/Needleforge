@@ -53,13 +53,14 @@ internal class DownSlashFSMEdits
                 continue;
             }
 
-            FsmState AtkAntic = fsm.AddState($"{name} Downslash Antic");
+            FsmState AtkStart = fsm.AddState($"{name} Start");
 
-            fsmEdit.Invoke(fsm, AtkAntic, out FsmState AtkEnd, out FsmState AtkHit);
+            fsmEdit.Invoke(fsm, AtkStart, out FsmState[] AtkEnds);
 
-            Idle.AddTransition(m.HeroConfig!.downSlashEvent, AtkAntic.Name);
-            AtkEnd.AddTransition("FINISHED", End.Name);
-            AtkHit.AddTransition("FINISHED", End.Name);
+            Idle.AddTransition(m.HeroConfig!.downSlashEvent, AtkStart.Name);
+
+            foreach(var end in AtkEnds)
+                end.AddTransition("FINISHED", End.Name);
         }
     }
 }
@@ -75,9 +76,6 @@ internal class DashSlashFSMEdits
         FsmState
             StartAttack = fsm.GetState("Start Attack")!,
             RegainControlNormal = fsm.GetState("Regain Control Normal")!;
-
-        int
-            equipCheckIndex = 1 + Array.FindLastIndex(StartAttack.Actions, x => x is CheckIfCrestEquipped);
 
         #region Making default behaviour functional
 
@@ -111,21 +109,24 @@ internal class DashSlashFSMEdits
                 .Select(cd => cd.Moveset)
                 .Where(m => m.HeroConfig && m.HeroConfig.DashSlashFsmEdit != null);
 
+        int equipCheckIndex = 1 + Array.FindLastIndex(StartAttack.Actions, x => x is CheckIfCrestEquipped);
+
         if (!movesets.Any())
             return;
 
         foreach(MovesetData m in movesets) {
             string name = m.Crest.name;
-            var fsmEdit = m.HeroConfig!.DashSlashFsmEdit!;
 
-            FsmState Antic = fsm.AddState($"{name} Antic");
-            fsmEdit.Invoke(fsm, Antic, out FsmState AtkEnd, out FsmState AtkHit);
+            FsmState AtkStart = fsm.AddState($"{name} Start");
 
-            StartAttack.InsertAction(equipCheckIndex, CreateCrestEquipCheck(m.Crest));
+            m.HeroConfig!.DashSlashFsmEdit!.Invoke(fsm, AtkStart, out FsmState[] AtkEnds);
 
-            StartAttack.AddTransition(name, Antic.name);
-            AtkEnd.AddTransition("FINISHED", RegainControlNormal.Name);
-            AtkHit.AddTransition("FINISHED", RegainControlNormal.Name);
+            var equipCheckAction = CreateCrestEquipCheck(m.Crest);
+            StartAttack.InsertAction(equipCheckIndex, equipCheckAction);
+            StartAttack.AddTransition(equipCheckAction.trueEvent.Name, AtkStart.name);
+
+            foreach(var end in AtkEnds)
+                end.AddTransition("FINISHED", RegainControlNormal.Name);
         }
     }
 

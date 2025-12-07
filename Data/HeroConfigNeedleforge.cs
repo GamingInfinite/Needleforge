@@ -1,4 +1,7 @@
 ﻿using HutongGames.PlayMaker;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using DownSlashTypes = HeroControllerConfig.DownSlashTypes;
@@ -46,59 +49,58 @@ public class HeroConfigNeedleforge : HeroControllerConfig
 
     /// <summary>
     /// If <see cref="HeroControllerConfig.downSlashType"/> = <see cref="DownSlashTypes.Custom"/>,
-    /// this function defines an FSM edit for Hornet's behaviour during down attacks on a custom crest.
+    /// this function defines an FSM edit for Hornet's behaviour during down attacks.
     /// See Hornet's "crest_attacks" FSM.
     /// </summary>
-    /// <inheritdoc cref="AttackFsmEdit" path="/remarks"/>
-    public AttackFsmEdit? DownSlashFsmEdit { get; set; } = null;
-
-	/// <summary>
-	/// Defines an FSM edit for Hornet's behaviour during dash attacks on a custom crest.
-	/// See Hornet's "Sprint" FSM.
-	/// </summary>
-	/// <inheritdoc cref="AttackFsmEdit" path="/remarks"/>
-	public AttackFsmEdit? DashSlashFsmEdit { get; set; } = null;
-
-	/// <summary>
-	/// Defines an FSM edit for Hornet's behaviour during charged attacks on a custom crest.
-	/// See Hornet's "Nail Arts" FSM.
-	/// </summary>
-	/// <inheritdoc cref="AttackFsmEdit" path="/remarks"/>
-	public AttackFsmEdit? ChargedSlashFsmEdit { get; set; } = null;
+    /// <inheritdoc cref="FsmEdit" path="/remarks"/>
+    public FsmEdit? DownSlashFsmEdit { get; set; } = null;
 
     /// <summary>
-    /// Defines an FSM edit for Hornet's behaviour during an FSM-controlled attack
-    /// on a custom crest.
+    /// Defines an FSM edit for Hornet's behaviour during dash attacks.
+    /// See Hornet's "Sprint" FSM.
+    /// </summary>
+    /// <inheritdoc cref="FsmEdit" path="/remarks"/>
+    public FsmEdit? DashSlashFsmEdit { get; set; } = null;
+
+    /// <summary>
+    /// Defines an FSM edit for Hornet's behaviour during charged attacks.
+    /// See Hornet's "Nail Arts" FSM.
+    /// </summary>
+    /// <inheritdoc cref="FsmEdit" path="/remarks"/>
+    public FsmEdit? ChargedSlashFsmEdit { get; set; } = null;
+
+    /// <summary>
+    /// Defines a new control path for Hornet's behaviour during an FSM-controlled attack.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// Make any FSM edits you need to off of <c>anticState</c>, then set
-    /// <c>endState</c> to the end state of an attack that missed and
-    /// <c>hitReactionState</c> to the end state of an attack that hit something.
-    /// </para><para>
-    /// Needleforge adds the necessary transitions between those states and the rest of the FSM.
-    /// </para>
+    /// Make any FSM edits you need to off of the provided <c>startState</c>, which
+    /// already has the necessary incoming transitions.
+    /// All states added to the <c>endStates</c> array will be provided with an outgoing
+    /// transition that allows normal player control to resume.
     /// </remarks>
-    public delegate void AttackFsmEdit(
-        PlayMakerFSM fsm, FsmState anticState,
-        out FsmState endState, out FsmState hitReactionState
+    public delegate void FsmEdit(
+        PlayMakerFSM fsm, FsmState startState, out FsmState[] endStates
     );
 
-	/// <summary>
-	/// Copies all fields of the supplied config object to a new <see cref="HeroConfigNeedleforge"/> object.
-	/// </summary>
-	public static HeroConfigNeedleforge Copy(HeroControllerConfig hcc)
+    /// <summary>
+    /// Copies all fields of the supplied config object to a new <see cref="HeroConfigNeedleforge"/> object.
+    /// </summary>
+    public static HeroConfigNeedleforge Copy(HeroControllerConfig source)
     {
-        var clone = ScriptableObject.CreateInstance<HeroConfigNeedleforge>();
+        var clone = CreateInstance<HeroConfigNeedleforge>();
+        var hcnType = typeof(HeroConfigNeedleforge);
 
-        var fields = typeof(HeroControllerConfig)
+        var sourceFields = typeof(HeroControllerConfig)
             .GetAllFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-        foreach (var f in fields)
+        var cloneFields = typeof(HeroConfigNeedleforge)
+            .GetAllFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        foreach (var f in sourceFields)
         {
-            if (f.Name.StartsWith("m_"))
+            if (f.Name.StartsWith("m_") || !cloneFields.Any(x => x.Equals(f)))
                 continue;
-            f.SetValue(clone, f.GetValue(hcc));
+            f.SetValue(clone, f.GetValue(source));
         }
 
         return clone;

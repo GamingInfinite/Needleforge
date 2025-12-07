@@ -2,6 +2,8 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using HutongGames.PlayMaker;
+using HutongGames.PlayMaker.Actions;
+using Needleforge.Components;
 using Needleforge.Data;
 using PrepatcherPlugin;
 using Silksong.FsmUtil;
@@ -137,7 +139,7 @@ namespace Needleforge
                         AnimName = "DownSlash",
                     },
                     new DashAttack.AttackStep() {
-                        Name = "NeoDash B",
+                        //Name = "NeoDash B",
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
                         Scale = new(2, 0.2f),
                         Color = Color.yellow,
@@ -155,10 +157,10 @@ namespace Needleforge
             cfg.attackCooldownTime = 0.2f;
             cfg.attackRecoveryTime = 0.2f;
             cfg.wallSlashSlowdown = true;
-            cfg.dashStabSpeed = -80;
-            cfg.dashStabSteps = 1;
-            cfg.dashStabTime = 0.5f;
+            cfg.dashStabSpeed = -10;
+            cfg.dashStabTime = 0.2f;
             cfg.dashStabBounceJumpSpeed = 40;
+            cfg.DashSlashFsmEdit = DashSlashFsmTest;
             cfg.chargeSlashChain = 0;
             cfg.chargeSlashLungeDeceleration = 0.5f;
             cfg.chargeSlashLungeSpeed = 0.5f;
@@ -166,9 +168,9 @@ namespace Needleforge
             cfg.canBind = true;
             cfg.SetCanUseAbilities(true);
 
-            void DownslashFsmTest(PlayMakerFSM fsm, FsmState antic, out FsmState end, out FsmState bounce)
+            void DownslashFsmTest(PlayMakerFSM fsm, FsmState startState, out FsmState[] endStates)
             {
-                antic.AddLambdaMethod(actionFinished => {
+                startState.AddLambdaMethod(actionFinished => {
                     Debug.Log("custom downslash fsm edit");
                     var hc = HeroController.instance;
                     hc.QueueCancelDownAttack();
@@ -177,7 +179,36 @@ namespace Needleforge
                     neoCrest.Moveset.DownSlash!.GameObject!.GetComponent<NailSlash>().StartSlash();
                     actionFinished();
                 });
-                bounce = end = antic;
+                endStates = [startState];
+            }
+
+            void DashSlashFsmTest(PlayMakerFSM fsm, FsmState startState, out FsmState[] endStates) {
+                startState.AddLambdaMethod(finished => {
+                    Debug.Log("custom dashslash fsm edit");
+                    var hc = HeroController.instance;
+                    hc.RelinquishControl();
+                    hc.CancelDash(false);
+                    hc.rb2d.linearVelocity = new(10, 20);
+                    if (hc.cState.facingRight)
+                        hc.rb2d.linearVelocityX *= -1;
+                    hc.animCtrl.PlayFromFrame("Dash Attack 1", 0, true);
+                    var attackobj = neoCrest.Moveset.DashSlash!.GameObject!.transform.GetChild(0);
+                    var attackComponent = attackobj.GetComponent<DashStabWithOwnAnim>();
+                    attackComponent.OnCancelAttack();
+                    attackComponent.StartSlash();
+                    finished();
+                });
+                startState.AddAction(new Tk2dWatchAnimationEvents() { BlocksFinish = true, gameObject = new() { OwnerOption = OwnerDefaultOption.UseOwner } });
+                startState.AddLambdaMethod(finished => {
+                    var hc = HeroController.instance;
+                    var attackobj = neoCrest.Moveset.DashSlash!.GameObject!.transform.GetChild(0);
+                    var attackComponent = attackobj.GetComponent<DashStabWithOwnAnim>();
+                    attackComponent.OnCancelAttack();
+                    hc.ResetGravity();
+                    hc.CrestAttackRecovery();
+                    finished();
+                });
+                endStates = [startState];
             }
 
             neoCrest.Moveset.HeroConfig = cfg;

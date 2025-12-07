@@ -30,16 +30,10 @@ public class DashAttack : GameObjectProxy
     }
     private AttackStep[] _attackSteps = [];
 
-	/// <summary>
+    /// <summary>
     /// Sets the AnimLibrary for all <see cref="AttackSteps"/> belonging to this Attack.
-	/// </summary>
-	/// <remarks>
-	/// <inheritdoc cref="AttackBase.AnimLibrary" path="//*[@id='anim-info']"/>
-	/// <para>
-	/// Note that the <see cref="HeroControllerConfig.heroAnimOverrideLib"/> in the associated <see cref="MovesetData.HeroConfig"/> should contain animations named "Dash Attack Antic X" and "Dash Attack X", where X is a number starting from 1, for as many <see cref="AttackSteps"/> as the animation has.
-	/// </para>
-	/// </remarks>
-	public void SetAnimLibrary(tk2dSpriteAnimation value)
+    /// </summary>
+    public void SetAnimLibrary(tk2dSpriteAnimation value)
     {
         foreach(var attack in AttackSteps)
             attack.AnimLibrary = value;
@@ -52,17 +46,19 @@ public class DashAttack : GameObjectProxy
         GameObject = base.CreateGameObject(parent, hc);
         GameObject.SetActive(false);
 
-		foreach (var attack in AttackSteps)
+        foreach (var attack in AttackSteps)
             attack.CreateGameObject(GameObject, hc);
 
-		GameObject.SetActive(true);
+        GameObject.SetActive(true);
         return GameObject;
     }
 
-
+    /// <summary>
+    /// 
+    /// </summary>
     public class AttackStep : AttackBase, IAttackWithOwnEffectAnim
     {
-		public string AnimName {
+        public string AnimName {
             get => _animName;
             set {
                 _animName = value;
@@ -78,12 +74,15 @@ public class DashAttack : GameObjectProxy
         protected override void AddComponents(HeroController hc)
         {
             dashStab = GameObject!.AddComponent<DashStabWithOwnAnim>();
-		}
+        }
 
-		protected override void LateInitializeComponents(HeroController hc)
+        protected override void LateInitializeComponents(HeroController hc)
         {
             dashStab!.animName = AnimName;
             Collider!.enabled = false;
-		}
-	}
+
+            if (string.IsNullOrWhiteSpace(Name))
+                Name = $"Dash Stab {GameObject!.transform.GetSiblingIndex() + 1}";
+        }
+    }
 }

@@ -8,10 +8,10 @@ namespace Needleforge.Data;
 
 TODO:
 
-- Special handling for DownSlash, DashSlash, and ChargedSlash - possibly different classes
+- dash slash fsm edits need their own delegate, investigate the fsm for relevant end states
+- Special handling for ChargedSlash - probably different class
 - FSM edits...
 - Make sure everything is thoroughly documented
-- Maybe some way to allow users to set an AnimName on dash attacks, to be consistent with the others? Would require more FSM edits on the single/multi default paths to find the appropriate names, and possibly a custom component...
 
 */
 
@@ -108,39 +108,32 @@ public class MovesetData {
     }
     private DownAttack? _downSlash;
 
-	/// <summary>
-	/// Defines the visual and damage properties of the dash attack.
-	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// The type and behaviour of dash attacks are determined by properties of
-	/// <see cref="HeroConfig"/>, particularly
-	/// <c><see cref="HeroControllerConfig.dashStabSteps">dashStabSteps</see></c> and
-    /// <see cref="HeroConfigNeedleforge.DownSlashFsmEdit"/>, which cannot be changed
-    /// after the moveset is initialized.
-	/// </para><para>
-	/// If <c>dashStabSteps &lt;= 1</c>, this attack's GameObject will initialize as a
-    /// single dash attack with the components necessary to function.
-    /// If <c>dashStabSteps &gt; 1</c>, this attack's GameObject will be a parent object
-    /// of multiple functioning dash attacks, named "Dash Stab 1", "Dash Stab 2", etc;
-    /// see <see cref="DashAttack.AttackSteps"/> to control the damage properties of
-    /// each step of a multi-step attack.
-	/// </para><para>
-	/// If <c>DownSlashFsmEdit</c> is null, this attack will function similarly to the
-    /// dash attack from Hunter (if <c>dashStabSteps &lt;= 1</c>) or
-    /// Witch (if <c>dashStabSteps &gt; 1</c>).
-    /// See <see cref="DashAttack.AnimLibrary"/> for required animations if you aren't
-    /// setting an FSM edit.
-	/// </para>
-	/// </remarks>
-	public DashAttack? DashSlash { get; set; }
+    /// <summary>
+    /// Defines the visual, auditory and damage properties of the dash attack.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// By default, each member of <see cref="DashAttack.AttackSteps"/> plays in sequence
+    /// as a series of lunging attacks, similar to Hunter or Witch crest. The speed and
+    /// duration of the attacks is controlled by properties of <see cref="HeroConfig"/>.
+    /// This default behaviour can be changed by specifying a
+    /// <see cref="HeroConfigNeedleforge.DashSlashFsmEdit"/> function.
+    /// </para><para>
+    /// Unless an FSM edit is specified that plays different animations for Hornet, the
+    /// <see cref="HeroControllerConfig.heroAnimOverrideLib"/> in
+    /// <see cref="HeroConfig"/> should contain animations named "Dash Attack Antic 1"
+    /// and "Dash Attack 1", "Dash Attack Antic 2" and "Dash Attack 2", and so on,
+    /// for as many <see cref="DashAttack.AttackSteps"/> as the attack has.
+    /// </para>
+    /// </remarks>
+    public DashAttack? DashSlash { get; set; }
 
-	/// <summary>
-	/// Defines the visual, auditory, and damage properties of the alternate side attack,
-	/// which is used when the player attacks multiple times in quick succession.
-	/// Optional.
-	/// </summary>
-	public Attack? AltSlash { get; set; }
+    /// <summary>
+    /// Defines the visual, auditory, and damage properties of the alternate side attack,
+    /// which is used when the player attacks multiple times in quick succession.
+    /// Optional.
+    /// </summary>
+    public Attack? AltSlash { get; set; }
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the alternate up attack,
