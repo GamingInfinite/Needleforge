@@ -161,7 +161,7 @@ public class MovesetData {
     }
     private DownAttack? _altDownSlash;
 
-    // TODO charged slash
+    public ChargedAttack ChargedSlash { get; set; }
 
     /// <summary>
     /// <para>

@@ -121,7 +121,7 @@ internal class DashSlashFSMEdits
 
             m.HeroConfig!.DashSlashFsmEdit!.Invoke(fsm, AtkStart, out FsmState[] AtkEnds);
 
-            var equipCheckAction = CreateCrestEquipCheck(m.Crest);
+            var equipCheckAction = MovesetUtils.CreateCrestEquipCheck(m.Crest);
             StartAttack.InsertAction(equipCheckIndex, equipCheckAction);
             StartAttack.AddTransition(equipCheckAction.trueEvent.Name, AtkStart.name);
 
@@ -143,7 +143,7 @@ internal class DashSlashFSMEdits
 
     private static void DetectAttackStepName(Action finished, PlayMakerFSM fsm)
     {
-		if (NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped) is CrestData crest)
+        if (NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped) is CrestData crest)
         {
             int i = fsm.GetIntVariable("Attack Step").Value - 1;
             var attack = crest.Moveset.ConfGroup!.DashStab.transform;
@@ -184,15 +184,87 @@ internal class DashSlashFSMEdits
         finished();
     }
 
-    private static readonly FsmEvent noEvent = FsmEvent.GetFsmEvent("");
+}
 
-    private static CheckIfCrestEquipped CreateCrestEquipCheck(CrestData crest) =>
+[HarmonyPatch(typeof(HeroController), nameof(HeroController.Start))]
+internal class ChargedSlashFSMEdits
+{
+    private static void Postfix(HeroController __instance)
+    {
+        PlayMakerFSM fsm = __instance.gameObject.GetFsmPreprocessed("Nail Arts")!;
+
+        FsmState
+            AnticType = fsm.GetState("Antic Type")!,
+            SetFinished = fsm.GetState("Set Finished")!,
+            RegainPartialControl = fsm.GetState("Regain Partial Control")!;
+
+        #region Default behaviour for custom charged slashes w/o fsm edits
+
+        FsmState Kickoff = fsm.AddState("Needleforge Kickoff");
+
+        AnticType.AddLambdaMethod(finished => RedirectToNeedleforgeDefault(finished, fsm));
+        AnticType.AddTransition(nfDefault.Name, Kickoff.Name);
+
+        Kickoff.AddAction(new CheckIsCharacterGrounded()
+        {
+            Target = new() { OwnerOption = OwnerDefaultOption.UseOwner },
+            RayCount = new() { Value = 3 },
+            GroundDistance = new() { Value = 0.2f },
+            SkinWidth = new() { Value = -0.05f },
+            SkinHeight = new() { Value = 0.1f },
+            StoreResult = new() { Value = false },
+            NotGroundedEvent = FsmEvent.GetFsmEvent("FINISHED"),
+            EveryFrame = false,
+        });
+        Kickoff.AddLambdaMethod(DoKickoffIfRequested);
+        Kickoff.AddTransition("FINISHED", "Antic");
+
+        #endregion
+
+        IEnumerable<MovesetData>
+            movesets = NeedleforgePlugin.newCrestData
+                .Select(cd => cd.Moveset)
+                .Where(m => m.HeroConfig && m.HeroConfig.ChargedSlashFsmEdit != null);
+
+        if (!movesets.Any())
+            return;
+        
+    }
+
+    private static readonly FsmEvent nfDefault = FsmEvent.GetFsmEvent("NEEDLEFORGE DEFAULT");
+
+    private static void RedirectToNeedleforgeDefault(Action finished, PlayMakerFSM fsm)
+    {
+        var crest = NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped);
+        if (
+            crest != null
+            && crest.Moveset.HeroConfig!.ChargedSlashFsmEdit == null
+        ) {
+			fsm.Fsm.Event(nfDefault);
+		}
+        finished();
+    }
+
+    private static void DoKickoffIfRequested(Action finished)
+    {
+        var hc = HeroController.instance;
+        if (hc.Config is HeroConfigNeedleforge config && config.ChargedSlashDoesKickoff)
+        {
+            hc.rb2d.linearVelocityY = 10;
+        }
+        finished();
+    }
+
+}
+
+file static class MovesetUtils
+{
+    public static CheckIfCrestEquipped CreateCrestEquipCheck(CrestData crest) =>
         new()
         {
             Crest = new FsmObject() { Value = crest.ToolCrest },
             trueEvent = FsmEvent.GetFsmEvent(crest.name),
-            falseEvent = noEvent,
+            falseEvent = FsmEvent.GetFsmEvent(""),
             storeValue = false,
         };
-
 }

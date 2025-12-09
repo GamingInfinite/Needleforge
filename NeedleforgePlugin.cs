@@ -146,6 +146,27 @@ namespace Needleforge
                 ],
             };
 
+            neoCrest.Moveset.ChargedSlash = new ChargedAttack() {
+                Name = "NeoSlashCharged",
+                PlayStepsInSequence = true,
+                AttackSteps = [
+                    new ChargedAttack.AttackStep() {
+                        Name = "NeoCharge Alpha",
+                        Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
+                        Scale = new(2, 0.2f),
+                        Color = Color.cyan,
+                        AnimName = "NeoSlashEffect",
+                    },
+					new ChargedAttack.AttackStep() {
+						Name = "NeoCharge Beta",
+						Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
+						Scale = new(2, 0.2f),
+						Color = Color.yellow,
+						AnimName = "NeoSlashEffect",
+					},
+				],
+            };
+
             var cfg = ScriptableObject.CreateInstance<HeroConfigNeedleforge>();
 
             cfg.downSlashType = HeroControllerConfig.DownSlashTypes.Custom;
@@ -163,6 +184,7 @@ namespace Needleforge
             cfg.chargeSlashLungeDeceleration = 0.5f;
             cfg.chargeSlashLungeSpeed = 0.5f;
             cfg.chargeSlashRecoils = true;
+            cfg.ChargedSlashDoesKickoff = true;
             cfg.canBind = true;
             cfg.SetCanUseAbilities(true);
 
@@ -273,7 +295,8 @@ namespace Needleforge
                 }
                 //neoCrest.Moveset.DownSlash.AnimName = downspikeclip.name;
                 neoCrest.Moveset.DashSlash?.SetAnimLibrary(lib);
-                neoCrest.Moveset.HeroConfig.heroAnimOverrideLib = lib;
+				neoCrest.Moveset.ChargedSlash?.SetAnimLibrary(lib);
+				neoCrest.Moveset.HeroConfig.heroAnimOverrideLib = lib;
             };
 
             AddTool("NeoGreenTool", GreenTools.Type);

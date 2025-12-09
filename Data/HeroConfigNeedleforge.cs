@@ -60,6 +60,8 @@ public class HeroConfigNeedleforge : HeroControllerConfig
     /// <inheritdoc cref="FsmEdit" path="/remarks"/>
     public FsmEdit? DashSlashFsmEdit { get; set; } = null;
 
+    public bool ChargedSlashDoesKickoff { get; set; } = false;
+
     /// <summary>
     /// Defines an FSM edit for Hornet's behaviour during charged attacks.
     /// See Hornet's "Nail Arts" FSM.

@@ -60,7 +60,7 @@ internal class MovesetMaker {
             WallSlashObject =   AttackOrDefault(moveset.WallSlash, hunter.WallSlashObject),
             DownSlashObject =   AttackOrDefault(moveset.DownSlash, hunter.DownSlashObject),
             DashStab =          DashAttackOrDefault(moveset.DashSlash, hunter.DashStab),
-            ChargeSlash =       AttackOrDefault(null, hunter.ChargeSlash),
+            ChargeSlash =       AttackOrDefault(moveset.ChargedSlash, hunter.ChargeSlash),
             TauntSlash =        AttackOrDefault(null, hunter.TauntSlash),
 
             AlternateSlashObject = moveset.AltSlash?.CreateGameObject(root, hc),
