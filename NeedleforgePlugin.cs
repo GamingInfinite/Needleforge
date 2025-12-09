@@ -3,20 +3,18 @@ using BepInEx.Logging;
 using HarmonyLib;
 using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
+using Needleforge.Attacks;
 using Needleforge.Components;
 using Needleforge.Data;
 using PrepatcherPlugin;
 using Silksong.FsmUtil;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.IO;
 using System.Linq;
 using TeamCherry.Localization;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Needleforge
 {

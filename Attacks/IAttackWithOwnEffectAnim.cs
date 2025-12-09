@@ -1,5 +1,4 @@
-﻿
-namespace Needleforge.Data;
+﻿namespace Needleforge.Attacks;
 
 /// <summary>
 /// Specifies that an Attack class controls when its own effect animation plays,

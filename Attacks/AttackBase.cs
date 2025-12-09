@@ -5,11 +5,11 @@ using UnityEngine.Events;
 using EffectsTypes = EnemyHitEffectsProfile.EffectsTypes;
 using static Needleforge.Utils.MathUtils;
 
-namespace Needleforge.Data;
+namespace Needleforge.Attacks;
 
 /// <summary>
 /// Represents the visual, auditory, and damage properties of an attack in a crest moveset.
-/// Changes to an attack's properties will update the <see cref="UnityEngine.GameObject"/>
+/// Changes to an attack's properties will update the <see cref="GameObject"/>
 /// it represents, if one has been created.
 /// </summary>
 public abstract class AttackBase : GameObjectProxy

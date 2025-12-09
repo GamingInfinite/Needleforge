@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Needleforge.Attacks;
+using System;
 using UnityEngine;
 using ConfigGroup = HeroController.ConfigGroup;
 

@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using Needleforge.Data;
+using UnityEngine;
 
-namespace Needleforge.Data;
+namespace Needleforge.Attacks;
 
 /// <summary>
 /// Represents the visual, auditory, and damage properties of a standard attack in a

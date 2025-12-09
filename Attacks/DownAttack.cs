@@ -1,5 +1,6 @@
 ﻿using HutongGames.PlayMaker;
 using Needleforge.Components;
+using Needleforge.Data;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -7,7 +8,7 @@ using UnityEngine;
 using DownSlashTypes = HeroControllerConfig.DownSlashTypes;
 using UObject = UnityEngine.Object;
 
-namespace Needleforge.Data;
+namespace Needleforge.Attacks;
 
 /// <summary>
 /// <para>
@@ -103,7 +104,7 @@ public class DownAttack : AttackBase, IAttackWithOwnEffectAnim, IAttackWithHeroC
     {
         if (!HeroConfig)
         {
-            throw new System.InvalidOperationException(
+            throw new InvalidOperationException(
                 $"{nameof(HeroConfig)} must be set for a down attack to " +
                  "know what kind of down attack it is."
             );

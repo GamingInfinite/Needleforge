@@ -1,7 +1,7 @@
 ﻿using GlobalEnums;
 using UnityEngine;
 
-namespace Needleforge.Data;
+namespace Needleforge.Attacks;
 
 public abstract class GameObjectProxy
 {

@@ -1,8 +1,7 @@
 ﻿using Needleforge.Components;
-using System.IO;
 using UnityEngine;
 
-namespace Needleforge.Data;
+namespace Needleforge.Attacks;
 
 public class DashAttack : GameObjectProxy
 {
