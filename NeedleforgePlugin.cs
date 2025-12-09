@@ -169,24 +169,17 @@ namespace Needleforge
 
             var cfg = ScriptableObject.CreateInstance<HeroConfigNeedleforge>();
 
-            cfg.downSlashType = HeroControllerConfig.DownSlashTypes.Custom;
-            cfg.DownSlashFsmEdit = DownslashFsmTest;
-            cfg.downSlashEvent = "NEO DOWNSLASH";
-            cfg.attackDuration = 0.5f;
-            cfg.attackCooldownTime = 0.2f;
-            cfg.attackRecoveryTime = 0.2f;
-            cfg.wallSlashSlowdown = true;
-            cfg.dashStabSpeed = -10;
-            cfg.dashStabTime = 0.2f;
-            cfg.dashStabBounceJumpSpeed = 40;
-            cfg.DashSlashFsmEdit = DashSlashFsmTest;
-            cfg.chargeSlashChain = 0;
-            cfg.chargeSlashLungeDeceleration = 0.5f;
-            cfg.chargeSlashLungeSpeed = 0.5f;
-            cfg.chargeSlashRecoils = true;
-            cfg.ChargedSlashDoesKickoff = true;
             cfg.canBind = true;
             cfg.SetCanUseAbilities(true);
+            cfg.SetAttackFields(
+                time: 0.35f, recovery: 0.15f, cooldown: 0.41f,
+                quickSpeedMult: 1.5f, quickCooldown: 0.205f
+            );
+            cfg.wallSlashSlowdown = true;
+            cfg.SetCustomDownslash("NEO DOWNSLASH", DownslashFsmTest);
+            //cfg.SetDashSlashFields(time: 0.2f, speed: -10, bounceJumpSpeed: 40);
+            cfg.DashSlashFsmEdit = DashSlashFsmTest;
+            cfg.SetChargedSlashFields(doesKickoff: true, lungeSpeed: 0.5f, lungeDeceleration: 0.5f);
 
             void DownslashFsmTest(PlayMakerFSM fsm, FsmState startState, out FsmState[] endStates)
             {
