@@ -9,19 +9,20 @@ namespace Needleforge.Attacks;
 /// Changes to an attack's properties will update the <see cref="GameObject"/>
 /// it represents, if one has been created.
 /// </summary>
-public class Attack : AttackBase, IAttackWithOwnEffectAnim
+public class Attack : AttackBase
 {
+    /// <inheritdoc cref="Attack"/>
+    public Attack() { }
 
     #region API
 
-    /// <summary>
-    /// The name of the animation clip to use for this attack's effect.
-    /// <inheritdoc cref="AttackBase.Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
+    /// <inheritdoc cref="AttackBase.AnimName"/>
     /// <remarks>
-    /// <inheritdoc cref="AttackBase.AnimLibrary" path="//*[@id='anim-info']"/>
+    /// Effect animations for these attacks should not loop, and must have <b>two</b>
+    /// frames which trigger animation events; these frames determine when the attack's
+    /// hitbox is enabled and disabled.
     /// </remarks>
-    public string AnimName
+    public override string AnimName
     {
         get => _animName;
         set
@@ -47,15 +48,14 @@ public class Attack : AttackBase, IAttackWithOwnEffectAnim
     #endregion
 
     /// <summary>
-    /// <para>
     /// Whether or not this attack is a wall slash. Setting this to <c>true</c> causes
     /// the attack's scale to flip on the X axis, so that the attack actually points in
     /// front of Hornet when she's wall-sliding.
-    /// </para><para>
+    /// </summary>
+    /// <remarks>
     /// When setting this attack on a <see cref="MovesetData.WallSlash"/> property,
     /// this will be set automatically.
-    /// </para>
-    /// </summary>
+    /// </remarks>
     internal bool IsWallSlash {
         get => _wallSlashFlipper.x < 0;
         set

@@ -2,19 +2,21 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using HutongGames.PlayMaker;
-using HutongGames.PlayMaker.Actions;
-using Needleforge.Attacks;
-using Needleforge.Components;
 using Needleforge.Data;
 using PrepatcherPlugin;
-using Silksong.FsmUtil;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Linq;
 using TeamCherry.Localization;
 using UnityEngine;
+#if DEBUG
+using HutongGames.PlayMaker.Actions;
+using Needleforge.Attacks;
+using Needleforge.Components;
+using Silksong.FsmUtil;
+using System.Linq;
+#endif
 
 namespace Needleforge
 {
@@ -102,7 +104,8 @@ namespace Needleforge
                 DamageMult = 4,
                 KnockbackMult = 4,
                 Color = Color.magenta,
-            };
+                AnimName = "NeoSlashEffect",
+			};
 
             neoCrest.Moveset.UpSlash = new Attack() {
                 Name = "NeoSlashUp",
@@ -111,12 +114,14 @@ namespace Needleforge
                 MultiHitMultipliers = [0.3f, 0.25f, 0.25f, 0.25f],
                 SilkGeneration = HitSilkGeneration.Full,
                 Color = Color.yellow,
+                AnimName = "NeoSlashEffect",
             };
 
             neoCrest.Moveset.WallSlash = new Attack() {
                 Name = "NeoSlashWall",
                 Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-3, -1.5f), new(-3, 1.5f)],
                 Color = Color.blue,
+                AnimName = "NeoSlashEffect",
             };
 
             neoCrest.Moveset.DownSlash = new DownAttack() {
@@ -124,20 +129,20 @@ namespace Needleforge
                 Hitbox = [new(1, 0), new(1, -3), new(-1, -3), new(-1, 0)],
                 Scale = new(2, 1),
                 Color = Color.red,
+                AnimName = "NeoSlashEffect",
             };
 
             neoCrest.Moveset.DashSlash = new DashAttack() {
                 Name = "NeoSlashDash",
-                AttackSteps = [
-                    new DashAttack.AttackStep() {
+                Steps = [
+                    new DashAttack.Step() {
                         Name = "NeoDash A",
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
                         Scale = new(2, 0.2f),
                         Color = Color.cyan,
                         AnimName = "DownSlash",
                     },
-                    new DashAttack.AttackStep() {
-                        //Name = "NeoDash B",
+                    new DashAttack.Step() {
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
                         Scale = new(2, 0.2f),
                         Color = Color.yellow,
@@ -148,20 +153,25 @@ namespace Needleforge
 
             neoCrest.Moveset.ChargedSlash = new ChargedAttack() {
                 Name = "NeoSlashCharged",
-                PlayStepsInSequence = true,
-                AttackSteps = [
-                    new ChargedAttack.AttackStep() {
+                Steps = [
+                    new ChargedAttack.Step() {
                         Name = "NeoCharge Alpha",
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
                         Scale = new(2, 0.2f),
                         Color = Color.cyan,
                         AnimName = "NeoSlashEffect",
                     },
-					new ChargedAttack.AttackStep() {
+					new ChargedAttack.Step() {
 						Name = "NeoCharge Beta",
-						Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
+						Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-2, 0)],
 						Scale = new(2, 0.2f),
 						Color = Color.yellow,
+						AnimName = "DownSlash",
+					},
+					new ChargedAttack.Step() {
+						Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
+						Scale = new(2, 0.2f),
+						Color = Color.red,
 						AnimName = "NeoSlashEffect",
 					},
 				],
@@ -281,11 +291,8 @@ namespace Needleforge
                     neoCrest.Moveset.DownSlash,
                 ];
 
-                for (int i = 0; i < atks.Length; i++) {
+                for (int i = 0; i < atks.Length; i++)
                     atks[i].AnimLibrary = lib;
-                    if (atks[i] is IAttackWithOwnEffectAnim atkWithOwnAnim)
-                        atkWithOwnAnim.AnimName = standardclip.name;
-                }
                 //neoCrest.Moveset.DownSlash.AnimName = downspikeclip.name;
                 neoCrest.Moveset.DashSlash?.SetAnimLibrary(lib);
 				neoCrest.Moveset.ChargedSlash?.SetAnimLibrary(lib);

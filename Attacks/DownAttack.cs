@@ -1,9 +1,6 @@
-﻿using HutongGames.PlayMaker;
-using Needleforge.Components;
+﻿using Needleforge.Components;
 using Needleforge.Data;
 using System;
-using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using DownSlashTypes = HeroControllerConfig.DownSlashTypes;
 using UObject = UnityEngine.Object;
@@ -11,61 +8,44 @@ using UObject = UnityEngine.Object;
 namespace Needleforge.Attacks;
 
 /// <summary>
-/// <para>
 /// Represents the visual, auditory, and damage properties of a down attack in a crest
 /// moveset.
 /// Changes to an attack's properties will update the <see cref="GameObject"/>
 /// it represents, if one has been created.
-/// </para><para>
+/// </summary>
+/// <remarks>
 /// The type and behaviour of down attacks are determined by properties of
 /// <see cref="MovesetData.HeroConfig"/>, particularly
 /// <see cref="HeroControllerConfig.downSlashType">downSlashType</see>, which must
 /// be set <i>before</i> the moveset is initialized.
-/// </para>
-/// </summary>
-public class DownAttack : AttackBase, IAttackWithOwnEffectAnim, IAttackWithHeroConfigAccess
+/// </remarks>
+public class DownAttack : AttackBase
 {
+    /// <inheritdoc cref="DownAttack"/>
+    public DownAttack() { }
+
     #region API
 
-    /// <summary>
-    /// A reference to the library where this attack's effect animation is found.
-    /// <inheritdoc cref="AttackBase.Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
+    /// <inheritdoc cref="AttackBase.AnimName"/>
     /// <remarks>
     /// <para>
-    /// The effect animation for a down attack should not loop.
+    /// If the <see cref="HeroConfig"/> has the down slash type set to
+    /// <see cref="DownSlashTypes.DownSpike"/>, this attack's effect animation must
+    /// <b>not</b> have <b>any</b> frames which trigger an event.
     /// </para><para>
-    /// If the moveset for this attack has set <see cref="DownSlashTypes.DownSpike"/> in
-    /// the <see cref="MovesetData.HeroConfig"/>, <b>all</b> of this animation's frames
-    /// must have <see cref="tk2dSpriteAnimationFrame.triggerEvent"/> = <b><c>false</c></b>.
-    /// </para><para>
-    /// If the moveset for this attack has set <see cref="DownSlashTypes.Slash"/>,
-    /// this animation must have <b>two</b> frames for which
-    /// <see cref="tk2dSpriteAnimationFrame.triggerEvent"/> = <c>true</c>;
+    /// If the <see cref="HeroConfig"/> has the down slash type set to
+    /// <see cref="DownSlashTypes.Slash"/> or <see cref="DownSlashTypes.Custom"/>,
+    /// this attack's effect animation must have <b>two</b> frames which trigger an event;
     /// these frames determine when the attack's hitbox is enabled and disabled.
     /// </para>
     /// </remarks>
-    public new tk2dSpriteAnimation? AnimLibrary
-    {
-        get => base.AnimLibrary;
-        set => base.AnimLibrary = value;
-    }
-
-    /// <summary>
-    /// The name of the animation clip to use for this attack's effect.
-    /// <inheritdoc cref="AttackBase.Name" path="//*[@id='prop-updates-go']"/>
-    /// </summary>
-    /// <inheritdoc cref="AnimLibrary" path="/remarks"/>
-    public string AnimName
+    public override string AnimName
     {
         get => _animName;
         set {
             _animName = value;
-            if (GameObject)
-            {
-                if (nailSlash) nailSlash.animName = value;
-                if (downspike) downspike.animName = value;
-            }
+            if (nailSlash) nailSlash.animName = value;
+            if (downspike) downspike.animName = value;
         }
     }
     private string _animName = "";
@@ -91,7 +71,7 @@ public class DownAttack : AttackBase, IAttackWithOwnEffectAnim, IAttackWithHeroC
 
     #endregion
 
-    public HeroControllerConfig? HeroConfig { get; set; }
+    protected internal HeroControllerConfig? HeroConfig { get; internal set; }
 
     private HeroDownAttack? heroDownAttack;
     private DownspikeWithBounceConfig? downspike;

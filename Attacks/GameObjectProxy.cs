@@ -1,19 +1,21 @@
-﻿using GlobalEnums;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Needleforge.Attacks;
 
+/// <summary>
+/// Represents a <see cref="UnityEngine.GameObject"/> and provides an API to set up its
+/// components before its actual creation.
+/// </summary>
+/// <remarks>
+/// All API properties' setters should update the <see cref="GameObject"/>, if it exists.
+/// </remarks>
 public abstract class GameObjectProxy
 {
 
-    /// <summary>
-    /// A name for the created <see cref="GameObject"/>.
-    /// <span id="prop-updates-go">
-    /// Changing this property will update the <see cref="UnityEngine.GameObject"/>
-    /// this object represents, if one has been created.
-    /// </span>
-    /// </summary>
-    public string Name
+	/// <summary>
+	/// A name for the created <see cref="UnityEngine.GameObject"/>.
+	/// </summary>
+	public string Name
     {
         get => _name;
         set
@@ -35,7 +37,22 @@ public abstract class GameObjectProxy
     /// </remarks>
     public GameObject? GameObject { get; protected set; }
 
-    public virtual GameObject CreateGameObject(GameObject parent, HeroController hc) {
+	/// <summary>
+	/// Creates and sets up a <see cref="UnityEngine.GameObject"/> with the properties
+	/// specified on this object.
+	/// If this object was already created, the old GameObject is destroyed; be sure to
+	/// update all old references to the new GameObject.
+	/// </summary>
+	/// <param name="parent">A parent for the created GameObject.</param>
+	/// <param name="hc">
+	///     A reference to the current HeroController, which is often needed
+	///     for initialization.
+	/// </param>
+	/// <returns>
+    ///     The same <see cref="UnityEngine.GameObject"/> now referenced by
+    ///     the GameObject property.
+    /// </returns>
+	public virtual GameObject CreateGameObject(GameObject parent, HeroController hc) {
         if (GameObject)
             Object.DestroyImmediate(GameObject);
 

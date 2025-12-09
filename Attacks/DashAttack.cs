@@ -3,61 +3,39 @@ using UnityEngine;
 
 namespace Needleforge.Attacks;
 
-public class DashAttack : GameObjectProxy
+/// <summary>
+/// Represents the visual, auditory, and damage properties of a dash attack in a crest
+/// moveset.
+/// Changes to an attack's properties will update the <see cref="GameObject"/>
+/// it represents, if one has been created.
+/// </summary>
+/// <remarks>
+/// The type and behaviour of dash attacks are determined by properties of
+/// <see cref="Data.MovesetData.HeroConfig"/>.
+/// </remarks>
+public class DashAttack : MultiStepAttack<DashAttack.Step>
 {
-    #region API
-
-    /// <summary>
-    /// Defines the visual and damage properties of each step of a multi-step dash attack.
-    /// </summary>
-    /// <remarks>
-    /// All members of this array should be different objects; references to the same object
-    /// multiple times can cause incorrect behaviour.
-    /// </remarks>
-    public AttackStep[] AttackSteps
-    {
-        get => _attackSteps;
-        set
-        {
-            _attackSteps = value;
-            if (GameObject)
-            {
-                foreach (var attack in value)
-                    attack.CreateGameObject(GameObject, HeroController.instance);
-            }
-        }
-    }
-    private AttackStep[] _attackSteps = [];
-
-    /// <summary>
-    /// Sets the AnimLibrary for all <see cref="AttackSteps"/> belonging to this Attack.
-    /// </summary>
-    public void SetAnimLibrary(tk2dSpriteAnimation value)
-    {
-        foreach(var attack in AttackSteps)
-            attack.AnimLibrary = value;
-    }
-
-    #endregion
+    /// <inheritdoc cref="DashAttack"/>
+    public DashAttack() { }
 
     public override GameObject CreateGameObject(GameObject parent, HeroController hc)
     {
         GameObject = base.CreateGameObject(parent, hc);
-        GameObject.SetActive(false);
-
-        foreach (var attack in AttackSteps)
-            attack.CreateGameObject(GameObject, hc);
-
         GameObject.SetActive(true);
         return GameObject;
     }
 
     /// <summary>
-    /// 
+    /// Represents the visual, auditory, and damage properties of
+    /// one part of a <see cref="DashAttack"/>.
     /// </summary>
-    public class AttackStep : AttackBase, IAttackWithOwnEffectAnim
+    public class Step : AttackBase
     {
-        public string AnimName {
+        /// <inheritdoc cref="AttackBase.AnimName"/>
+        /// <remarks>
+        /// Effect animations for these attacks should not loop.
+        /// </remarks>
+        public override string AnimName {
             get => _animName;
             set {
                 _animName = value;

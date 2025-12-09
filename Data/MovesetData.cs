@@ -9,7 +9,6 @@ namespace Needleforge.Data;
 
 TODO:
 
-- dash slash fsm edits need their own delegate, investigate the fsm for relevant end states
 - Special handling for ChargedSlash - probably different class
 - FSM edits...
 - Make sure everything is thoroughly documented
@@ -92,10 +91,16 @@ public class MovesetData {
     /// Defines the visual, auditory, and damage properties of the down attack.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The type and behaviour of down attacks are determined by properties of
     /// <see cref="HeroConfig"/>, particularly
     /// <see cref="HeroControllerConfig.downSlashType">downSlashType</see>, which must
-    /// be set <i>before</i> the moveset is initialized.
+    /// be set <i>before</i> the moveset is initialized. If the type is set to Custom, 
+    /// </para><para>
+    /// Unless an FSM edit is specified that plays different animations, the animations
+    /// in <see cref="HeroControllerConfig.heroAnimOverrideLib"/> which are used for this
+    /// attack are "".
+    /// </para>
     /// </remarks>
     public DownAttack? DownSlash
     {
@@ -114,20 +119,40 @@ public class MovesetData {
     /// </summary>
     /// <remarks>
     /// <para>
-    /// By default, each member of <see cref="DashAttack.AttackSteps"/> plays in sequence
-    /// as a series of lunging attacks, similar to Hunter or Witch crest. The speed and
-    /// duration of the attacks is controlled by properties of <see cref="HeroConfig"/>.
+    /// By default, each attack in the Steps array plays in sequence as a series of
+    /// lunging attacks, similar to Hunter or Witch crest. The speed and duration of the
+    /// attacks is controlled by properties of <see cref="HeroConfig"/>.
     /// This default behaviour can be changed by specifying a
     /// <see cref="HeroConfigNeedleforge.DashSlashFsmEdit"/> function.
     /// </para><para>
-    /// Unless an FSM edit is specified that plays different animations for Hornet, the
-    /// <see cref="HeroControllerConfig.heroAnimOverrideLib"/> in
-    /// <see cref="HeroConfig"/> should contain animations named "Dash Attack Antic 1"
-    /// and "Dash Attack 1", "Dash Attack Antic 2" and "Dash Attack 2", and so on,
-    /// for as many <see cref="DashAttack.AttackSteps"/> as the attack has.
+    /// Unless an FSM edit is specified that plays different animations, the animations
+    /// in <see cref="HeroControllerConfig.heroAnimOverrideLib"/> which are used for this
+    /// attack are "Dash Attack Antic 1" and "Dash Attack 1", "Dash Attack Antic 2" and
+    /// "Dash Attack 2", and so on, for as many Steps as the attack has.
     /// </para>
     /// </remarks>
     public DashAttack? DashSlash { get; set; }
+
+    /// <summary>
+    /// Defines the visual, auditory and damage properties of the charged attack,
+    /// as well as some of Hornet's behaviour when she performs the attack.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// By default, each attack in the Steps array plays in sequence when the attack's
+    /// GameObject is activated, and the GameObject deactivates afterwards. Properties
+    /// in <see cref="HeroConfig"/> affect how Hornet moves during the attack and whether
+    /// or not it can be repeated by mashing the attack button.
+    /// This default behaviour can be changed by specifying a
+    /// <see cref="HeroConfigNeedleforge.ChargedSlashFsmEdit"/> and adjusting the
+    /// properties of this object.
+    /// </para><para>
+    /// Unless an FSM edit is specified that plays different animations, the animations
+    /// in <see cref="HeroControllerConfig.heroAnimOverrideLib"/> which are used for this
+    /// attack are "Slash_Charged" and "Slash_Charged_Loop".
+    /// </para>
+    /// </remarks>
+    public ChargedAttack? ChargedSlash { get; set; }
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the alternate side attack,
@@ -160,8 +185,6 @@ public class MovesetData {
         }
     }
     private DownAttack? _altDownSlash;
-
-    public ChargedAttack ChargedSlash { get; set; }
 
     /// <summary>
     /// <para>
