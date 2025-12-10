@@ -48,7 +48,7 @@ internal class MovesetMaker {
         root.transform.SetParent(hunter!.ActiveRoot.transform.parent);
         root.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
-        moveset.ConfGroup = new ConfigGroup()
+        moveset.ConfigGroup = new ConfigGroup()
         {
             ActiveRoot = root,
             Config = moveset.HeroConfig,
@@ -68,10 +68,10 @@ internal class MovesetMaker {
             AltDownSlashObject =   moveset.AltDownSlash?.CreateGameObject(root, hc),
 		};
 
-        hc.configs = [.. hc.configs, moveset.ConfGroup];
+        hc.configs = [.. hc.configs, moveset.ConfigGroup];
 
         moveset.ExtraInitialization();
-        moveset.ConfGroup.Setup();
+        moveset.ConfigGroup.Setup();
 
         GameObject? AttackOrDefault(GameObjectProxy? attack, GameObject? _default)
         {

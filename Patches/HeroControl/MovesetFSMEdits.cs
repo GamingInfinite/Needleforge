@@ -12,19 +12,30 @@ using DownSlashTypes = HeroControllerConfig.DownSlashTypes;
 namespace Needleforge.Patches.HeroControl;
 
 [HarmonyPatch(typeof(HeroController), nameof(HeroController.Start))]
-internal class DownSlashFSMEdits
+internal class MovesetFSMEdits
 {
     private static void Postfix(HeroController __instance)
+    {
+        ModHelper.Log("Editing Moveset FSMs...");
+        DownSlashFSMEdits(__instance);
+        DashSlashFSMEdits(__instance);
+        ChargedSlashFSMEdits(__instance);
+    }
+    
+    private static void DownSlashFSMEdits(HeroController hc)
     {
         IEnumerable<MovesetData>
             movesets = NeedleforgePlugin.newCrestData
                 .Select(cd => cd.Moveset)
-                .Where(m => m.HeroConfig && m.HeroConfig.DownSlashType == DownSlashTypes.Custom);
+                .Where(m => m.HeroConfig
+                    && (m.HeroConfig.DownSlashType == DownSlashTypes.Custom
+                        || m.HeroConfig.DownSlashFsmEdit != null)
+                );
 
         if (!movesets.Any())
             return;
 
-        PlayMakerFSM fsm = __instance.crestAttacksFSM;
+        PlayMakerFSM fsm = hc.crestAttacksFSM;
         fsm.Preprocess();
 
         FsmState
@@ -34,6 +45,8 @@ internal class DownSlashFSMEdits
         foreach(MovesetData m in movesets)
         {
             string name = m.Crest.name;
+            ModHelper.Log($"{name} Down Slash");
+
             var fsmEdit = m.HeroConfig!.DownSlashFsmEdit;
 
             if (fsmEdit == null)
@@ -44,40 +57,44 @@ internal class DownSlashFSMEdits
                 );
                 continue;
             }
+            if (m.HeroConfig.DownSlashType != DownSlashTypes.Custom)
+            {
+                ModHelper.LogError(
+                    $"Crest {name} has a {nameof(HeroConfigNeedleforge.DownSlashFsmEdit)} " +
+                    $"function, but its {nameof(HeroConfigNeedleforge.DownSlashType)} " +
+                    $"is not {DownSlashTypes.Custom}."
+                );
+                continue;
+            }
             if (string.IsNullOrWhiteSpace(m.HeroConfig!.downSlashEvent))
             {
                 ModHelper.LogError(
-                    $"Crest {name} has a custom downslash type, but doesn't have a " +
+                    $"Crest {name} has a custom downslash, but doesn't have a " +
                     $"valid {nameof(HeroControllerConfig.downSlashEvent)}."
                 );
                 continue;
             }
 
             FsmState AtkStart = fsm.AddState($"{name} Start");
+            Idle.AddTransition(m.HeroConfig!.downSlashEvent, AtkStart.Name);
 
             fsmEdit.Invoke(fsm, AtkStart, out FsmState[] AtkEnds);
-
-            Idle.AddTransition(m.HeroConfig!.downSlashEvent, AtkStart.Name);
 
             foreach(var end in AtkEnds)
                 end.AddTransition("FINISHED", End.Name);
         }
     }
-}
 
-[HarmonyPatch(typeof(HeroController), nameof(HeroController.Start))]
-internal class DashSlashFSMEdits
-{
-    private static void Postfix(HeroController __instance)
+    private static void DashSlashFSMEdits(HeroController hc)
     {
-        PlayMakerFSM fsm = __instance.sprintFSM;
+        PlayMakerFSM fsm = hc.sprintFSM;
         fsm.Preprocess();
 
         FsmState
             StartAttack = fsm.GetState("Start Attack")!,
             RegainControlNormal = fsm.GetState("Regain Control Normal")!;
 
-        #region Making default behaviour functional
+        #region Default behaviour
 
         StartAttack.InsertLambdaMethod(
             1 + Array.FindLastIndex(StartAttack.Actions, x => x is SetIntValue),
@@ -109,101 +126,101 @@ internal class DashSlashFSMEdits
                 .Select(cd => cd.Moveset)
                 .Where(m => m.HeroConfig && m.HeroConfig.DashSlashFsmEdit != null);
 
-        int equipCheckIndex = 1 + Array.FindLastIndex(StartAttack.Actions, x => x is CheckIfCrestEquipped);
-
         if (!movesets.Any())
             return;
 
-        foreach(MovesetData m in movesets) {
+        int equipCheckIndex = 1 + Array.FindLastIndex(StartAttack.Actions, x => x is CheckIfCrestEquipped);
+
+        foreach(MovesetData m in movesets)
+        {
             string name = m.Crest.name;
+            ModHelper.Log($"{name} Dash Slash");
 
             FsmState AtkStart = fsm.AddState($"{name} Start");
 
-            m.HeroConfig!.DashSlashFsmEdit!.Invoke(fsm, AtkStart, out FsmState[] AtkEnds);
-
-            var equipCheckAction = MovesetUtils.CreateCrestEquipCheck(m.Crest);
+            var equipCheckAction = CreateCrestEquipCheck(m.Crest);
             StartAttack.InsertAction(equipCheckIndex, equipCheckAction);
             StartAttack.AddTransition(equipCheckAction.trueEvent.Name, AtkStart.name);
+
+            m.HeroConfig!.DashSlashFsmEdit!.Invoke(fsm, AtkStart, out FsmState[] AtkEnds);
 
             foreach(var end in AtkEnds)
                 end.AddTransition("FINISHED", RegainControlNormal.Name);
         }
-    }
 
-    private static void RedirectToLoopingDefault(Action finished, PlayMakerFSM fsm)
-    {
-        if (NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped) is CrestData crest)
+        #region FSM Action Delegates
+
+        static void RedirectToLoopingDefault(Action finished, PlayMakerFSM fsm)
         {
-            var attack = crest.Moveset.ConfGroup!.DashStab.transform;
-            fsm.GetIntVariable("Attack Steps").Value = attack.childCount;
-            fsm.Fsm.Event(FsmEvent.GetFsmEvent("MULTIPLE"));
-        }
-        finished();
-    }
-
-    private static void DetectAttackStepName(Action finished, PlayMakerFSM fsm)
-    {
-        if (NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped) is CrestData crest)
-        {
-            int i = fsm.GetIntVariable("Attack Step").Value - 1;
-            var attack = crest.Moveset.ConfGroup!.DashStab.transform;
-
-            fsm.GetStringVariable("Attack Child Name")
-                .Value = attack.GetChild(i).name;
-        }
-        finished();
-    }
-
-    private static void SetAttackAudioClip(Action finished, PlayMakerFSM fsm)
-    {
-        if (NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped) is CrestData crest)
-        {
-            int i = fsm.GetIntVariable("Attack Step").Value - 1;
-            var attack = crest.Moveset.ConfGroup!.DashStab.transform;
-            var audioSrc = attack.GetChild(i).GetComponent<AudioSource>();
-
-            if (audioSrc)
-                fsm.FsmVariables.FindFsmObject("Clip").Value = audioSrc.clip;
-        }
-        finished();
-    }
-
-    private static void ClearAttackCallMethodCaches(Action finished, FsmState state)
-    {
-        foreach(var callmethod in state.Actions.OfType<CallMethodProper>())
-        {
-            if (
-                typeof(NailAttackBase).IsAssignableFrom(callmethod.cachedType)
-                && callmethod.cachedType != typeof(DashStabNailAttack)
-            ) {
-                callmethod.cachedType = null;
-                callmethod.cachedMethodInfo = null;
-                callmethod.cachedParameterInfo = [];
+            if (NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped) is CrestData crest)
+            {
+                var attack = crest.Moveset.ConfigGroup!.DashStab.transform;
+                fsm.GetIntVariable("Attack Steps").Value = attack.childCount;
+                fsm.Fsm.Event(FsmEvent.GetFsmEvent("MULTIPLE"));
             }
+            finished();
         }
-        finished();
+
+        static void DetectAttackStepName(Action finished, PlayMakerFSM fsm)
+        {
+            if (NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped) is CrestData crest)
+            {
+                int i = fsm.GetIntVariable("Attack Step").Value - 1;
+                var attack = crest.Moveset.ConfigGroup!.DashStab.transform;
+
+                fsm.GetStringVariable("Attack Child Name")
+                    .Value = attack.GetChild(i).name;
+            }
+            finished();
+        }
+
+        static void SetAttackAudioClip(Action finished, PlayMakerFSM fsm)
+        {
+            if (NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped) is CrestData crest)
+            {
+                int i = fsm.GetIntVariable("Attack Step").Value - 1;
+                var attack = crest.Moveset.ConfigGroup!.DashStab.transform;
+                var audioSrc = attack.GetChild(i).GetComponent<AudioSource>();
+
+                if (audioSrc)
+                    fsm.FsmVariables.FindFsmObject("Clip").Value = audioSrc.clip;
+            }
+            finished();
+        }
+
+        static void ClearAttackCallMethodCaches(Action finished, FsmState state)
+        {
+            foreach(var callmethod in state.Actions.OfType<CallMethodProper>())
+            {
+                if (
+                    typeof(NailAttackBase).IsAssignableFrom(callmethod.cachedType)
+                    && callmethod.cachedType != typeof(DashStabNailAttack)
+                ) {
+                    callmethod.cachedType = null;
+                    callmethod.cachedMethodInfo = null;
+                    callmethod.cachedParameterInfo = [];
+                }
+            }
+            finished();
+        }
+
+        #endregion
     }
 
-}
-
-[HarmonyPatch(typeof(HeroController), nameof(HeroController.Start))]
-internal class ChargedSlashFSMEdits
-{
-    private static void Postfix(HeroController __instance)
+    private static void ChargedSlashFSMEdits(HeroController hc)
     {
-        PlayMakerFSM fsm = __instance.gameObject.GetFsmPreprocessed("Nail Arts")!;
+        PlayMakerFSM fsm = hc.gameObject.GetFsmPreprocessed("Nail Arts")!;
 
         FsmState
             AnticType = fsm.GetState("Antic Type")!,
-            SetFinished = fsm.GetState("Set Finished")!,
-            RegainPartialControl = fsm.GetState("Regain Partial Control")!;
+            SetFinished = fsm.GetState("Set Finished")!;
 
         #region Default behaviour for custom charged slashes w/o fsm edits
 
         FsmState Kickoff = fsm.AddState("Needleforge Kickoff");
 
-        AnticType.AddLambdaMethod(finished => RedirectToNeedleforgeDefault(finished, fsm));
-        AnticType.AddTransition(nfDefault.Name, Kickoff.Name);
+        AnticType.AddLambdaMethod(finished => RedirectToNeedleforgeKickoff(finished, fsm));
+        AnticType.AddTransition(needleforgeDefaultEvent.Name, Kickoff.Name);
 
         Kickoff.AddAction(new CheckIsCharacterGrounded()
         {
@@ -228,43 +245,68 @@ internal class ChargedSlashFSMEdits
 
         if (!movesets.Any())
             return;
-        
-    }
 
-    private static readonly FsmEvent nfDefault = FsmEvent.GetFsmEvent("NEEDLEFORGE DEFAULT");
+        int equipCheckIndex = 1 + Array.FindLastIndex(AnticType.Actions, x => x is CheckIfCrestEquipped);
 
-    private static void RedirectToNeedleforgeDefault(Action finished, PlayMakerFSM fsm)
-    {
-        var crest = NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped);
-        if (
-            crest != null
-            && crest.Moveset.HeroConfig!.ChargedSlashFsmEdit == null
-        ) {
-			fsm.Fsm.Event(nfDefault);
-		}
-        finished();
-    }
-
-    private static void DoKickoffIfRequested(Action finished)
-    {
-        var hc = HeroController.instance;
-        if (hc.Config is HeroConfigNeedleforge config && config.ChargedSlashDoesKickoff)
+        foreach(MovesetData m in movesets)
         {
-            hc.rb2d.linearVelocityY = 10;
+            string name = m.Crest.name;
+            ModHelper.Log($"{name} Charged Slash");
+
+            FsmState AtkStart = fsm.AddState($"{name} Start");
+
+            var equipCheckAction = CreateCrestEquipCheck(m.Crest);
+            AnticType.InsertAction(equipCheckIndex, equipCheckAction);
+            AnticType.AddTransition(equipCheckAction.trueEvent.Name, AtkStart.name);
+
+            m.HeroConfig!.ChargedSlashFsmEdit!.Invoke(fsm, AtkStart, out FsmState[] AtkEnds);
+
+            foreach(var end in AtkEnds)
+                end.AddTransition("FINISHED", SetFinished.Name);
         }
-        finished();
+
+        #region FSM Action Delegates
+
+        static void RedirectToNeedleforgeKickoff(Action finished, PlayMakerFSM fsm)
+        {
+            var crest = NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped);
+            if (
+                crest != null
+                && crest.Moveset.HeroConfig!.ChargedSlashFsmEdit == null
+            ) {
+                fsm.Fsm.Event(needleforgeDefaultEvent);
+            }
+            finished();
+        }
+
+        static void DoKickoffIfRequested(Action finished)
+        {
+            var hc = HeroController.instance;
+            if (hc.Config is HeroConfigNeedleforge config && config.ChargedSlashDoesKickoff)
+            {
+                hc.rb2d.linearVelocityY = 10;
+            }
+            finished();
+        }
+
+        #endregion
     }
 
-}
+    #region Utils
 
-file static class MovesetUtils
-{
-    public static CheckIfCrestEquipped CreateCrestEquipCheck(CrestData crest) =>
+    private static readonly FsmEvent
+        needleforgeDefaultEvent = FsmEvent.GetFsmEvent("NEEDLEFORGE DEFAULT"),
+        noEvent = FsmEvent.GetFsmEvent("");
+
+    private static CheckIfCrestEquipped CreateCrestEquipCheck(CrestData crest) =>
         new()
         {
             Crest = new FsmObject() { Value = crest.ToolCrest },
             trueEvent = FsmEvent.GetFsmEvent(crest.name),
-            falseEvent = FsmEvent.GetFsmEvent(""),
+            falseEvent = noEvent,
             storeValue = false,
         };
+
+    #endregion
+
 }

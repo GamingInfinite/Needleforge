@@ -9,8 +9,6 @@ namespace Needleforge.Data;
 
 TODO:
 
-- Special handling for ChargedSlash - probably different class
-- FSM edits...
 - Make sure everything is thoroughly documented
 
 */
@@ -51,8 +49,8 @@ public class MovesetData {
             _heroConf = value;
             if (Crest.ToolCrest)
                 Crest.ToolCrest.heroConfig = value;
-            if (ConfGroup != null)
-                ConfGroup.Config = value;
+            if (ConfigGroup != null)
+                ConfigGroup.Config = value;
 
             if (DownSlash != null)
                 DownSlash.HeroConfig = value;
@@ -99,7 +97,8 @@ public class MovesetData {
     /// </para><para>
     /// Unless an FSM edit is specified that plays different animations, the animations
     /// in <see cref="HeroControllerConfig.heroAnimOverrideLib"/> which are used for this
-    /// attack are "".
+    /// attack are "DownSpike Antic", "DownSpike", and "Downspike Recovery" for
+    /// Downspike-type; "DownSlash" and "DownSlashAlt" for Slash and Custom types.
     /// </para>
     /// </remarks>
     public DownAttack? DownSlash
@@ -199,7 +198,7 @@ public class MovesetData {
     /// the <see cref="Attack"/> properties of this moveset are undefined.
     /// </para>
     /// </summary>
-    public ConfigGroup? ConfGroup { get; internal set; }
+    public ConfigGroup? ConfigGroup { get; internal set; }
 
     /// <summary>
     /// <para>
@@ -212,10 +211,6 @@ public class MovesetData {
     /// <see cref="Attack"/>s to make modifications to them. For finer control which may
     /// require more knowledge of the underlying structure of an attack, each
     /// <see cref="Attack.GameObject"/> can be modified directly.
-    /// </para><para>
-    /// If no custom <see cref="Attack"/> was defined for any of the minimum set of
-    /// attacks needed for crests to function, their <see cref="GameObject"/>s will
-    /// be accessible through the properties of <see cref="ConfGroup"/>.
     /// </para>
     /// </summary>
     public event Action? OnInitialized;

@@ -10,6 +10,8 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using TeamCherry.Localization;
 using UnityEngine;
+using System.Collections;
+
 #if DEBUG
 using HutongGames.PlayMaker.Actions;
 using Needleforge.Attacks;
@@ -105,7 +107,7 @@ namespace Needleforge
                 KnockbackMult = 4,
                 Color = Color.magenta,
                 AnimName = "NeoSlashEffect",
-			};
+            };
 
             neoCrest.Moveset.UpSlash = new Attack() {
                 Name = "NeoSlashUp",
@@ -136,16 +138,15 @@ namespace Needleforge
                 Name = "NeoSlashDash",
                 Steps = [
                     new DashAttack.Step() {
-                        Name = "NeoDash A",
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
-                        Scale = new(2, 0.2f),
+                        Scale = new(2, 0.4f),
                         Color = Color.cyan,
                         AnimName = "DownSlash",
                     },
                     new DashAttack.Step() {
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
-                        Scale = new(2, 0.2f),
-                        Color = Color.yellow,
+                        Scale = new(2, 0.5f),
+                        Color = Color.magenta,
                         AnimName = "DownSlash",
                     },
                 ],
@@ -153,28 +154,28 @@ namespace Needleforge
 
             neoCrest.Moveset.ChargedSlash = new ChargedAttack() {
                 Name = "NeoSlashCharged",
+                PlayOnActivation = false,
+                PlayStepsInSequence = false,
                 Steps = [
                     new ChargedAttack.Step() {
-                        Name = "NeoCharge Alpha",
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
-                        Scale = new(2, 0.2f),
-                        Color = Color.cyan,
+                        Scale = new(2, 0.3f),
+                        Color = Color.red,
                         AnimName = "NeoSlashEffect",
                     },
-					new ChargedAttack.Step() {
-						Name = "NeoCharge Beta",
-						Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-2, 0)],
-						Scale = new(2, 0.2f),
-						Color = Color.yellow,
-						AnimName = "DownSlash",
-					},
-					new ChargedAttack.Step() {
-						Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
-						Scale = new(2, 0.2f),
-						Color = Color.red,
-						AnimName = "NeoSlashEffect",
-					},
-				],
+                    new ChargedAttack.Step() {
+                        Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-2, 0)],
+                        Scale = new(2, 0.3f),
+                        Color = Color.yellow,
+                        AnimName = "NeoSlashEffect",
+                    },
+                    new ChargedAttack.Step() {
+                        Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-3, 0)],
+                        Scale = new(2, 0.3f),
+                        Color = Color.red,
+                        AnimName = "NeoSlashEffect",
+                    },
+                ],
             };
 
             var cfg = ScriptableObject.CreateInstance<HeroConfigNeedleforge>();
@@ -186,10 +187,16 @@ namespace Needleforge
                 quickSpeedMult: 1.5f, quickCooldown: 0.205f
             );
             cfg.wallSlashSlowdown = true;
-            cfg.SetCustomDownslash("NEO DOWNSLASH", DownslashFsmTest);
-            //cfg.SetDashSlashFields(time: 0.2f, speed: -10, bounceJumpSpeed: 40);
-            cfg.DashSlashFsmEdit = DashSlashFsmTest;
+            cfg.downSlashType = HeroControllerConfig.DownSlashTypes.DownSpike;
+            cfg.SetDownspikeFields(
+                anticTime: 0.1f, time: 0.15f, recoveryTime: 0.05f,
+                doesThrust: true, speed: 15, acceleration: new(20, 30),
+                doesBurstEffect: true
+            );
+            //cfg.SetCustomDownslash("NEO DOWNSLASH", DownslashFsmTest);
+            cfg.SetDashStabFields(time: 0.4f, speed: -20, bounceJumpSpeed: 40);
             cfg.SetChargedSlashFields(doesKickoff: true, lungeSpeed: 0.5f, lungeDeceleration: 0.5f);
+            cfg.ChargedSlashFsmEdit = ChargedSlashFsmTest;
 
             void DownslashFsmTest(PlayMakerFSM fsm, FsmState startState, out FsmState[] endStates)
             {
@@ -205,31 +212,28 @@ namespace Needleforge
                 endStates = [startState];
             }
 
-            void DashSlashFsmTest(PlayMakerFSM fsm, FsmState startState, out FsmState[] endStates) {
-                startState.AddLambdaMethod(finished => {
-                    Debug.Log("custom dashslash fsm edit");
+            void ChargedSlashFsmTest(PlayMakerFSM fsm, FsmState startState, out FsmState[] endStates) {
+                startState.AddLambdaMethod(actionFinished => {
+                    Debug.Log("custom charged slash fsm edit");
                     var hc = HeroController.instance;
                     hc.RelinquishControl();
-                    hc.CancelDash(false);
-                    hc.rb2d.linearVelocity = new(10, 20);
-                    if (hc.cState.facingRight)
-                        hc.rb2d.linearVelocityX *= -1;
-                    hc.animCtrl.PlayFromFrame("Dash Attack 1", 0, true);
-                    var attackobj = neoCrest.Moveset.DashSlash!.GameObject!.transform.GetChild(0);
-                    var attackComponent = attackobj.GetComponent<DashStabWithOwnAnim>();
-                    attackComponent.OnCancelAttack();
-                    attackComponent.StartSlash();
-                    finished();
-                });
-                startState.AddAction(new Tk2dWatchAnimationEvents() { BlocksFinish = true, gameObject = new() { OwnerOption = OwnerDefaultOption.UseOwner } });
-                startState.AddLambdaMethod(finished => {
-                    var hc = HeroController.instance;
-                    var attackobj = neoCrest.Moveset.DashSlash!.GameObject!.transform.GetChild(0);
-                    var attackComponent = attackobj.GetComponent<DashStabWithOwnAnim>();
-                    attackComponent.OnCancelAttack();
-                    hc.ResetGravity();
-                    hc.CrestAttackRecovery();
-                    finished();
+                    neoCrest.Moveset.ChargedSlash!.GameObject!.SetActive(true);
+                    var steps = neoCrest.Moveset.ChargedSlash!.Steps;
+                    int random = new System.Random().Next(steps.Length);
+                    var slash = steps[random].GameObject!.GetComponent<NailSlashWithEndEvent>();
+                    slash.StartCoroutine(OneFrameLater());
+
+                    IEnumerator OneFrameLater() {
+                        yield return null;
+                        slash.StartSlash();
+                        hc.animCtrl.animator.AnimationCompletedEvent += Exit;
+                        hc.animCtrl.PlayClipForced("Slash_Charged");
+                    }
+                    void Exit(tk2dSpriteAnimator anim, tk2dSpriteAnimationClip clip) {
+                        hc.animCtrl.animator.AnimationCompletedEvent -= Exit;
+                        hc.CrestAttackRecovery();
+                        actionFinished();
+                    }
                 });
                 endStates = [startState];
             }
@@ -295,8 +299,8 @@ namespace Needleforge
                     atks[i].AnimLibrary = lib;
                 //neoCrest.Moveset.DownSlash.AnimName = downspikeclip.name;
                 neoCrest.Moveset.DashSlash?.SetAnimLibrary(lib);
-				neoCrest.Moveset.ChargedSlash?.SetAnimLibrary(lib);
-				neoCrest.Moveset.HeroConfig.heroAnimOverrideLib = lib;
+                neoCrest.Moveset.ChargedSlash?.SetAnimLibrary(lib);
+                neoCrest.Moveset.HeroConfig.heroAnimOverrideLib = lib;
             };
 
             AddTool("NeoGreenTool", GreenTools.Type);
