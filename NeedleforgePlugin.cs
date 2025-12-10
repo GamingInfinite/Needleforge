@@ -154,8 +154,16 @@ namespace Needleforge
 
             neoCrest.Moveset.ChargedSlash = new ChargedAttack() {
                 Name = "NeoSlashCharged",
-                PlayOnActivation = false,
-                PlayStepsInSequence = false,
+                //PlayOnActivation = false,
+                //PlayStepsInSequence = false,
+                CameraShakeProfiles = [
+                    GlobalSettings.Camera.EnemyKillShake,
+                    GlobalSettings.Camera.BigShakeQuick,
+                ],
+                ScreenFlashColors = [
+                    new(1, 1, 1, 0.2f),
+                    new(1, 1, 1, 0.8f),
+                ],
                 Steps = [
                     new ChargedAttack.Step() {
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
@@ -167,12 +175,16 @@ namespace Needleforge
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-2, 0)],
                         Scale = new(2, 0.3f),
                         Color = Color.yellow,
+                        CameraShakeIndex = 0,
+                        ScreenFlashIndex = 0,
                         AnimName = "NeoSlashEffect",
                     },
                     new ChargedAttack.Step() {
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-3, 0)],
                         Scale = new(2, 0.3f),
                         Color = Color.red,
+                        CameraShakeIndex = 1,
+                        ScreenFlashIndex = 1,
                         AnimName = "NeoSlashEffect",
                     },
                 ],
@@ -195,8 +207,8 @@ namespace Needleforge
             );
             //cfg.SetCustomDownslash("NEO DOWNSLASH", DownslashFsmTest);
             cfg.SetDashStabFields(time: 0.4f, speed: -20, bounceJumpSpeed: 40);
-            cfg.SetChargedSlashFields(doesKickoff: true, lungeSpeed: 0.5f, lungeDeceleration: 0.5f);
-            cfg.ChargedSlashFsmEdit = ChargedSlashFsmTest;
+            cfg.SetChargedSlashFields(doesKickoff: true, chain: 3);
+            //cfg.ChargedSlashFsmEdit = ChargedSlashFsmTest;
 
             void DownslashFsmTest(PlayMakerFSM fsm, FsmState startState, out FsmState[] endStates)
             {
@@ -232,6 +244,7 @@ namespace Needleforge
                     void Exit(tk2dSpriteAnimator anim, tk2dSpriteAnimationClip clip) {
                         hc.animCtrl.animator.AnimationCompletedEvent -= Exit;
                         hc.CrestAttackRecovery();
+                        neoCrest.Moveset.ChargedSlash!.GameObject!.SetActive(false);
                         actionFinished();
                     }
                 });

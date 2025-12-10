@@ -61,7 +61,14 @@ public class HeroConfigNeedleforge : HeroControllerConfig
     /// Defines an FSM edit for Hornet's behaviour during charged attacks.
     /// See Hornet's "Nail Arts" FSM.
     /// </summary>
-    /// <inheritdoc cref="FsmEdit" path="/remarks"/>
+    /// <remarks>
+    /// <para><inheritdoc cref="FsmEdit" path="//remarks"/></para>
+    /// <para>
+    /// A charged attack's GameObject should always be disabled when not attacking.
+    /// If your attack is not using any of ChargedAttack's automatic disable options,
+    /// you must deactivate it at the end of your FSM edit.
+    /// </para>
+    /// </remarks>
     public FsmEdit? ChargedSlashFsmEdit { get; set; } = null;
 
     /// <summary>
