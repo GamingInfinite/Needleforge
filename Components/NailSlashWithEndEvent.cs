@@ -2,6 +2,13 @@
 
 namespace Needleforge.Components;
 
+/// <summary>
+/// A <see cref="NailSlash"/> component which has an event for when the attack ends.
+/// </summary>
+/// <remarks>
+/// Note that the event will not run if the object reference is cast to a base type when
+/// StartSlash is called.
+/// </remarks>
 public class NailSlashWithEndEvent : NailSlash
 {
     public event Action? AttackEnding;

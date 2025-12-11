@@ -2,6 +2,10 @@
 
 namespace Needleforge.Components;
 
+/// <summary>
+/// A <see cref="DashStabNailAttack"/> component which plays its own sound effects
+/// and effect animations.
+/// </summary>
 public class DashStabWithOwnAnim : DashStabNailAttack
 {
     public string animName = "";

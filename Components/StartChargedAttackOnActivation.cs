@@ -3,6 +3,11 @@ using UnityEngine;
 
 namespace Needleforge.Components;
 
+/// <summary>
+/// A component which causes a GameObject to tell the first <see cref="NailSlashWithEndEvent"/>
+/// among its child objects to attack immediately when the object is activated.
+/// Made for the use of <see cref="Attacks.ChargedAttack"/>.
+/// </summary>
 public class StartChargedAttackOnActivation : MonoBehaviour
 {
     private void OnEnable()

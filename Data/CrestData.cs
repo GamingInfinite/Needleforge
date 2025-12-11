@@ -42,7 +42,7 @@ namespace Needleforge.Data
         [Obsolete($"Use {nameof(Moveset)}.{nameof(Moveset.HeroConfig)} instead")]
         public HeroControllerConfig? AttackConfig {
             get => Moveset.HeroConfig;
-            set => Moveset.HeroConfig = (HeroConfigNeedleforge?)value;
+            set => Moveset.HeroConfig = value ? HeroConfigNeedleforge.Copy(value) : null;
         }
 
         /// <summary>
