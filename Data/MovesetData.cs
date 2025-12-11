@@ -63,16 +63,28 @@ public class MovesetData {
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the side attack.
     /// </summary>
+    /// <remarks>
+    /// The corresponding <see cref="HeroControllerConfig.heroAnimOverrideLib"/> animation
+    /// is "Slash"
+    /// </remarks>
     public Attack? Slash { get; set; }
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the up attack.
     /// </summary>
+    /// <remarks>
+    /// The corresponding <see cref="HeroControllerConfig.heroAnimOverrideLib"/> animation
+    /// is "UpSlash"
+    /// </remarks>
     public Attack? UpSlash { get; set; }
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the wall-sliding attack.
     /// </summary>
+    /// <remarks>
+    /// The corresponding <see cref="HeroControllerConfig.heroAnimOverrideLib"/> animation
+    /// is "Wall Slash"
+    /// </remarks>
     public Attack? WallSlash
     {
         get => _wallSlash;
@@ -149,6 +161,8 @@ public class MovesetData {
     /// Unless an FSM edit is specified that plays different animations, the animations
     /// in <see cref="HeroControllerConfig.heroAnimOverrideLib"/> which are used for this
     /// attack are "Slash_Charged" and "Slash_Charged_Loop".
+    /// Note that "Slash_Charged" needs one trigger frame marking the end of its
+    /// anticipation stage.
     /// </para>
     /// </remarks>
     public ChargedAttack? ChargedSlash { get; set; }
@@ -158,6 +172,10 @@ public class MovesetData {
     /// which is used when the player attacks multiple times in quick succession.
     /// Optional.
     /// </summary>
+    /// <remarks>
+    /// The corresponding <see cref="HeroControllerConfig.heroAnimOverrideLib"/> animation
+    /// is "SlashAlt"
+    /// </remarks>
     public Attack? AltSlash { get; set; }
 
     /// <summary>
@@ -165,6 +183,10 @@ public class MovesetData {
     /// which is used when the player attacks multiple times in quick succession.
     /// Optional.
     /// </summary>
+    /// <remarks>
+    /// The corresponding <see cref="HeroControllerConfig.heroAnimOverrideLib"/> animation
+    /// is "UpSlashAlt"
+    /// </remarks>
     public Attack? AltUpSlash { get; set; }
 
     /// <summary>

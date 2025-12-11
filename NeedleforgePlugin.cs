@@ -141,13 +141,13 @@ namespace Needleforge
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
                         Scale = new(2, 0.4f),
                         Color = Color.cyan,
-                        AnimName = "DownSlash",
+                        AnimName = "NeoSlashEffect",
                     },
                     new DashAttack.Step() {
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
                         Scale = new(2, 0.5f),
                         Color = Color.magenta,
-                        AnimName = "DownSlash",
+                        AnimName = "NeoSlashEffect",
                     },
                 ],
             };
@@ -158,19 +158,11 @@ namespace Needleforge
                 //PlayStepsInSequence = false,
                 CameraShakeProfiles = [
                     GlobalSettings.Camera.EnemyKillShake,
-                    GlobalSettings.Camera.BigShakeQuick,
                 ],
                 ScreenFlashColors = [
-                    new(1, 1, 1, 0.2f),
-                    new(1, 1, 1, 0.8f),
+                    new(1, 1, 1, 0.5f),
                 ],
                 Steps = [
-                    new ChargedAttack.Step() {
-                        Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
-                        Scale = new(2, 0.3f),
-                        Color = Color.red,
-                        AnimName = "NeoSlashEffect",
-                    },
                     new ChargedAttack.Step() {
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-2, 0)],
                         Scale = new(2, 0.3f),
@@ -182,9 +174,7 @@ namespace Needleforge
                     new ChargedAttack.Step() {
                         Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-3, 0)],
                         Scale = new(2, 0.3f),
-                        Color = Color.red,
-                        CameraShakeIndex = 1,
-                        ScreenFlashIndex = 1,
+                        Color = Color.magenta,
                         AnimName = "NeoSlashEffect",
                     },
                 ],
@@ -199,13 +189,13 @@ namespace Needleforge
                 quickSpeedMult: 1.5f, quickCooldown: 0.205f
             );
             cfg.wallSlashSlowdown = true;
-            cfg.downSlashType = HeroControllerConfig.DownSlashTypes.DownSpike;
-            cfg.SetDownspikeFields(
-                anticTime: 0.1f, time: 0.15f, recoveryTime: 0.05f,
-                doesThrust: true, speed: 15, acceleration: new(20, 30),
-                doesBurstEffect: true
-            );
-            //cfg.SetCustomDownslash("NEO DOWNSLASH", DownslashFsmTest);
+            //cfg.downSlashType = HeroControllerConfig.DownSlashTypes.DownSpike;
+            //cfg.SetDownspikeFields(
+            //    anticTime: 0.1f, time: 0.15f, recoveryTime: 0.05f,
+            //    doesThrust: true, speed: 15, acceleration: new(20, 30),
+            //    doesBurstEffect: true
+            //);
+            cfg.SetCustomDownslash("NEO DOWNSLASH", DownslashFsmTest);
             cfg.SetDashStabFields(time: 0.4f, speed: -20, bounceJumpSpeed: 40);
             cfg.SetChargedSlashFields(doesKickoff: true, chain: 3);
             //cfg.ChargedSlashFsmEdit = ChargedSlashFsmTest;
@@ -272,7 +262,7 @@ namespace Needleforge
                 ];
 
                 var standardclip = new tk2dSpriteAnimationClip() {
-                    name = "NeoSlashEffect", fps = 20, frames = CloneFrames(),
+                    name = "NeoSlashEffect", fps = 20, frames = [..CloneFrames().Take(4)],
                     wrapMode = tk2dSpriteAnimationClip.WrapMode.Once,
                 };
                 standardclip.frames[0].triggerEvent = true;
@@ -290,9 +280,6 @@ namespace Needleforge
                     // effect animations
                     standardclip,
                     downspikeclip,
-
-                    // hornet anim for testing the regular downslash
-                    wanderer.GetClipByName("DownSlash"),
 
                     // anims for testing dash attacks
                     witch.GetClipByName("Dash Attack Antic 1"),

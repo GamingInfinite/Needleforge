@@ -6,7 +6,8 @@ using ConfigGroup = HeroController.ConfigGroup;
 
 namespace Needleforge.Makers;
 
-internal class MovesetMaker {
+internal class MovesetMaker
+{
     private static ConfigGroup? hunter;
 
     internal static void InitializeMoveset(MovesetData moveset)
@@ -18,31 +19,6 @@ internal class MovesetMaker {
             moveset.HeroConfig = HeroConfigNeedleforge.Copy(hunter!.Config);
 
         HeroController hc = HeroController.instance;
-
-        // Necessary for crests without any dash slash customization to function
-        var heroClipLib = hc.AnimCtrl.animator.Library;
-		if (heroClipLib.GetClipByName("Dash Attack 1") == null)
-        {
-            tk2dSpriteAnimationClip
-                dashAtk = heroClipLib.GetClipByName("Dash Attack"),
-                dashAntic = heroClipLib.GetClipByName("Dash Attack Antic");
-            
-            var newclips = heroClipLib.clips
-                .Append(new()
-                {
-                    name = "Dash Attack 1", fps = dashAtk.fps, frames = dashAtk.frames,
-                    loopStart = dashAtk.loopStart, wrapMode = dashAtk.wrapMode
-                })
-				.Append(new()
-                {
-                    name = "Dash Attack Antic 1", fps = dashAntic.fps, frames = dashAntic.frames,
-                    loopStart = dashAntic.loopStart, wrapMode = dashAntic.wrapMode
-                });
-
-            heroClipLib.clips = [.. newclips];
-            heroClipLib.isValid = false;
-            heroClipLib.ValidateLookup();
-		}
 
         GameObject root = new(moveset.Crest.name);
         root.transform.SetParent(hunter!.ActiveRoot.transform.parent);
@@ -123,4 +99,5 @@ internal class MovesetMaker {
 
         return true;
     }
+
 }
