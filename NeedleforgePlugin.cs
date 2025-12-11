@@ -301,6 +301,16 @@ namespace Needleforge
                 neoCrest.Moveset.DashSlash?.SetAnimLibrary(lib);
                 neoCrest.Moveset.ChargedSlash?.SetAnimLibrary(lib);
                 neoCrest.Moveset.HeroConfig.heroAnimOverrideLib = lib;
+
+                neoCrest.Moveset.Slash = new Attack() {
+                    Name = "AAAAAAAAAAA",
+                    AnimLibrary = lib,
+                    AnimName = "NeoSlashEffect",
+                    Hitbox = [new(0, 0), new(0, 1), new(-2, 1), new(-2, 0)],
+                    Scale = new(2, 1.25f),
+                    Color = Color.black,
+                };
+
             };
 
             AddTool("NeoGreenTool", GreenTools.Type);

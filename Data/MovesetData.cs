@@ -1,17 +1,10 @@
 ﻿using Needleforge.Attacks;
 using System;
+using System.Reflection;
 using UnityEngine;
 using ConfigGroup = HeroController.ConfigGroup;
 
 namespace Needleforge.Data;
-
-/*
-
-TODO:
-
-- Make sure everything is thoroughly documented
-
-*/
 
 /// <summary>
 /// Represents a moveset for a custom crest.
@@ -67,7 +60,16 @@ public class MovesetData {
     /// The corresponding <see cref="HeroControllerConfig.heroAnimOverrideLib"/> animation
     /// is "Slash"
     /// </remarks>
-    public Attack? Slash { get; set; }
+    public Attack? Slash
+    {
+        get => _slash;
+        set
+        {
+            _slash = value;
+            UpdateConfigGroup(nameof(ConfigGroup.NormalSlashObject), value);
+        }
+    }
+    private Attack? _slash;
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the up attack.
@@ -76,7 +78,16 @@ public class MovesetData {
     /// The corresponding <see cref="HeroControllerConfig.heroAnimOverrideLib"/> animation
     /// is "UpSlash"
     /// </remarks>
-    public Attack? UpSlash { get; set; }
+    public Attack? UpSlash
+    {
+        get => _upslash;
+        set
+        {
+            _upslash = value;
+            UpdateConfigGroup(nameof(ConfigGroup.UpSlashObject), value);
+        }
+    }
+    private Attack? _upslash;
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the wall-sliding attack.
@@ -93,6 +104,7 @@ public class MovesetData {
             if (value != null)
                 value.IsWallSlash = true;
             _wallSlash = value;
+            UpdateConfigGroup(nameof(ConfigGroup.WallSlashObject), value);
         }
     }
     private Attack? _wallSlash;
@@ -121,6 +133,7 @@ public class MovesetData {
             if (value != null)
                 value.HeroConfig = HeroConfig;
             _downSlash = value;
+            UpdateConfigGroup(nameof(ConfigGroup.DownSlashObject), value);
         }
     }
     private DownAttack? _downSlash;
@@ -142,7 +155,16 @@ public class MovesetData {
     /// "Dash Attack 2", and so on, for as many Steps as the attack has.
     /// </para>
     /// </remarks>
-    public DashAttack? DashSlash { get; set; }
+    public DashAttack? DashSlash
+    {
+        get => _dashSlash;
+        set
+        {
+            _dashSlash = value;
+            UpdateConfigGroup(nameof(ConfigGroup.DashStab), value);
+        }
+    }
+    private DashAttack? _dashSlash;
 
     /// <summary>
     /// Defines the visual, auditory and damage properties of the charged attack,
@@ -165,7 +187,16 @@ public class MovesetData {
     /// anticipation stage.
     /// </para>
     /// </remarks>
-    public ChargedAttack? ChargedSlash { get; set; }
+    public ChargedAttack? ChargedSlash
+    {
+        get => _chargedSlash;
+        set
+        {
+            _chargedSlash = value;
+            UpdateConfigGroup(nameof(ConfigGroup.ChargeSlash), value);
+        }
+    }
+    private ChargedAttack? _chargedSlash;
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the alternate side attack,
@@ -176,7 +207,16 @@ public class MovesetData {
     /// The corresponding <see cref="HeroControllerConfig.heroAnimOverrideLib"/> animation
     /// is "SlashAlt"
     /// </remarks>
-    public Attack? AltSlash { get; set; }
+    public Attack? AltSlash
+    {
+        get => _slashAlt;
+        set
+        {
+            _slashAlt = value;
+            UpdateConfigGroup(nameof(ConfigGroup.AlternateSlashObject), value);
+        }
+    }
+    private Attack? _slashAlt;
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the alternate up attack,
@@ -187,7 +227,16 @@ public class MovesetData {
     /// The corresponding <see cref="HeroControllerConfig.heroAnimOverrideLib"/> animation
     /// is "UpSlashAlt"
     /// </remarks>
-    public Attack? AltUpSlash { get; set; }
+    public Attack? AltUpSlash
+    {
+        get => _upslashAlt;
+        set
+        {
+            _upslashAlt = value;
+            UpdateConfigGroup(nameof(ConfigGroup.AltUpSlashObject), value);
+        }
+    }
+    private Attack? _upslashAlt;
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the alternate down attack,
@@ -203,6 +252,7 @@ public class MovesetData {
             if (value != null)
                 value.HeroConfig = HeroConfig;
             _altDownSlash = value;
+            UpdateConfigGroup(nameof(ConfigGroup.AltDownSlashObject), value);
         }
     }
     private DownAttack? _altDownSlash;
@@ -214,10 +264,8 @@ public class MovesetData {
     /// This will only contain a value after a save has been loaded;
     /// it can be accessed in <see cref="OnInitialized"/>.
     /// </para><para>
-    /// Modifying already-set properties of this object can update <see cref="HeroConfig"/>
-    /// but will <i>not</i> update any <see cref="Attack"/>s this moveset defines.
-    /// Setting properties of this object manually should only be done if
-    /// the <see cref="Attack"/> properties of this moveset are undefined.
+    /// Modifying properties of this object directly will <i>not</i> update MovesetData.
+    /// It's recommended to use the Attack properties to make changes whenever possible.
     /// </para>
     /// </summary>
     public ConfigGroup? ConfigGroup { get; internal set; }
@@ -239,5 +287,31 @@ public class MovesetData {
 
     /// <inheritdoc cref="OnInitialized"/>
     internal void ExtraInitialization() => OnInitialized?.DynamicInvoke();
+
+    private void UpdateConfigGroup(string field, GameObjectProxy? value) {
+        if (ConfigGroup == null)
+            return;
+
+        FieldInfo fi = typeof(ConfigGroup).GetField(field);
+        if (fi == null)
+        {
+            ModHelper.LogError($"{Crest.name}: Failed to update config group field \"{field}\".");
+            return;
+        }
+
+        if (value != null)
+        {
+            fi.SetValue(
+                ConfigGroup,
+                value.GameObject
+                    ? value.GameObject
+                    : value.CreateGameObject(ConfigGroup.ActiveRoot, HeroController.instance)
+            );
+        }
+        else
+            fi.SetValue(ConfigGroup, null);
+
+        ConfigGroup.Setup();
+    }
 
 }
