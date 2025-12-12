@@ -71,7 +71,8 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
 
         // The minimum requirements for creating a custom attack are
         // a Hitbox and a valid animation. (AnimLibrary is required; we set it later on)
-        neoCrest.Moveset.AltSlash = new Attack() {
+        neoCrest.Moveset.AltSlash = new Attack()
+        {
             Name = "NeoSlashAlt",
             Hitbox = [new(0, 0), new(0, -1), new(-3, -1), new(-3, 0)],
             AnimName = "NeoSlashEffect",
@@ -80,7 +81,8 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
 
         // Attacks have several customizable properties aside from the required ones.
         // This one has reduced knockback, hits up to 4 times, and generates silk every hit.
-        neoCrest.Moveset.UpSlash = new Attack() {
+        neoCrest.Moveset.UpSlash = new Attack()
+        {
             Name = "NeoSlashUp",
             Hitbox = [new(1, 0), new(1, 3), new(-1, 3), new(-1, 0)],
             AnimName = "NeoSlashEffect",
@@ -90,14 +92,16 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
             SilkGeneration = HitSilkGeneration.Full,
         };
 
-        neoCrest.Moveset.WallSlash = new Attack() {
+        neoCrest.Moveset.WallSlash = new Attack()
+        {
             Name = "NeoSlashWall",
             Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-3, -1.5f), new(-3, 1.5f)],
             AnimName = "NeoSlashEffect",
             Color = Color.blue,
         };
 
-        neoCrest.Moveset.DownSlash = new DownAttack() {
+        neoCrest.Moveset.DownSlash = new DownAttack()
+        {
             Name = "NeoSlashDown",
             Hitbox = [new(1, 0), new(1, -2), new(-1, -2), new(-1, 0)],
             AnimName = "NeoSlashDownEffect",
@@ -109,16 +113,20 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
         // customization options of a regular slash.
         // By default each step of a multi-step attack plays in sequence. If you want to
         // change that behaviour you need to add an FSM edit to the HeroConfig.
-        neoCrest.Moveset.DashSlash = new DashAttack() {
+        neoCrest.Moveset.DashSlash = new DashAttack()
+        {
             Name = "NeoSlashDash",
-            Steps = [
-                new DashAttack.Step() {
+            Steps =
+            [
+                new DashAttack.Step()
+                {
                     Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-1, 0)],
                     AnimName = "NeoSlashEffect",
                     Color = Color.cyan,
                     Scale = new(2, 0.4f),
                 },
-                new DashAttack.Step() {
+                new DashAttack.Step()
+                {
                     Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-2, 0)],
                     AnimName = "NeoSlashEffect",
                     Color = Color.magenta,
@@ -127,18 +135,23 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
             ],
         };
 
-        neoCrest.Moveset.ChargedSlash = new ChargedAttack() {
+        neoCrest.Moveset.ChargedSlash = new ChargedAttack()
+        {
             Name = "NeoSlashCharged",
             // Charged attacks can have their steps shake the camera or cause the screen
             // to flash a particular colour, too.
-            CameraShakeProfiles = [
+            CameraShakeProfiles =
+            [
                 GlobalSettings.Camera.EnemyKillShake,
             ],
-            ScreenFlashColors = [
+            ScreenFlashColors =
+            [
                 new(1, 1, 1, 0.5f),
             ],
-            Steps = [
-                new ChargedAttack.Step() {
+            Steps =
+            [
+                new ChargedAttack.Step()
+                {
                     Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-2, 0)],
                     AnimName = "NeoSlashEffect",
                     Color = Color.yellow,
@@ -146,7 +159,8 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
                     CameraShakeIndex = 0,
                     ScreenFlashIndex = 0,
                 },
-                new ChargedAttack.Step() {
+                new ChargedAttack.Step()
+                {
                     Hitbox = [new(0, 1.5f), new(0, -1.5f), new(-3, 0)],
                     AnimName = "NeoSlashEffect",
                     Color = Color.magenta,
@@ -160,7 +174,8 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
         // find them is after a save has been loaded.
         // If you're importing your own animation assets, you can do this in your mod's
         // Awake function with the rest of the crest set up.
-        neoCrest.Moveset.OnInitialized += () => {
+        neoCrest.Moveset.OnInitialized += () =>
+        {
             if (GameObject.Find("NeoAnimLib") is GameObject libobj)
                 return;
 
@@ -185,7 +200,6 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
         };
 
         #endregion
-
     }
 
     private static void AddTestAnimationsToLibrary(tk2dSpriteAnimation animLibrary, HeroController hc)
@@ -194,9 +208,10 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
         // TODO: add actual custom assets for test animations
 
         var sprintFrames = hc.animCtrl.animator.Library.GetClipByName("Sprint").frames;
-        
+
         // Most attacks need frames that trigger events to tell the hitbox when to appear and disappear.
-        var testSlashEffect = new tk2dSpriteAnimationClip() {
+        var testSlashEffect = new tk2dSpriteAnimationClip()
+        {
             name = "NeoSlashEffect",
             fps = 20,
             frames = CloneFrames(sprintFrames, 4),
@@ -206,7 +221,8 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
         testSlashEffect.frames[^1].triggerEvent = true;
 
         // Downspike-type down attacks, specifically, need to have *zero* event frames.
-        var testDownspikeEffect = new tk2dSpriteAnimationClip() {
+        var testDownspikeEffect = new tk2dSpriteAnimationClip()
+        {
             name = "NeoSlashDownEffect",
             fps = 20,
             frames = CloneFrames(sprintFrames),
@@ -217,7 +233,8 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
         // test out dash slashes.
         var witch = hc.configs.First(c => c.Config.name == "Whip").Config.heroAnimOverrideLib;
 
-        animLibrary.clips = [
+        animLibrary.clips =
+        [
             // attack effects
             testSlashEffect,
             testDownspikeEffect,
@@ -236,17 +253,19 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
     private static tk2dSpriteAnimationFrame[] CloneFrames(tk2dSpriteAnimationFrame[] frames, int? count = null)
     {
         count ??= frames.Length;
-        return [..
+        return
+        [
+            ..
             frames
                 .Select(f =>
-                    new tk2dSpriteAnimationFrame() {
+                    new tk2dSpriteAnimationFrame()
+                    {
                         spriteCollection = f.spriteCollection,
                         spriteId = f.spriteId,
                         triggerEvent = false
                     }
                 )
                 .Take((int)count)
-        ] ;
+        ];
     }
-
 }
