@@ -6,6 +6,11 @@ A utility for adding Crests and Tools to the game (Crest and Tool mechanics not 
     - Create CrestData
     - Hooks for Injecting Code into the BindFSM
     - Custom HP Background
+    - Custom Movesets
+      - Normal Slashes
+      - Charge Slashes
+      - Dash Attacks
+      - Dive Attacks
 - Add Tools
   - Yellow and Blue are fully supported
     - Red Tools are WIP
