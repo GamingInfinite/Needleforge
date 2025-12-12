@@ -1,13 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using HutongGames.PlayMaker;
 using Needleforge.Data;
 using PrepatcherPlugin;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using TeamCherry.Localization;
 using UnityEngine;
 
@@ -74,21 +74,6 @@ namespace Needleforge
             GreenTools.AddValidTypes(ToolItemType.Yellow, ToolItemType.Blue);
             PinkTools.AddValidTypes(ToolItemType.Red, ToolItemType.Skill);
             BlackTools.allColorsValid = true;
-
-#if DEBUG
-            var neoCrest = AddCrest("NeoCrest");
-            neoCrest.AddToolSlot(GreenTools.Type, AttackToolBinding.Neutral, Vector2.zero, false);
-            neoCrest.AddToolSlot(PinkTools.Type, AttackToolBinding.Up, new(0, 2), false);
-            neoCrest.AddToolSlot(BlackTools.Type, AttackToolBinding.Down, new(0, -2), false);
-            neoCrest.AddBlueSlot(new(-2, -1), false);
-            neoCrest.AddYellowSlot(new(2f, -1), false);
-            neoCrest.AddRedSlot(AttackToolBinding.Neutral, new(-2, 1), false);
-            neoCrest.AddSkillSlot(AttackToolBinding.Neutral, new(2f, 1), false);
-            neoCrest.ApplyAutoSlotNavigation(angleRange: 80f);
-
-            AddTool("NeoGreenTool", GreenTools.Type);
-            AddTool("NeoBlackTool", BlackTools.Type);
-#endif
         }
 
         private void NewColors_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

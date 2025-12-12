@@ -1,0 +1,33 @@
+﻿using System;
+
+namespace Needleforge.Components;
+
+/// <summary>
+/// A <see cref="NailSlash"/> component which has an event for when the attack ends.
+/// </summary>
+/// <remarks>
+/// Note that the event will not run if the object reference is cast to a base type when
+/// StartSlash is called.
+/// </remarks>
+public class NailSlashWithEndEvent : NailSlash
+{
+    public event Action? AttackEnding;
+
+    public new void StartSlash()
+    {
+        base.StartSlash();
+        anim.AnimationCompleted = this.OnAnimationCompleted;
+    }
+
+    public new void PlaySlash()
+    {
+        base.PlaySlash();
+		anim.AnimationCompleted = this.OnAnimationCompleted;
+	}
+
+    public new void OnAnimationCompleted(tk2dSpriteAnimator animator, tk2dSpriteAnimationClip clip)
+    {
+        base.OnAnimationCompleted(animator, clip);
+        AttackEnding?.Invoke();
+    }
+}

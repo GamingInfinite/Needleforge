@@ -3,8 +3,10 @@ name: Build
 on:
   push:
     branches: [ "main" ]
+    paths-ignore: "ExampleCrest/**"
   pull_request:
     branches: [ "main" ]
+    paths-ignore: "ExampleCrest/**"
   workflow_dispatch:
     inputs:
       force_thunderstore:
@@ -40,9 +42,9 @@ jobs:
       with:
         dotnet-version: 9.x
     - name: Build
-      run: dotnet build -c Release --verbosity normal
+      run: dotnet build Needleforge.csproj -c Release --verbosity normal
     - name: Pack
-      run: dotnet pack -o nuget/
+      run: dotnet pack Needleforge.csproj -o nuget/
     - name: Get Version
       id: version
       run: |-

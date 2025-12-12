@@ -270,7 +270,7 @@ public class HudFrameData
     public event Action? OnRootCreated;
 
     /// <inheritdoc cref="OnRootCreated"/>
-    internal void InitializeRoot() => OnRootCreated?.Invoke();
+    internal void InitializeRoot() => OnRootCreated?.DynamicInvoke();
 
     /// <summary>
     /// <para>

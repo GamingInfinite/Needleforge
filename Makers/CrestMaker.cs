@@ -31,7 +31,7 @@ namespace Needleforge.Makers
 
             newCrest.slots = [.. crestData.slots];
 
-            newCrest.heroConfig = crestData.AttackConfig ? crestData.AttackConfig : hunter.heroConfig;
+            newCrest.heroConfig = crestData.Moveset.HeroConfig;
 
             ToolItemManager.Instance.crestList.Add(newCrest);
 
