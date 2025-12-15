@@ -9,7 +9,8 @@ namespace Needleforge.Data;
 /// <summary>
 /// Represents a moveset for a custom crest.
 /// </summary>
-public class MovesetData {
+public class MovesetData
+{
 
     internal readonly CrestData Crest;
 
@@ -279,8 +280,8 @@ public class MovesetData {
     /// </para><para>
     /// It's recommended to use the properties of each of this moveset's
     /// <see cref="Attack"/>s to make modifications to them. For finer control which may
-    /// require more knowledge of the underlying structure of an attack, each
-    /// <see cref="Attack.GameObject"/> can be modified directly.
+    /// require more knowledge of the underlying structure of an attack, each attack's
+    /// GameObject property can be modified directly.
     /// </para>
     /// </summary>
     public event Action? OnInitialized;
