@@ -27,7 +27,7 @@ namespace Needleforge
         public static ObservableCollection<ColorData> newColors = new();
 
         public static Dictionary<string, GameObject> hudRoots = new();
-        public static Dictionary<string, Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM>> bindEvents = new();
+    public static Dictionary<string, BindEventHandler> bindEvents = new();
         public static Dictionary<string, Action> bindCompleteEvents = new();
         public static Dictionary<string, UniqueBindEvent> uniqueBind = new();
 
