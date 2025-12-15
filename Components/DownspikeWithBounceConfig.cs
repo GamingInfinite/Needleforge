@@ -6,5 +6,8 @@ namespace Needleforge.Components;
 /// </summary>
 public class DownspikeWithBounceConfig : Downspike
 {
-    public HeroSlashBounceConfig bounceConfig;
+	/// <summary>
+	/// Controls the feel of the bounce when this down attack hits some obstacles/enemies.
+	/// </summary>
+	public HeroSlashBounceConfig bounceConfig;
 }

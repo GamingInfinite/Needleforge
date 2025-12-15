@@ -247,10 +247,13 @@ public abstract class AttackBase : GameObjectProxy
     #region Required Initialization
 
     /// <summary>
-    /// Should return a reference to a MonoBehaviour descended from
-    /// <see cref="NailAttackBase"/> which is added to the <see cref="GameObject"/>
-    /// in <see cref="AddComponents"/>. This is needed for some standard initialization.
+    /// A reference to the component responsible for animating the attack and de/activating
+    /// its hitbox.
     /// </summary>
+    /// <remarks>
+    /// The referenced component must be added to the <see cref="GameObject"/> in
+    /// <see cref="AddComponents"/>. This is needed for some standard initialization.
+    /// </remarks>
     protected abstract NailAttackBase? NailAttack { get; }
 
     /// <summary>
@@ -280,6 +283,7 @@ public abstract class AttackBase : GameObjectProxy
 
     #endregion
 
+    #pragma warning disable CS1591 // Missing XML comment
     protected tk2dSprite? Sprite { get; private set; }
     protected tk2dSpriteAnimator? Animator { get; private set; }
     protected AudioSource? AudioSrc { get; private set; }
@@ -287,7 +291,9 @@ public abstract class AttackBase : GameObjectProxy
     protected PolygonCollider2D? TinkCollider { get; private set; }
     protected DamageEnemies? Damager { get; private set; }
     protected AudioSourcePriority? AudioPriority { get; private set; }
+    #pragma warning restore CS1591 // Missing XML comment
 
+    /// <inheritdoc/>
     public override GameObject CreateGameObject(GameObject parent, HeroController hc)
     {
         GameObject = base.CreateGameObject(parent, hc);
@@ -351,6 +357,9 @@ public abstract class AttackBase : GameObjectProxy
         return GameObject;
     }
 
+    /// <summary>
+    /// The value of the <see cref="GameObject.tag"/> applied to all attack objects.
+    /// </summary>
     protected const string NAIL_ATTACK_TAG = "Nail Attack";
 
     private void DamagerInit()

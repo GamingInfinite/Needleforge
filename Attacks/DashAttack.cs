@@ -18,6 +18,7 @@ public class DashAttack : MultiStepAttack<DashAttack.Step>
     /// <inheritdoc cref="DashAttack"/>
     public DashAttack() { }
 
+    /// <inheritdoc/>
     public override GameObject CreateGameObject(GameObject parent, HeroController hc)
     {
         GameObject = base.CreateGameObject(parent, hc);
@@ -31,7 +32,7 @@ public class DashAttack : MultiStepAttack<DashAttack.Step>
     /// </summary>
     public class Step : AttackBase
     {
-        /// <inheritdoc cref="AttackBase.AnimName"/>
+        /// <inheritdoc/>
         /// <remarks>
         /// Effect animations for these attacks should not loop.
         /// </remarks>
@@ -45,14 +46,21 @@ public class DashAttack : MultiStepAttack<DashAttack.Step>
         }
         private string _animName = "";
 
+        /// <summary>
+        /// The component responsible for animating the attack and de/activating its hitbox.
+        /// </summary>
         protected DashStabWithOwnAnim? dashStab;
+
+        /// <inheritdoc/>
         protected override NailAttackBase? NailAttack => dashStab;
 
+        /// <inheritdoc/>
         protected override void AddComponents(HeroController hc)
         {
             dashStab = GameObject!.AddComponent<DashStabWithOwnAnim>();
         }
 
+        /// <inheritdoc/>
         protected override void LateInitializeComponents(HeroController hc)
         {
             dashStab!.animName = AnimName;

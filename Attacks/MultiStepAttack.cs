@@ -32,7 +32,7 @@ public abstract class MultiStepAttack<T> : GameObjectProxy where T : AttackBase
             }
         }
     }
-    protected T[] _steps = [];
+    private T[] _steps = [];
 
     /// <summary>
     /// Sets the <see cref="AttackBase.AnimLibrary"/> of all Steps of this attack.
@@ -52,6 +52,7 @@ public abstract class MultiStepAttack<T> : GameObjectProxy where T : AttackBase
 
     #endregion
 
+    /// <inheritdoc/>
     public override GameObject CreateGameObject(GameObject parent, HeroController hc) {
         GameObject = base.CreateGameObject(parent, hc);
         GameObject.SetActive(false);

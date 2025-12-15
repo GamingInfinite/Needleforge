@@ -11,6 +11,9 @@ namespace Needleforge.Components;
 /// </remarks>
 public class NailSlashWithEndEvent : NailSlash
 {
+    /// <summary>
+    /// Event which occurs when the animation for an attack completes.
+    /// </summary>
     public event Action? AttackEnding;
 
     public new void StartSlash()
