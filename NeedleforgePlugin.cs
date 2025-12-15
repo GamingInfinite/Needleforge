@@ -97,6 +97,8 @@ public partial class NeedleforgePlugin : BaseUnityPlugin
         return null;
     }
 
+    #region Tools
+
     public static ColorData AddToolColor(string name, Color color, bool isAttackType = false)
     {
         ColorData newColor = new()
@@ -215,16 +217,29 @@ public partial class NeedleforgePlugin : BaseUnityPlugin
         return AddTool(name, ToolItemType.Yellow, null);
     }
 
+    #endregion
+
+    #region Crests
+
     /// <summary>
-    /// Adds your class with the sprites already attached.
-    /// <para/>
-    /// IMPORTANT: <br/>
-    /// for obvious reasons certain data will return either null or some default value (eg. false for bool) until a Save is loaded.
+    /// Creates a new custom crest and adds it to Needleforge.
     /// </summary>
-    /// <param name="name">Name of the Crest</param>
-    /// <param name="RealSprite">Inventory Sprite</param>
-    /// <param name="Silhouette">Crest List Sprite</param>
-    /// <returns><see cref="CrestData"/></returns>
+    /// <remarks>
+    /// <b>Important:</b> Certain data will return either null or some default value
+    /// (eg. false for bool) until a Save is loaded.
+    /// </remarks>
+    /// <param name="name">Name of the crest.</param>
+    /// <param name="displayName">In-game display name of the crest.</param>
+    /// <param name="description">In-game description of the crest.</param>
+    /// <param name="RealSprite">Main crest sprite in the inventory UI.</param>
+    /// <param name="Silhouette">
+    ///     Filled-in sprite used for unselected crests in the crest swapping menu.
+    /// </param>
+    /// <param name="CrestGlow">
+    ///     Sprite which briefly flashes over top of the <paramref name="RealSprite"/>
+    ///     when the crest is equipped.
+    /// </param>
+    /// <returns>The newly created <see cref="CrestData"/>.</returns>
     public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
         Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
     {
@@ -237,46 +252,50 @@ public partial class NeedleforgePlugin : BaseUnityPlugin
         return crestData;
     }
 
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
     public static CrestData AddCrest(string name, Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
     {
         return AddCrest(name, new() { Key = $"{name}LocalKey", Sheet = "Mods.your.mod.id" },
             new() { Key = $"{name}LocalKeyDesc", Sheet = "Mods.your.mod.id" }, RealSprite, Silhouette, CrestGlow);
     }
 
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
     public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
         Sprite? RealSprite, Sprite? Silhouette)
     {
         return AddCrest(name, displayName, description, RealSprite, Silhouette, null);
     }
 
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
     public static CrestData AddCrest(string name, Sprite? RealSprite, Sprite? Silhouette)
     {
         return AddCrest(name, RealSprite, Silhouette, null);
     }
 
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
     public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
         Sprite? RealSprite)
     {
         return AddCrest(name, displayName, description, RealSprite, null);
     }
 
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
     public static CrestData AddCrest(string name, Sprite? RealSprite)
     {
         return AddCrest(name, RealSprite, null);
     }
 
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
     public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description)
     {
         return AddCrest(name, displayName, description, null);
     }
 
-    /// <summary>
-    /// Adds a named Crest
-    /// </summary>
-    /// <param name="name">Name of the Crest</param>
-    /// <returns><see cref="CrestData"/></returns>
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
     public static CrestData AddCrest(string name)
     {
         return AddCrest(name, null);
     }
+
+    #endregion
 }
