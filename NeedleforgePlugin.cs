@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
 using TeamCherry.Localization;
 using UnityEngine;
 using BindEventHandler = Needleforge.Data.CrestData.BindEventHandler;
@@ -84,21 +85,26 @@ public partial class NeedleforgePlugin : BaseUnityPlugin
         InventoryToolCrest.TOOL_TYPES = (ToolItemType[])Enum.GetValues(typeof(ToolItemType));
     }
 
-    public static ToolData GetToolDataByName(string name)
+    /// <summary>
+    /// Returns the <see cref="ToolData"/> object with the given name, if one exists.
+    /// </summary>
+    public static ToolData? GetToolDataByName(string name)
     {
-        foreach (var t in newToolData)
-        {
-            if (t.name == name)
-            {
-                return t;
-            }
-        }
-
-        return null;
+        return newToolData.FirstOrDefault(t => t.name == name);
     }
 
-    #region Tools
-
+    /// <summary>
+    /// Creates a new custom tool type.
+    /// </summary>
+    /// <param name="name">The name of this tool color.</param>
+    /// <param name="color">
+    ///     The visual color to use for tools/slots of this type in the inventory.
+    /// </param>
+    /// <param name="isAttackType">
+    ///     Whether or not tools of this color can be used as attacks,
+    ///     like the Red and Skill types in the base game.
+    /// </param>
+    /// <returns>The <see cref="ColorData"/> for the type that was created.</returns>
     public static ColorData AddToolColor(string name, Color color, bool isAttackType = false)
     {
         ColorData newColor = new()
@@ -110,6 +116,8 @@ public partial class NeedleforgePlugin : BaseUnityPlugin
         newColors.Add(newColor);
         return newColor;
     }
+
+    #region Tools
 
     public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
         string InfiniteRefillsPD, Color liquidColor,
