@@ -89,9 +89,8 @@ internal class Tool_CrestFSMEdits
                 bind.SendEvent("FINISHED");
             });
             
-            if (NeedleforgePlugin.uniqueBind.ContainsKey(crest.name))
+            if (NeedleforgePlugin.uniqueBind.TryGetValue(crest.name, out UniqueBindEvent bindData))
             {
-                var bindData = NeedleforgePlugin.uniqueBind[crest.name];
                 FsmState specialBindCheck = bind.AddState($"{crest.name} Special Bind?");
                 FsmState specialBindTrigger = bind.AddState($"{crest.name} Special Bind Trigger");
                 FsmEvent specialBindTransition = whichCrest.AddTransition($"{crest.name} Special", specialBindCheck.name);
