@@ -12,10 +12,10 @@ namespace Needleforge.Attacks;
 public abstract class GameObjectProxy
 {
 
-	/// <summary>
-	/// A name for the created <see cref="UnityEngine.GameObject"/>.
-	/// </summary>
-	public string Name
+    /// <summary>
+    /// A name for the created <see cref="UnityEngine.GameObject"/>.
+    /// </summary>
+    public string Name
     {
         get => _name;
         set
@@ -37,22 +37,22 @@ public abstract class GameObjectProxy
     /// </remarks>
     public GameObject? GameObject { get; protected set; }
 
-	/// <summary>
-	/// Creates and sets up a <see cref="UnityEngine.GameObject"/> with the properties
-	/// specified on this object.
-	/// If this object was already created, the old GameObject is destroyed; be sure to
-	/// update all old references to the new GameObject.
-	/// </summary>
-	/// <param name="parent">A parent for the created GameObject.</param>
-	/// <param name="hc">
-	///     A reference to the current HeroController, which is often needed
-	///     for initialization.
-	/// </param>
-	/// <returns>
+    /// <summary>
+    /// Creates and sets up a <see cref="UnityEngine.GameObject"/> with the properties
+    /// specified on this object.
+    /// If this object was already created, the old GameObject is destroyed; be sure to
+    /// update all old references to the new GameObject.
+    /// </summary>
+    /// <param name="parent">A parent for the created GameObject.</param>
+    /// <param name="hc">
+    ///     A reference to the current HeroController, which is often needed
+    ///     for initialization.
+    /// </param>
+    /// <returns>
     ///     The same <see cref="UnityEngine.GameObject"/> now referenced by
     ///     the GameObject property.
     /// </returns>
-	public virtual GameObject CreateGameObject(GameObject parent, HeroController hc) {
+    public virtual GameObject CreateGameObject(GameObject parent, HeroController hc) {
         if (GameObject)
             Object.DestroyImmediate(GameObject);
 

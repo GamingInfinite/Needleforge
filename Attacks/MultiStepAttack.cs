@@ -42,10 +42,10 @@ public abstract class MultiStepAttack<T> : GameObjectProxy where T : AttackBase
             attack.AnimLibrary = value;
     }
 
-	/// <summary>
-	/// Sets the <see cref="AttackBase.Color"/> of all Steps of this attack.
-	/// </summary>
-	public void SetColor(Color value) {
+    /// <summary>
+    /// Sets the <see cref="AttackBase.Color"/> of all Steps of this attack.
+    /// </summary>
+    public void SetColor(Color value) {
         foreach (var attack in Steps)
             attack.Color = value;
     }

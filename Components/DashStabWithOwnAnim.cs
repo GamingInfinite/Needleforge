@@ -28,12 +28,12 @@ public class DashStabWithOwnAnim : DashStabNailAttack
         mesh = transform.GetComponent<MeshRenderer>();
     }
 
-	/// <summary>
-	/// Convenience method similar to <see cref="NailSlash.StartSlash"/>, which calls
+    /// <summary>
+    /// Convenience method similar to <see cref="NailSlash.StartSlash"/>, which calls
     /// <see cref="OnSlashStarting"/> and <see cref="NailAttackBase.OnPlaySlash"/> and
     /// plays the sound effect for the attack.
-	/// </summary>
-	public void StartSlash()
+    /// </summary>
+    public void StartSlash()
     {
         OnSlashStarting();
         audio.Play();
