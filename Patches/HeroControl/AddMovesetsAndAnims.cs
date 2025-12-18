@@ -70,7 +70,7 @@ internal class AddMovesetsAndAnims
     /// If <paramref name="keepTriggers"/> = false new frames without any event triggers
     /// will be created for the copy; otherwise the same frame objects are used.
     /// </summary>
-    private static tk2dSpriteAnimationClip CopyClip(string name, tk2dSpriteAnimationClip orig, bool keepTriggers)
+    private static tk2dSpriteAnimationClip CopyClip(string newName, tk2dSpriteAnimationClip orig, bool keepTriggers)
     {
         var frames = orig.frames;
         if (!keepTriggers)
@@ -81,7 +81,7 @@ internal class AddMovesetsAndAnims
             })];
 
         return new() {
-            name = name,
+            name = newName,
             fps = orig.fps,
             frames = frames,
             loopStart = orig.loopStart,

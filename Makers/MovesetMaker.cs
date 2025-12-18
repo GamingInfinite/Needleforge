@@ -42,7 +42,7 @@ internal class MovesetMaker
             AlternateSlashObject = moveset.AltSlash?.CreateGameObject(root, hc),
             AltUpSlashObject =     moveset.AltUpSlash?.CreateGameObject(root, hc),
             AltDownSlashObject =   moveset.AltDownSlash?.CreateGameObject(root, hc),
-		};
+        };
 
         hc.configs = [.. hc.configs, moveset.ConfigGroup];
 

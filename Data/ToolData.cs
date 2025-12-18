@@ -4,15 +4,46 @@ using UnityEngine;
 
 namespace Needleforge.Data
 {
+    /// <summary>
+    /// Represents a Custom Basic Tool.  Provides customization to its Type and Sprite
+    /// and provides properties to read important values from its in-game counterpart (ToolItem)
+    /// Can be created with <see cref="NeedleforgePlugin.AddTool(string)"/> and its overloads.
+    /// </summary>
     public class ToolData
     {
+        /// <summary>
+        /// Main Sprite of the Tool in Inventory UI
+        /// </summary>
         public Sprite? inventorySprite;
+        
+        /// <summary>
+        /// Type of Tool (eg. Red, Yellow, etc.)
+        /// </summary>
         public ToolItemType type;
+        
+        /// <summary>
+        /// The name
+        /// </summary>
         public string name = "";
+        
+        /// <summary>
+        /// Dictates if the tool is unlocked from the start of the game.
+        /// </summary>
         public bool UnlockedAtStart = true;
+        
+        /// <summary>
+        /// In-Game Localized Name (as created via i18n)
+        /// </summary>
         public LocalisedString displayName;
+        
+        /// <summary>
+        /// In-Game Localized Descritpion (as created via i18n)
+        /// </summary>
         public LocalisedString description;
 
+        /// <summary>
+        /// ToolItem representation of the ToolData.
+        /// </summary>
         public ToolItem? Item
         {
             get
@@ -27,23 +58,25 @@ namespace Needleforge.Data
                         }
                     }
                 }
+
                 return null;
             }
         }
 
+        /// <summary>
+        /// Whether your tool is Equipped
+        /// </summary>
         public bool IsEquipped
         {
-            get
-            {
-                return Item && Item.IsEquipped;
-            }
+            get { return Item && Item.IsEquipped; }
         }
+
+        /// <summary>
+        /// PlayerData string meant for PrePatcher.  Meant for internal use only.
+        /// </summary>
         public string unlockedPDString
         {
-            get
-            {
-                return $"is{name}Unlocked";
-            }
+            get { return $"is{name}Unlocked"; }
         }
     }
 
@@ -73,6 +106,7 @@ namespace Needleforge.Data
                         }
                     }
                 }
+
                 return null;
             }
         }
@@ -82,25 +116,14 @@ namespace Needleforge.Data
 
         public Action beforeAnim
         {
-            get
-            {
-                return NeedleforgePlugin.toolEventHooks[$"{name} BEFORE ANIM"];
-            }
-            set
-            {
-                NeedleforgePlugin.toolEventHooks[$"{name} BEFORE ANIM"] = value;
-            }
+            get { return NeedleforgePlugin.toolEventHooks[$"{name} BEFORE ANIM"]; }
+            set { NeedleforgePlugin.toolEventHooks[$"{name} BEFORE ANIM"] = value; }
         }
+
         public Action afterAnim
         {
-            get
-            {
-                return NeedleforgePlugin.toolEventHooks[$"{name} AFTER ANIM"];
-            }
-            set
-            {
-                NeedleforgePlugin.toolEventHooks[$"{name} AFTER ANIM"] = value;
-            }
+            get { return NeedleforgePlugin.toolEventHooks[$"{name} AFTER ANIM"]; }
+            set { NeedleforgePlugin.toolEventHooks[$"{name} AFTER ANIM"] = value; }
         }
     }
 

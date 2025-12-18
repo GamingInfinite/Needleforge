@@ -10,11 +10,16 @@ using BasicFrameAnims = BindOrbHudFrame.BasicFrameAnims;
 
 namespace Needleforge.Data;
 
+/// <summary>
+/// Provides properties and methods for customizing the animations and behaviour of the
+/// HUD frame of a custom crest - the decorative elements attached to the silk orb near
+/// the health bar.
+/// </summary>
 public class HudFrameData
 {
     internal readonly CrestData Crest;
 
-    public HudFrameData(CrestData owner)
+    internal HudFrameData(CrestData owner)
     {
         Crest = owner;
         ExtraAnims.CollectionChanged += ExtraAnimsChanged;
@@ -55,16 +60,15 @@ public class HudFrameData
     #region Animations
 
     /// <summary>
-    /// <para>
     /// Changes the look of this crest's HUD frame to match one of the base game crests.
     /// This doesn't include unique animations like Beast's rage mode, which must be
     /// controlled with a <see cref="Coroutine"/>.
-    /// </para><para>
+    /// </summary>
+    /// <remarks>
     /// This preset will be completely overridden if <b>any</b> custom animations are set
     /// on <see cref="Appear"/>, <see cref="AppearFromNone"/>, <see cref="Idle"/>, or
     /// <see cref="Disappear"/>.
-    /// </para>
-    /// </summary>
+    /// </remarks>
     public VanillaCrest Preset { get; set; } = VanillaCrest.HUNTER;
 
     private tk2dSpriteAnimationClip?
@@ -243,10 +247,10 @@ public class HudFrameData
 
     /// <summary>
     /// <para>
-    /// After the HUD has been created, this returns a dedicated GameObject for this
-    /// crest which is attached to the HUD. This can be used to add extra HUD elements
-    /// which require separate control from the animations; for an example, Hunter's
-    /// combo meters. Add a <see cref="Coroutine"/> to control them during gameplay.
+    /// After the HUD has been created, this returns a GameObject for this crest which
+    /// is attached to the HUD. This can be used to add extra HUD elements which require
+    /// separate control from the animations.
+    /// Add a <see cref="Coroutine"/> to control them during gameplay.
     /// </para><para>
     /// This will be destroyed and recreated every time the player quits to the main
     /// menu; any modifications or additions to this GameObject should be made in a
@@ -273,14 +277,14 @@ public class HudFrameData
     internal void InitializeRoot() => OnRootCreated?.DynamicInvoke();
 
     /// <summary>
+    /// An optional coroutine which will run continuously when this crest is equipped.
+    /// This should be used to control any extra animations or visual effects for the
+    /// crest's HUD frame. This function generally takes the form of and infinite loop
+    /// which yields at least once per loop iteration.
+    /// </summary>
+    /// <remarks>
     /// <para>
-    /// An optional coroutine function which will run continuously when this crest is
-    /// equipped, and should be used to control any extra animations or visual
-    /// effects for the crest's HUD frame. This function generally takes the form of
-    /// an infinite "while(true)" loop which calls "yield return null" at least once
-    /// per loop iteration.
-    /// </para><para>
-    /// Access to the HUD frame component is provided for convenience, e.x. for calling
+    /// Access to the HUD frame component is provided in the parameter, e.x. for calling
     /// <see cref="BindOrbHudFrame.PlayFrameAnim"/> to trigger extra HUD animations that
     /// were added to <see cref="ExtraAnims"/>.
     /// Any extra elements added to the <see cref="Root"/> via
@@ -288,7 +292,7 @@ public class HudFrameData
     /// </para><para>
     /// For examples, see the source code of <see cref="BindOrbHudFrame"/>.
     /// </para>
-    /// </summary>
+    /// </remarks>
     public HudCoroutine? Coroutine { get; set; }
 
     /// <inheritdoc cref="Coroutine"/>

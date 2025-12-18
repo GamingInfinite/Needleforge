@@ -21,6 +21,7 @@
         <PathMap Condition="'$(Configuration)' == 'Release'">$(MSBuildProjectDirectory)=/</PathMap>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>icon.png</PackageIcon>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <RepositoryUrl>https://github.com/GamingInfinite/Needleforge</RepositoryUrl>
     </PropertyGroup>
     <ItemGroup>
@@ -46,6 +47,7 @@
         <ItemGroup>
             <Binaries Include="$(TargetPath)" />
             <Binaries Include="$(TargetDir)/$(TargetName).pdb" />
+            <Binaries Include="$(TargetDir)/$(TargetName).xml" />
         </ItemGroup>
         <PropertyGroup>
             <ThunderstoreDir>$(ProjectDir)/thunderstore</ThunderstoreDir>
