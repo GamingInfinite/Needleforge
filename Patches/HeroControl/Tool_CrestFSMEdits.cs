@@ -26,10 +26,16 @@ internal class Tool_CrestFSMEdits
         { UniqueBindDirection.RIGHT, () => HeroController.instance.inputHandler.inputActions.Right.IsPressed }
     };
 
-    [HarmonyPostfix]
+    [HarmonyPrefix]
     private static void AddCrests(HeroController __instance)
     {
-        PlayMakerFSM bind = __instance.gameObject.GetFsmPreprocessed("Bind");
+        // Finding it this way until Needleforge bumps its FsmUtil version because a
+        // bug was discovered in GetFsmPreprocessed that's present on our current
+        // minimum version of it
+        PlayMakerFSM bind = __instance.gameObject.LocateMyFSM("Bind");
+        if (!bind.Fsm.preprocessed)
+            bind.Preprocess();
+
         FsmState CanBind = bind.GetState("Can Bind?");
 
         FsmState BindType = bind.GetState("Bind Type");
@@ -153,7 +159,7 @@ internal class Tool_CrestFSMEdits
         CanBind.ReplaceAction(9, replaceSilkCost);
     }
 
-    [HarmonyPostfix]
+    [HarmonyPrefix]
     private static void AddTools(HeroController __instance)
     {
 
