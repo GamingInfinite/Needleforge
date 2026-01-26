@@ -26,10 +26,11 @@ internal class Tool_CrestFSMEdits
         { UniqueBindDirection.RIGHT, () => HeroController.instance.inputHandler.inputActions.Right.IsPressed }
     };
 
-    [HarmonyPostfix]
+    [HarmonyPrefix]
     private static void AddCrests(HeroController __instance)
     {
-        PlayMakerFSM bind = __instance.gameObject.GetFsmPreprocessed("Bind");
+        PlayMakerFSM bind = __instance.gameObject.GetFsmPreprocessed("Bind")!;
+
         FsmState CanBind = bind.GetState("Can Bind?");
 
         FsmState BindType = bind.GetState("Bind Type");
@@ -153,7 +154,7 @@ internal class Tool_CrestFSMEdits
         CanBind.ReplaceAction(9, replaceSilkCost);
     }
 
-    [HarmonyPostfix]
+    [HarmonyPrefix]
     private static void AddTools(HeroController __instance)
     {
 
