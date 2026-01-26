@@ -211,12 +211,7 @@ internal static class MovesetFSMEdits
 
     private static void ChargedSlashFSMEdits(HeroController hc)
     {
-        // Finding it this way until Needleforge bumps its FsmUtil version because a
-        // bug was discovered in GetFsmPreprocessed that's present on our current
-        // minimum version of it
-        PlayMakerFSM fsm = hc.gameObject.LocateMyFSM("Nail Arts")!;
-        if (!fsm.Fsm.preprocessed)
-            fsm.Preprocess();
+        PlayMakerFSM fsm = hc.gameObject.GetFsmPreprocessed("Nail Arts")!;
 
         FsmState
             AnticType = fsm.GetState("Antic Type")!,
