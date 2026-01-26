@@ -59,9 +59,9 @@
       },
       "Silksong.PrepatcherPlugin": {
         "type": "Direct",
-        "requested": "[1.2.0, )",
-        "resolved": "1.2.0",
-        "contentHash": "51ASSX+kExYKZUl470fR7R7qPFXANKrl/RpiXtLhB2RJl49v1RI6/9+e03bjD1zyGj/BF4ypPMOWeDTyOR8e+Q==",
+        "requested": "[1.3.0, )",
+        "resolved": "1.3.0",
+        "contentHash": "veKvjjFQZaHzOwe1YwiFxsjmPIpxOK1LFzPPZmqTlQAzss9MYPUyrsiV2+Ho9AtUukuT+6TLhFYCPXmQnIFfGg==",
         "dependencies": {
           "BepInEx.Core": "5.4.21",
           "HarmonyX": "2.9.0",
