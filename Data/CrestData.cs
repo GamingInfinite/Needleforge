@@ -1,5 +1,4 @@
 ﻿using HutongGames.PlayMaker;
-using MonoMod.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -45,12 +44,12 @@ public class CrestData
     public int bindCost = 9;
 
     /// <summary>
-    /// The name 
+    /// The internal name of the crest.
     /// </summary>
     public string name = "";
 
     /// <summary>
-    /// Whether or not the crest is always unlocked in all save files.
+    /// Dictates if the crest is unlocked from the start of the game.
     /// </summary>
     public bool UnlockedAtStart = true;
 
@@ -130,10 +129,9 @@ public class CrestData
     }
 
     /// <summary>
-    /// Returns a reference to the <see cref="ToolCrest"/> object created to handle
-    /// the crest's appearance and save data. This will always return a value during
-    /// gameplay, but may be null during game start up, and is destroyed and recreated
-    /// when the player quits to the menu.
+    /// A reference to the object created to handle the crest's appearance and save data.
+    /// This will always return a value during gameplay, but may be null during game
+    /// start up, and is destroyed and recreated when the player quits to the menu.
     /// </summary>
     public ToolCrest? ToolCrest
     {
