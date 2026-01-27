@@ -119,6 +119,35 @@ public partial class NeedleforgePlugin : BaseUnityPlugin
 
     #region Tools
 
+    /// <summary>
+    /// Creates a new custom liquid tool and adds it to Needleforge.
+    /// </summary>
+    /// <param name="name">Internal name of the tool.</param>
+    /// <param name="maxRefills">Maximum amount of refills kept in the inventory for this tool.</param>
+    /// <param name="storageAmount">Maximum uses of the tool Hornet can carry at once.</param>
+    /// <param name="InfiniteRefillsPD">
+    ///     Name of the PlayerData bool which determines if this tool has infinite refills.
+    /// </param>
+    /// <param name="liquidColor">Color of the tool's refill liquid sprite in the inventory.</param>
+    /// <param name="resource">Type of resource used to replenish uses of the tool.</param>
+    /// <param name="replenishUsage">
+    ///     Determines how the amount of <paramref name="resource"/> it costs to
+    ///     replenish uses of the tool is calculated.
+    /// </param>
+    /// <param name="replenishMult">
+    ///     Multiplier on the amount of <paramref name="resource"/> it costs to
+    ///     replenish uses of the tool.
+    /// </param>
+    /// <param name="fullSprites">
+    ///     Set of sprites used to display the tool in the inventory and HUD when
+    ///     it has some uses remaining.
+    /// </param>
+    /// <param name="emptySprites">
+    ///     Set of sprites used to display the tool in the inventory and HUD when
+    ///     it has zero uses remaining.
+    /// </param>
+    /// <param name="clip">Name of the animation clip Hornet plays when using this tool.</param>
+    /// <returns>The newly created <see cref="LiquidToolData"/>.</returns>
     public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
         string InfiniteRefillsPD, Color liquidColor,
         ToolItem.ReplenishResources resource, ToolItem.ReplenishUsages replenishUsage, float replenishMult,
@@ -152,6 +181,7 @@ public partial class NeedleforgePlugin : BaseUnityPlugin
         return data;
     }
 
+    /// <inheritdoc cref="AddLiquidTool(string, int, int, string, Color, ToolItem.ReplenishResources, ToolItem.ReplenishUsages, float, StateSprites?, StateSprites?, string)"/>
     public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
         string InfiniteRefillsPD, Color liquidColor, ToolItem.ReplenishResources resource,
         ToolItem.ReplenishUsages replenishUsage, float replenishMult)
@@ -160,6 +190,7 @@ public partial class NeedleforgePlugin : BaseUnityPlugin
             replenishUsage, replenishMult, null, null, "Charge Up");
     }
 
+    /// <inheritdoc cref="AddLiquidTool(string, int, int, string, Color, ToolItem.ReplenishResources, ToolItem.ReplenishUsages, float, StateSprites?, StateSprites?, string)"/>
     public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
         string InfiniteRefillsPD, Color liquidColor)
     {
@@ -167,11 +198,21 @@ public partial class NeedleforgePlugin : BaseUnityPlugin
             ToolItem.ReplenishResources.Shard, ToolItem.ReplenishUsages.Percentage, 1f);
     }
 
+    /// <inheritdoc cref="AddLiquidTool(string, int, int, string, Color, ToolItem.ReplenishResources, ToolItem.ReplenishUsages, float, StateSprites?, StateSprites?, string)"/>
     public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount, Color liquidColor)
     {
         return AddLiquidTool(name, maxRefills, storageAmount, "", liquidColor);
     }
 
+    /// <summary>
+    /// Creates a new custom basic tool and adds it to Needleforge.
+    /// </summary>
+    /// <param name="name">Internal name of the tool.</param>
+    /// <param name="type">The type/color of the tool.</param>
+    /// <param name="displayName">In-game display name of the tool.</param>
+    /// <param name="description">In-game description of the tool.</param>
+    /// <param name="InventorySprite">Tool sprite in the inventory UI.</param>
+    /// <returns>The newly created <see cref="ToolData"/>.</returns>
     public static ToolData AddTool(string name, ToolItemType type, LocalisedString displayName,
         LocalisedString description, Sprite? InventorySprite)
     {
@@ -198,28 +239,33 @@ public partial class NeedleforgePlugin : BaseUnityPlugin
         return data;
     }
 
+    /// <inheritdoc cref="AddTool(string, ToolItemType, LocalisedString, LocalisedString, Sprite?)"/>
     public static ToolData AddTool(string name, ToolItemType type, Sprite? InventorySprite)
     {
         return AddTool(name, type, new() { Key = $"{name}LocalKey", Sheet = "Mods.your.mod.id" },
             new() { Key = $"{name}LocalKeyDesc", Sheet = "Mods.your.mod.id" }, InventorySprite);
     }
 
+    /// <inheritdoc cref="AddTool(string, ToolItemType, LocalisedString, LocalisedString, Sprite?)"/>
     public static ToolData AddTool(string name, ToolItemType type)
     {
         return AddTool(name, type, null);
     }
 
+    /// <inheritdoc cref="AddTool(string, ToolItemType, LocalisedString, LocalisedString, Sprite?)"/>
     public static ToolData AddTool(string name, ToolItemType type, LocalisedString displayName,
         LocalisedString description)
     {
         return AddTool(name, type, displayName, description, null);
     }
 
+    /// <inheritdoc cref="AddTool(string, ToolItemType, LocalisedString, LocalisedString, Sprite?)"/>
     public static ToolData AddTool(string name, LocalisedString displayName, LocalisedString description)
     {
         return AddTool(name, ToolItemType.Yellow, displayName, description, null);
     }
 
+    /// <inheritdoc cref="AddTool(string, ToolItemType, LocalisedString, LocalisedString, Sprite?)"/>
     public static ToolData AddTool(string name)
     {
         return AddTool(name, ToolItemType.Yellow, null);
@@ -236,7 +282,7 @@ public partial class NeedleforgePlugin : BaseUnityPlugin
     /// <b>Important:</b> Certain data will return either null or some default value
     /// (eg. false for bool) until a Save is loaded.
     /// </remarks>
-    /// <param name="name">Name of the crest.</param>
+    /// <param name="name">Internal name of the crest.</param>
     /// <param name="displayName">In-game display name of the crest.</param>
     /// <param name="description">In-game description of the crest.</param>
     /// <param name="RealSprite">Main crest sprite in the inventory UI.</param>

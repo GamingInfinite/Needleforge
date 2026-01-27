@@ -7,7 +7,7 @@ namespace Needleforge.Makers
     /// <summary>
     /// This is responsible for creating the actual ToolItem classes when the game wakes up.
     /// </summary>
-    public class ToolMaker
+    internal static class ToolMaker
     {
         public static ToolItemsData.Data CreateDefaultData() => new()
         {
@@ -42,7 +42,7 @@ namespace Needleforge.Makers
 
             newTool.baseStorageAmount = 0;
 
-            newTool.inventorySprite = inventorySprite ?? item.GetInventorySprite(ToolItem.IconVariants.Default);
+            newTool.inventorySprite = inventorySprite ? inventorySprite : item.GetInventorySprite(ToolItem.IconVariants.Default);
             newTool.SavedData = CreateDefaultData();
             newTool.alternateUnlockedTest = new()
             {
