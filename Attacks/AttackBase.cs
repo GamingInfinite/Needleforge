@@ -2,6 +2,7 @@
 using TeamCherry.SharedUtils;
 using UnityEngine;
 using UnityEngine.Events;
+using System.Diagnostics;
 using EffectsTypes = EnemyHitEffectsProfile.EffectsTypes;
 using static Needleforge.Utils.MathUtils;
 
@@ -58,11 +59,12 @@ public abstract class AttackBase : GameObjectProxy
 
     /// <summary>
     /// Points which define the shape of this attack's damaging hitbox.
-    /// <span id="collider-info">
+    /// This is drawing a polygon, so it should have at least 3 distinct points.
+    /// </summary>
+    /// <remarks>
     /// (0, 0) is at the center of Hornet's idle sprite.
     /// Negative X values are in front of Hornet.
-    /// </span>
-    /// </summary>
+    /// </remarks>
     public Vector2[] Hitbox
     {
         get => _hitbox;
@@ -77,6 +79,8 @@ public abstract class AttackBase : GameObjectProxy
                 if (GameObject)
                     TinkCollider!.points = _tinkerHitbox;
             }
+
+            CheckPolygonValidity(nameof(Hitbox), _hitbox);
         }
     }
     private Vector2[] _hitbox = [];
@@ -84,10 +88,13 @@ public abstract class AttackBase : GameObjectProxy
     /// <summary>
     /// Points which define the shape of the "tinker" hitbox which causes a visual and
     /// sound effect, and sometimes recoil, when the attack hits the level geometry.
-    /// <inheritdoc cref="Hitbox" path="//*[@id='collider-info']"/>
+    /// This is drawing a polygon, so it should have at least 3 distinct points.
+    /// </summary>
+    /// <remarks>
     /// If left unset or set to <see langword="null"/>, will default to the
     /// <see cref="Hitbox"/> at 80% size.
-    /// </summary>
+    /// <inheritdoc cref="Hitbox" path="//remarks"/>
+    /// </remarks>
     public Vector2[]? TinkerHitbox
     {
         get => _tinkerHitbox;
@@ -101,6 +108,9 @@ public abstract class AttackBase : GameObjectProxy
 
             if (GameObject)
                 TinkCollider!.points = _tinkerHitbox ?? [];
+
+            if (_tinkerHitbox != null)
+                CheckPolygonValidity(nameof(TinkerHitbox), _tinkerHitbox);
         }
     }
     private Vector2[]? _tinkerHitbox = [];
@@ -420,4 +430,32 @@ public abstract class AttackBase : GameObjectProxy
             Sprite!.color = Color;
     }
 
+    /// <summary>
+    /// Prints warnings with a stack trace if a set of points defining a polygon
+    /// has &lt; 3 points, and/or if 2+ points are too close together.
+    /// </summary>
+    protected static void CheckPolygonValidity(string name, Vector2[] points)
+    {
+        string warning = "";
+
+        if (points.Length < 3)
+            warning += $"{name} has fewer than 3 points. ";
+
+        bool keepLooping = true;
+        for (int a = 0; a < points.Length && keepLooping; a++)
+        {
+            for (int b = a + 1; b < points.Length && keepLooping; b++)
+            {
+                Vector2 ptA = points[a], ptB = points[b];
+                if (Mathf.Approximately(ptA.x, ptB.x) && Mathf.Approximately(ptA.y, ptB.y))
+                {
+                    warning += $"{name} has 2 or more points that are too close together. ";
+                    keepLooping = false;
+                }
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(warning))
+            ModHelper.LogWarning(warning + '\n' + new StackTrace(fNeedFileInfo: true));
+    }
 }
