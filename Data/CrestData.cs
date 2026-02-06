@@ -23,6 +23,12 @@ namespace Needleforge.Data
         public string name = "";
         public bool UnlockedAtStart = true;
 
+        /// <summary>
+        /// Sets whether or not this crest's tool slots count towards Eva's unlocks
+        /// and quest progression. Default is <see langword="false"/>.
+        /// </summary>
+        public bool slotsCountForEvaQuest = false;
+
         public LocalisedString displayName;
         public LocalisedString description;
 
