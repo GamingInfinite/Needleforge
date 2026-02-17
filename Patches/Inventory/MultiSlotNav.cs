@@ -155,6 +155,15 @@ internal class MultiSlotNav
             {
                 __result = nextSlot.IsLocked && !__instance.manager.CanUnlockSlot;
             }
+
+            if ((int)selToolType > 3)
+            {
+                bool allvalid = NeedleforgePlugin.newColors[(int)nextSlot.Type - 4].allColorsValid;
+                if (allvalid)
+                {
+                    __result = nextSlot.IsLocked && !__instance.manager.CanUnlockSlot;
+                }
+            }
         }
     }
 }
