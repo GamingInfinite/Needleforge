@@ -1,6 +1,7 @@
 ﻿using Needleforge.Components;
 using Needleforge.Data;
 using System;
+using System.Collections;
 using UnityEngine;
 using DownSlashTypes = HeroControllerConfig.DownSlashTypes;
 using UObject = UnityEngine.Object;
@@ -76,6 +77,7 @@ public class DownAttack : AttackBase
     private HeroDownAttack? heroDownAttack;
     private DownspikeWithBounceConfig? downspike;
     private NailSlash? nailSlash;
+    private PlayMakerFSM? reactionFsm;
 
     protected override NailAttackBase? NailAttack =>
         heroDownAttack ? heroDownAttack.attack : null;
@@ -98,8 +100,12 @@ public class DownAttack : AttackBase
                 downspike = GameObject.AddComponent<DownspikeWithBounceConfig>();
                 heroDownAttack.attack = downspike;
                 break;
-            case DownSlashTypes.Slash:
+
             case DownSlashTypes.Custom:
+                reactionFsm = GameObject.AddComponent<PlayMakerFSM>();
+                goto case DownSlashTypes.Slash;
+
+            case DownSlashTypes.Slash:
                 nailSlash = GameObject.AddComponent<NailSlash>();
                 heroDownAttack.attack = nailSlash;
                 break;
@@ -129,8 +135,11 @@ public class DownAttack : AttackBase
                 Damager!.forceSpikeUpdate = true;
                 break;
 
-            case DownSlashTypes.Slash:
             case DownSlashTypes.Custom:
+                GameManager.instance.StartCoroutine(InitReactionFsm());
+                goto case DownSlashTypes.Slash;
+
+            case DownSlashTypes.Slash:
                 nailSlash!.animName = AnimName;
                 nailSlash!.bounceConfig = BounceConfig;
                 Damager!.corpseDirection =
@@ -140,6 +149,23 @@ public class DownAttack : AttackBase
                     };
                 break;
         }
+
+        IEnumerator InitReactionFsm() {
+            yield return null; // wait one frame for components to Awake
+            reactionFsm!.SetFsmTemplate(ReactionFsmTemplate);
+        }
     }
+
+    private static FsmTemplate ReactionFsmTemplate {
+        get {
+            if (!_reactionFsmTemplate) {
+                var reaper = HeroController.instance.transform.Find("Attacks/Scythe/DownSlash New");
+                var reaperFsm = reaper.GetComponent<PlayMakerFSM>();
+                _reactionFsmTemplate = reaperFsm.fsmTemplate;
+            }
+            return _reactionFsmTemplate;
+        }
+    }
+    private static FsmTemplate? _reactionFsmTemplate;
 
 }
