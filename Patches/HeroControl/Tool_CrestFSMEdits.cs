@@ -6,13 +6,14 @@ using HutongGames.PlayMaker.Actions;
 using Needleforge.Data;
 using Silksong.FsmUtil;
 using Silksong.FsmUtil.Actions;
+using BindEventHandler = Needleforge.Data.CrestData.BindEventHandler;
 
 namespace Needleforge.Patches.HeroControl;
 
 [HarmonyPatch(typeof(HeroController), nameof(HeroController.Start))]
 internal class Tool_CrestFSMEdits
 {
-    private static readonly Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM> defaultBind = (value, amount, time, fsm) =>
+    private static readonly BindEventHandler defaultBind = (value, amount, time, fsm) =>
     {
         value.Value = 3;
         amount.Value = 1;
@@ -30,20 +31,19 @@ internal class Tool_CrestFSMEdits
     private static void AddCrests(HeroController __instance)
     {
         PlayMakerFSM bind = __instance.gameObject.GetFsmPreprocessed("Bind")!;
+        FsmState CanBind = bind.GetState("Can Bind?")!;
 
-        FsmState CanBind = bind.GetState("Can Bind?");
+        FsmState BindType = bind.GetState("Bind Type")!;
 
-        FsmState BindType = bind.GetState("Bind Type");
+        FsmState QuickBind = bind.GetState("Quick Bind?")!;
 
-        FsmState QuickBind = bind.GetState("Quick Bind?");
+        FsmState BindBell = bind.GetState("Bind Bell?")!;
 
-        FsmState BindBell = bind.GetState("Bind Bell?");
+        FsmState EndBind = bind.GetState("End Bind")!;
 
-        FsmState EndBind = bind.GetState("End Bind");
-
-        FsmState QuickCraft = bind.GetState("Quick Craft?");
-        FsmState UseReserve = bind.GetState("Use Reserve Bind?");
-        FsmState ReserveBurst = bind.GetState("Reserve Bind Burst");
+        FsmState QuickCraft = bind.GetState("Quick Craft?")!;
+        FsmState UseReserve = bind.GetState("Use Reserve Bind?")!;
+        FsmState ReserveBurst = bind.GetState("Reserve Bind Burst")!;
 
         FsmInt healValue = bind.GetIntVariable("Heal Amount");
         FsmInt healAmount = bind.GetIntVariable("Bind Amount");
@@ -89,9 +89,8 @@ internal class Tool_CrestFSMEdits
                 bind.SendEvent("FINISHED");
             });
             
-            if (NeedleforgePlugin.uniqueBind.ContainsKey(crest.name))
+            if (NeedleforgePlugin.uniqueBind.TryGetValue(crest.name, out UniqueBindEvent bindData))
             {
-                var bindData = NeedleforgePlugin.uniqueBind[crest.name];
                 FsmState specialBindCheck = bind.AddState($"{crest.name} Special Bind?");
                 FsmState specialBindTrigger = bind.AddState($"{crest.name} Special Bind Trigger");
                 FsmEvent specialBindTransition = whichCrest.AddTransition($"{crest.name} Special", specialBindCheck.name);
@@ -159,7 +158,7 @@ internal class Tool_CrestFSMEdits
     {
 
         PlayMakerFSM toolEvents = __instance.toolEventTarget;
-        FsmState toolChoiceState = toolEvents.GetState("Tool Choice");
+        FsmState toolChoiceState = toolEvents.GetState("Tool Choice")!;
 
         foreach (ToolData newTool in NeedleforgePlugin.newToolData)
         {

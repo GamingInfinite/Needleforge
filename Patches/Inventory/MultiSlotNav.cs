@@ -23,7 +23,7 @@ internal class MultiSlotNav
         if (__instance == __result)
         {
             InventoryItemSelectable nextSelectable = BaseGetNextSelectable(__instance, direction);
-            InventoryItemTool inventoryItemTool = nextSelectable as InventoryItemTool;
+            InventoryItemTool? inventoryItemTool = nextSelectable as InventoryItemTool;
             if (inventoryItemTool == null)
             {
                 return;
@@ -32,7 +32,7 @@ internal class MultiSlotNav
             if ((int)__instance.manager.SelectedSlot.Type > 3)
             {
                 ColorData data = NeedleforgePlugin.newColors[(int)__instance.manager.SelectedSlot.Type - 4];
-                ColorData toolData = null;
+                ColorData? toolData = null;
                 if ((int)inventoryItemTool.itemData.Type > 3)
                 {
                     toolData = NeedleforgePlugin.newColors[(int)inventoryItemTool.itemData.Type - 4];
@@ -109,7 +109,7 @@ internal class MultiSlotNav
             ColorData slotData = NeedleforgePlugin.newColors[(int)slot.Type - 4];
             List<InventoryItemTool> tools = __instance.toolList.GetListItems<InventoryItemTool>(tool =>
                 (slotData.ValidTypes.Contains(tool.ToolType) || slotData.allColorsValid) && !tool.itemData.IsEquipped);
-            InventoryItemTool firstTool = null;
+            InventoryItemTool? firstTool = null;
             if (tools.Count > 0)
             {
                 firstTool = tools[0];

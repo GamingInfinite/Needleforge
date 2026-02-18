@@ -44,7 +44,7 @@ internal class HighlightTools
             {
                 Color color;
                 ColorData slotData = NeedleforgePlugin.newColors[(int)__instance.manager.SelectedSlot.Type - 4];
-                ColorData itemData = null;
+                ColorData? itemData = null;
                 if ((int)__instance.itemData.Type > 3)
                 {
                     itemData = NeedleforgePlugin.newColors[(int)__instance.itemData.Type - 4];

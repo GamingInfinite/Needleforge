@@ -1,282 +1,355 @@
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using HutongGames.PlayMaker;
 using Needleforge.Data;
 using PrepatcherPlugin;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
 using TeamCherry.Localization;
 using UnityEngine;
+using BindEventHandler = Needleforge.Data.CrestData.BindEventHandler;
 
-namespace Needleforge
+namespace Needleforge;
+
+#pragma warning disable CS1591 // Missing XML comment
+[BepInAutoPlugin(id: "io.github.needleforge")]
+public partial class NeedleforgePlugin : BaseUnityPlugin
+#pragma warning restore CS1591
 {
-    // TODO - adjust the plugin guid as needed
-    [BepInAutoPlugin(id: "io.github.needleforge")]
-    public partial class NeedleforgePlugin : BaseUnityPlugin
+    internal static ManualLogSource logger;
+    internal static Harmony harmony;
+
+    internal static List<ToolData> newToolData = [];
+    internal static List<CrestData> newCrestData = [];
+    internal static List<ToolCrest> newCrests = [];
+    internal static List<ToolItem> newTools = [];
+    internal static ObservableCollection<ColorData> newColors = [];
+
+    internal static Dictionary<string, GameObject> hudRoots = [];
+    internal static Dictionary<string, BindEventHandler> bindEvents = [];
+    internal static Dictionary<string, Action> bindCompleteEvents = [];
+    internal static Dictionary<string, UniqueBindEvent> uniqueBind = [];
+
+    internal static Dictionary<string, Action> toolEventHooks = [];
+
+    /// <summary>
+    /// A custom tool color. Green slots can accept green, blue and yellow tools;
+    /// and green tools can be equipped into green, blue, and yellow slots.
+    /// </summary>
+    public static readonly ColorData GreenTools = AddToolColor(
+        "Green",
+        new Color(0.57f, 0.86f, 0.59f, 1f)
+    );
+
+    /// <summary>
+    /// A custom tool color. Pink slots can accept pink, white and red tools;
+    /// and pink tools can be equipped into pink, white and red slots.
+    /// </summary>
+    public static readonly ColorData PinkTools = AddToolColor(
+        "Pink",
+        new Color(1f, 0.59f, 0.78f, 1f),
+        true
+    );
+
+    /// <summary>
+    /// A custom tool color. Black slots can accept tools of any color;
+    /// and black tools can be equipped into slots of any color.
+    /// </summary>
+    public static readonly ColorData BlackTools = AddToolColor(
+        "Black",
+        new Color(0.40f, 0.40f, 0.40f, 1f),
+        true
+    );
+
+    private void Awake()
     {
-        public static ManualLogSource logger;
-        public static Harmony harmony;
+        logger = Logger;
+        Logger.LogInfo($"Plugin {Name} ({Id}) has loaded!");
+        harmony = new(Id);
+        harmony.PatchAll();
 
-        public static List<ToolData> newToolData = new();
-        public static List<CrestData> newCrestData = new();
-        public static List<ToolCrest> newCrests = new();
-        public static List<ToolItem> newTools = new();
-        public static ObservableCollection<ColorData> newColors = new();
+        newColors.CollectionChanged += NewColors_CollectionChanged;
 
-        public static Dictionary<string, GameObject> hudRoots = new();
-        public static Dictionary<string, Action<FsmInt, FsmInt, FsmFloat, PlayMakerFSM>> bindEvents = new();
-        public static Dictionary<string, Action> bindCompleteEvents = new();
-        public static Dictionary<string, UniqueBindEvent> uniqueBind = new();
+        GreenTools.AddValidTypes(ToolItemType.Yellow, ToolItemType.Blue);
+        PinkTools.AddValidTypes(ToolItemType.Red, ToolItemType.Skill);
+        BlackTools.allColorsValid = true;
+    }
 
-        public static Dictionary<string, Action> toolEventHooks = new();
+    private void NewColors_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        // Doing this so the static variable updates
+        // whenever a user of needleforge adds a color, in theory
+        InventoryToolCrest.TOOL_TYPES = (ToolItemType[])Enum.GetValues(typeof(ToolItemType));
+    }
 
-        /// <summary>
-        /// A custom tool color. Green slots can accept green, blue and yellow tools;
-        /// and green tools can be equipped into green, blue, and yellow slots.
-        /// </summary>
-        public static readonly ColorData GreenTools = AddToolColor(
-            "Green",
-            new Color(0.57f, 0.86f, 0.59f, 1f)
-        );
+    /// <summary>
+    /// Returns the <see cref="ToolData"/> object with the given name, if one exists.
+    /// </summary>
+    public static ToolData? GetToolDataByName(string name)
+    {
+        return newToolData.FirstOrDefault(t => t.name == name);
+    }
 
-        /// <summary>
-        /// A custom tool color. Pink slots can accept pink, white and red tools;
-        /// and pink tools can be equipped into pink, white and red slots.
-        /// </summary>
-        public static readonly ColorData PinkTools = AddToolColor(
-            "Pink",
-            new Color(1f, 0.59f, 0.78f, 1f),
-            true
-        );
-
-        /// <summary>
-        /// A custom tool color. Black slots can accept tools of any color;
-        /// and black tools can be equipped into slots of any color.
-        /// </summary>
-        public static readonly ColorData BlackTools = AddToolColor(
-            "Black",
-            new Color(0.40f, 0.40f, 0.40f, 1f),
-            true
-        );
-
-        private void Awake()
+    /// <summary>
+    /// Creates a new custom tool type.
+    /// </summary>
+    /// <param name="name">The name of this tool color.</param>
+    /// <param name="color">
+    ///     The visual color to use for tools/slots of this type in the inventory.
+    /// </param>
+    /// <param name="isAttackType">
+    ///     Whether or not tools of this color can be used as attacks,
+    ///     like the Red and Skill types in the base game.
+    /// </param>
+    /// <returns>The <see cref="ColorData"/> for the type that was created.</returns>
+    public static ColorData AddToolColor(string name, Color color, bool isAttackType = false)
+    {
+        ColorData newColor = new()
         {
-            logger = Logger;
-            Logger.LogInfo($"Plugin {Name} ({Id}) has loaded!");
-            harmony = new("com.example.patch");
-            harmony.PatchAll();
+            name = name,
+            color = color,
+            isAttackType = isAttackType
+        };
+        newColors.Add(newColor);
+        return newColor;
+    }
 
-            newColors.CollectionChanged += NewColors_CollectionChanged;
+    #region Tools
 
-            GreenTools.AddValidTypes(ToolItemType.Yellow, ToolItemType.Blue);
-            PinkTools.AddValidTypes(ToolItemType.Red, ToolItemType.Skill);
-            BlackTools.allColorsValid = true;
-        }
-
-        private void NewColors_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    /// <summary>
+    /// Creates a new custom liquid tool and adds it to Needleforge.
+    /// </summary>
+    /// <param name="name">Internal name of the tool.</param>
+    /// <param name="maxRefills">Maximum amount of refills kept in the inventory for this tool.</param>
+    /// <param name="storageAmount">Maximum uses of the tool Hornet can carry at once.</param>
+    /// <param name="InfiniteRefillsPD">
+    ///     Name of the PlayerData bool which determines if this tool has infinite refills.
+    /// </param>
+    /// <param name="liquidColor">Color of the tool's refill liquid sprite in the inventory.</param>
+    /// <param name="resource">Type of resource used to replenish uses of the tool.</param>
+    /// <param name="replenishUsage">
+    ///     Determines how the amount of <paramref name="resource"/> it costs to
+    ///     replenish uses of the tool is calculated.
+    /// </param>
+    /// <param name="replenishMult">
+    ///     Multiplier on the amount of <paramref name="resource"/> it costs to
+    ///     replenish uses of the tool.
+    /// </param>
+    /// <param name="fullSprites">
+    ///     Set of sprites used to display the tool in the inventory and HUD when
+    ///     it has some uses remaining.
+    /// </param>
+    /// <param name="emptySprites">
+    ///     Set of sprites used to display the tool in the inventory and HUD when
+    ///     it has zero uses remaining.
+    /// </param>
+    /// <param name="clip">Name of the animation clip Hornet plays when using this tool.</param>
+    /// <returns>The newly created <see cref="LiquidToolData"/>.</returns>
+    public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
+        string InfiniteRefillsPD, Color liquidColor,
+        ToolItem.ReplenishResources resource, ToolItem.ReplenishUsages replenishUsage, float replenishMult,
+        StateSprites? fullSprites, StateSprites? emptySprites,
+        string clip = "Charge Up")
+    {
+        LiquidToolData data = new()
         {
-            // Doing this so the static variable updates
-            // whenever a user of needleforge adds a color, in theory
-            InventoryToolCrest.TOOL_TYPES = (ToolItemType[])Enum.GetValues(typeof(ToolItemType));
-        }
+            type = ToolItemType.Red,
+            name = name,
 
-        public static ToolData GetToolDataByName(string name)
+            color = liquidColor,
+            maxRefills = maxRefills,
+            storageAmount = storageAmount,
+            infiniteRefills = InfiniteRefillsPD,
+
+            clip = clip,
+
+            resource = resource,
+            replenishUsage = replenishUsage,
+            replenishMult = replenishMult,
+
+            FullSprites = fullSprites,
+            EmptySprites = emptySprites
+        };
+
+        newToolData.Add(data);
+        toolEventHooks[$"{data.name} BEFORE ANIM"] = () => { ModHelper.Log($"BEFORE ANIM for {data.name}"); };
+        toolEventHooks[$"{data.name} AFTER ANIM"] = () => { ModHelper.Log($"AFTER ANIM for {data.name}"); };
+
+        return data;
+    }
+
+    /// <inheritdoc cref="AddLiquidTool(string, int, int, string, Color, ToolItem.ReplenishResources, ToolItem.ReplenishUsages, float, StateSprites?, StateSprites?, string)"/>
+    public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
+        string InfiniteRefillsPD, Color liquidColor, ToolItem.ReplenishResources resource,
+        ToolItem.ReplenishUsages replenishUsage, float replenishMult)
+    {
+        return AddLiquidTool(name, maxRefills, storageAmount, InfiniteRefillsPD, liquidColor, resource,
+            replenishUsage, replenishMult, null, null, "Charge Up");
+    }
+
+    /// <inheritdoc cref="AddLiquidTool(string, int, int, string, Color, ToolItem.ReplenishResources, ToolItem.ReplenishUsages, float, StateSprites?, StateSprites?, string)"/>
+    public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
+        string InfiniteRefillsPD, Color liquidColor)
+    {
+        return AddLiquidTool(name, maxRefills, storageAmount, InfiniteRefillsPD, liquidColor,
+            ToolItem.ReplenishResources.Shard, ToolItem.ReplenishUsages.Percentage, 1f);
+    }
+
+    /// <inheritdoc cref="AddLiquidTool(string, int, int, string, Color, ToolItem.ReplenishResources, ToolItem.ReplenishUsages, float, StateSprites?, StateSprites?, string)"/>
+    public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount, Color liquidColor)
+    {
+        return AddLiquidTool(name, maxRefills, storageAmount, "", liquidColor);
+    }
+
+    /// <summary>
+    /// Creates a new custom basic tool and adds it to Needleforge.
+    /// </summary>
+    /// <param name="name">Internal name of the tool.</param>
+    /// <param name="type">The type/color of the tool.</param>
+    /// <param name="displayName">In-game display name of the tool.</param>
+    /// <param name="description">In-game description of the tool.</param>
+    /// <param name="InventorySprite">Tool sprite in the inventory UI.</param>
+    /// <returns>The newly created <see cref="ToolData"/>.</returns>
+    public static ToolData AddTool(string name, ToolItemType type, LocalisedString displayName,
+        LocalisedString description, Sprite? InventorySprite)
+    {
+        ToolData data = new()
         {
-            foreach (var t in newToolData)
+            inventorySprite = InventorySprite,
+            type = type,
+            name = name,
+            displayName = displayName,
+            description = description,
+        };
+
+        PlayerDataVariableEvents.OnGetBool += (pd, fieldname, current) =>
+        {
+            if (fieldname == data.unlockedPDString)
             {
-                if (t.name == name)
-                {
-                    return t;
-                }
+                return data.UnlockedAtStart;
             }
 
-            return null;
-        }
+            return current;
+        };
 
-        public static ColorData AddToolColor(string name, Color color, bool isAttackType = false)
-        {
-            ColorData newColor = new()
-            {
-                name = name,
-                color = color,
-                isAttackType = isAttackType
-            };
-            newColors.Add(newColor);
-            return newColor;
-        }
-
-        public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
-            string InfiniteRefillsPD, Color liquidColor,
-            ToolItem.ReplenishResources resource, ToolItem.ReplenishUsages replenishUsage, float replenishMult,
-            StateSprites? fullSprites, StateSprites? emptySprites,
-            string clip = "Charge Up")
-        {
-            LiquidToolData data = new()
-            {
-                type = ToolItemType.Red,
-                name = name,
-
-                color = liquidColor,
-                maxRefills = maxRefills,
-                storageAmount = storageAmount,
-                infiniteRefills = InfiniteRefillsPD,
-
-                clip = clip,
-
-                resource = resource,
-                replenishUsage = replenishUsage,
-                replenishMult = replenishMult,
-
-                FullSprites = fullSprites,
-                EmptySprites = emptySprites
-            };
-
-            newToolData.Add(data);
-            toolEventHooks[$"{data.name} BEFORE ANIM"] = () => { ModHelper.Log($"BEFORE ANIM for {data.name}"); };
-            toolEventHooks[$"{data.name} AFTER ANIM"] = () => { ModHelper.Log($"AFTER ANIM for {data.name}"); };
-
-            return data;
-        }
-
-        public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
-            string InfiniteRefillsPD, Color liquidColor, ToolItem.ReplenishResources resource,
-            ToolItem.ReplenishUsages replenishUsage, float replenishMult)
-        {
-            return AddLiquidTool(name, maxRefills, storageAmount, InfiniteRefillsPD, liquidColor, resource,
-                replenishUsage, replenishMult, null, null, "Charge Up");
-        }
-
-        public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount,
-            string InfiniteRefillsPD, Color liquidColor)
-        {
-            return AddLiquidTool(name, maxRefills, storageAmount, InfiniteRefillsPD, liquidColor,
-                ToolItem.ReplenishResources.Shard, ToolItem.ReplenishUsages.Percentage, 1f);
-        }
-
-        public static LiquidToolData AddLiquidTool(string name, int maxRefills, int storageAmount, Color liquidColor)
-        {
-            return AddLiquidTool(name, maxRefills, storageAmount, "", liquidColor);
-        }
-
-        public static ToolData AddTool(string name, ToolItemType type, LocalisedString displayName,
-            LocalisedString description, Sprite? InventorySprite)
-        {
-            ToolData data = new()
-            {
-                inventorySprite = InventorySprite,
-                type = type,
-                name = name,
-                displayName = displayName,
-                description = description,
-            };
-
-            PlayerDataVariableEvents.OnGetBool += (pd, fieldname, current) =>
-            {
-                if (fieldname == data.unlockedPDString)
-                {
-                    return data.UnlockedAtStart;
-                }
-
-                return current;
-            };
-
-            newToolData.Add(data);
-            return data;
-        }
-
-        public static ToolData AddTool(string name, ToolItemType type, Sprite? InventorySprite)
-        {
-            return AddTool(name, type, new() { Key = $"{name}LocalKey", Sheet = "Mods.your.mod.id" },
-                new() { Key = $"{name}LocalKeyDesc", Sheet = "Mods.your.mod.id" }, InventorySprite);
-        }
-
-        public static ToolData AddTool(string name, ToolItemType type)
-        {
-            return AddTool(name, type, null);
-        }
-
-        public static ToolData AddTool(string name, ToolItemType type, LocalisedString displayName,
-            LocalisedString description)
-        {
-            return AddTool(name, type, displayName, description, null);
-        }
-
-        public static ToolData AddTool(string name, LocalisedString displayName, LocalisedString description)
-        {
-            return AddTool(name, ToolItemType.Yellow, displayName, description, null);
-        }
-
-        public static ToolData AddTool(string name)
-        {
-            return AddTool(name, ToolItemType.Yellow, null);
-        }
-
-        /// <summary>
-        /// Adds your class with the sprites already attached.
-        /// <para/>
-        /// IMPORTANT: <br/>
-        /// for obvious reasons certain data will return either null or some default value (eg. false for bool) until a Save is loaded.
-        /// </summary>
-        /// <param name="name">Name of the Crest</param>
-        /// <param name="RealSprite">Inventory Sprite</param>
-        /// <param name="Silhouette">Crest List Sprite</param>
-        /// <returns><see cref="CrestData"/></returns>
-        public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
-            Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
-        {
-            CrestData crestData = new(name, displayName, description, RealSprite, Silhouette, CrestGlow);
-
-            newCrestData.Add(crestData);
-            bindEvents[name] = (value, amount, time, fsm) => { ModHelper.Log($"Running Bind for {name} Crest"); };
-            bindCompleteEvents[name] = () => { ModHelper.Log($"Bind for {name} Crest Complete"); };
-
-            return crestData;
-        }
-
-        public static CrestData AddCrest(string name, Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
-        {
-            return AddCrest(name, new() { Key = $"{name}LocalKey", Sheet = "Mods.your.mod.id" },
-                new() { Key = $"{name}LocalKeyDesc", Sheet = "Mods.your.mod.id" }, RealSprite, Silhouette, CrestGlow);
-        }
-
-        public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
-            Sprite? RealSprite, Sprite? Silhouette)
-        {
-            return AddCrest(name, displayName, description, RealSprite, Silhouette, null);
-        }
-
-        public static CrestData AddCrest(string name, Sprite? RealSprite, Sprite? Silhouette)
-        {
-            return AddCrest(name, RealSprite, Silhouette, null);
-        }
-
-        public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
-            Sprite? RealSprite)
-        {
-            return AddCrest(name, displayName, description, RealSprite, null);
-        }
-
-        public static CrestData AddCrest(string name, Sprite? RealSprite)
-        {
-            return AddCrest(name, RealSprite, null);
-        }
-
-        public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description)
-        {
-            return AddCrest(name, displayName, description, null);
-        }
-
-        /// <summary>
-        /// Adds a named Crest
-        /// </summary>
-        /// <param name="name">Name of the Crest</param>
-        /// <returns><see cref="CrestData"/></returns>
-        public static CrestData AddCrest(string name)
-        {
-            return AddCrest(name, null);
-        }
+        newToolData.Add(data);
+        return data;
     }
+
+    /// <inheritdoc cref="AddTool(string, ToolItemType, LocalisedString, LocalisedString, Sprite?)"/>
+    public static ToolData AddTool(string name, ToolItemType type, Sprite? InventorySprite)
+    {
+        return AddTool(name, type, new() { Key = $"{name}LocalKey", Sheet = "Mods.your.mod.id" },
+            new() { Key = $"{name}LocalKeyDesc", Sheet = "Mods.your.mod.id" }, InventorySprite);
+    }
+
+    /// <inheritdoc cref="AddTool(string, ToolItemType, LocalisedString, LocalisedString, Sprite?)"/>
+    public static ToolData AddTool(string name, ToolItemType type)
+    {
+        return AddTool(name, type, null);
+    }
+
+    /// <inheritdoc cref="AddTool(string, ToolItemType, LocalisedString, LocalisedString, Sprite?)"/>
+    public static ToolData AddTool(string name, ToolItemType type, LocalisedString displayName,
+        LocalisedString description)
+    {
+        return AddTool(name, type, displayName, description, null);
+    }
+
+    /// <inheritdoc cref="AddTool(string, ToolItemType, LocalisedString, LocalisedString, Sprite?)"/>
+    public static ToolData AddTool(string name, LocalisedString displayName, LocalisedString description)
+    {
+        return AddTool(name, ToolItemType.Yellow, displayName, description, null);
+    }
+
+    /// <inheritdoc cref="AddTool(string, ToolItemType, LocalisedString, LocalisedString, Sprite?)"/>
+    public static ToolData AddTool(string name)
+    {
+        return AddTool(name, ToolItemType.Yellow, null);
+    }
+
+    #endregion
+
+    #region Crests
+
+    /// <summary>
+    /// Creates a new custom crest and adds it to Needleforge.
+    /// </summary>
+    /// <remarks>
+    /// <b>Important:</b> Certain data will return either null or some default value
+    /// (eg. false for bool) until a Save is loaded.
+    /// </remarks>
+    /// <param name="name">Internal name of the crest.</param>
+    /// <param name="displayName">In-game display name of the crest.</param>
+    /// <param name="description">In-game description of the crest.</param>
+    /// <param name="RealSprite">Main crest sprite in the inventory UI.</param>
+    /// <param name="Silhouette">
+    ///     Filled-in sprite used for unselected crests in the crest swapping menu.
+    /// </param>
+    /// <param name="CrestGlow">
+    ///     Sprite which briefly flashes over top of the <paramref name="RealSprite"/>
+    ///     when the crest is equipped.
+    /// </param>
+    /// <returns>The newly created <see cref="CrestData"/>.</returns>
+    public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
+        Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
+    {
+        CrestData crestData = new(name, displayName, description, RealSprite, Silhouette, CrestGlow);
+
+        newCrestData.Add(crestData);
+        bindEvents[name] = (value, amount, time, fsm) => { ModHelper.Log($"Running Bind for {name} Crest"); };
+        bindCompleteEvents[name] = () => { ModHelper.Log($"Bind for {name} Crest Complete"); };
+
+        return crestData;
+    }
+
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
+    public static CrestData AddCrest(string name, Sprite? RealSprite, Sprite? Silhouette, Sprite? CrestGlow)
+    {
+        return AddCrest(name, new() { Key = $"{name}LocalKey", Sheet = "Mods.your.mod.id" },
+            new() { Key = $"{name}LocalKeyDesc", Sheet = "Mods.your.mod.id" }, RealSprite, Silhouette, CrestGlow);
+    }
+
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
+    public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
+        Sprite? RealSprite, Sprite? Silhouette)
+    {
+        return AddCrest(name, displayName, description, RealSprite, Silhouette, null);
+    }
+
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
+    public static CrestData AddCrest(string name, Sprite? RealSprite, Sprite? Silhouette)
+    {
+        return AddCrest(name, RealSprite, Silhouette, null);
+    }
+
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
+    public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description,
+        Sprite? RealSprite)
+    {
+        return AddCrest(name, displayName, description, RealSprite, null);
+    }
+
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
+    public static CrestData AddCrest(string name, Sprite? RealSprite)
+    {
+        return AddCrest(name, RealSprite, null);
+    }
+
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
+    public static CrestData AddCrest(string name, LocalisedString displayName, LocalisedString description)
+    {
+        return AddCrest(name, displayName, description, null);
+    }
+
+    /// <inheritdoc cref="AddCrest(string, LocalisedString, LocalisedString, Sprite?, Sprite?, Sprite?)" />
+    public static CrestData AddCrest(string name)
+    {
+        return AddCrest(name, null);
+    }
+
+    #endregion
 }

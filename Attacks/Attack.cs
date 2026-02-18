@@ -34,6 +34,7 @@ public class Attack : AttackBase
     }
     private string _animName = "";
 
+    /// <inheritdoc/>
     public override Vector2 Scale
     {
         get => base.Scale;
@@ -69,15 +70,22 @@ public class Attack : AttackBase
     }
     private Vector3 _wallSlashFlipper = Vector3.one;
 
+    /// <summary>
+    /// The component responsible for animating the attack and de/activating its hitbox.
+    /// </summary>
     protected NailSlash? nailSlash;
+
+    /// <inheritdoc/>
     protected override NailAttackBase? NailAttack => nailSlash;
 
+    /// <inheritdoc/>
     protected override void AddComponents(HeroController hc)
     {
         nailSlash = GameObject!.AddComponent<NailSlash>();
         nailSlash.animName = AnimName;
     }
 
+    /// <inheritdoc/>
     protected override void LateInitializeComponents(HeroController hc)
     {
         nailSlash!.scale = Scale.MultiplyElements(_wallSlashFlipper);

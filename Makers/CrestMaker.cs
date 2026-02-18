@@ -2,42 +2,41 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Needleforge.Makers
+namespace Needleforge.Makers;
+
+internal static class CrestMaker
 {
-    internal class CrestMaker
-    {
-        internal static ToolCrestsData.Data CreateDefaultSaveData() =>
-            new()
-            {
-                IsUnlocked = true,
-                Slots = [],
-                DisplayNewIndicator = true,
-            };
-
-        internal static ToolCrest CreateCrest(CrestData crestData)
+    internal static ToolCrestsData.Data CreateDefaultSaveData() =>
+        new()
         {
-            List<ToolCrest> crests = ToolItemManager.GetAllCrests();
-            ToolCrest hunter = crests[0];
+            IsUnlocked = true,
+            Slots = [],
+            DisplayNewIndicator = true,
+        };
 
-            ToolCrest newCrest = ScriptableObject.CreateInstance<ToolCrest>();
+    internal static ToolCrest CreateCrest(CrestData crestData)
+    {
+        List<ToolCrest> crests = ToolItemManager.GetAllCrests();
+        ToolCrest hunter = crests[0];
 
-            newCrest.name = crestData.name;
-            newCrest.crestGlow = crestData.CrestGlow ? crestData.CrestGlow : hunter.crestGlow;
-            newCrest.crestSilhouette = crestData.Silhouette ? crestData.Silhouette : hunter.crestSilhouette;
-            newCrest.crestSprite = crestData.RealSprite ? crestData.RealSprite : hunter.crestSprite;
+        ToolCrest newCrest = ScriptableObject.CreateInstance<ToolCrest>();
 
-            newCrest.displayName = crestData.displayName;
-            newCrest.description = crestData.description;
+        newCrest.name = crestData.name;
+        newCrest.crestGlow = crestData.CrestGlow ? crestData.CrestGlow : hunter.crestGlow;
+        newCrest.crestSilhouette = crestData.Silhouette ? crestData.Silhouette : hunter.crestSilhouette;
+        newCrest.crestSprite = crestData.RealSprite ? crestData.RealSprite : hunter.crestSprite;
 
-            newCrest.slots = [.. crestData.slots];
+        newCrest.displayName = crestData.displayName;
+        newCrest.description = crestData.description;
 
-            newCrest.heroConfig = crestData.Moveset.HeroConfig;
+        newCrest.slots = [.. crestData.slots];
 
-            ToolItemManager.Instance.crestList.Add(newCrest);
+        newCrest.heroConfig = crestData.Moveset.HeroConfig;
 
-            NeedleforgePlugin.newCrests.Add(newCrest);
+        ToolItemManager.Instance.crestList.Add(newCrest);
 
-            return newCrest;
-        }
+        NeedleforgePlugin.newCrests.Add(newCrest);
+
+        return newCrest;
     }
 }

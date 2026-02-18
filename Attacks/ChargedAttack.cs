@@ -239,6 +239,7 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
 
     private ObservableCollection<Color> _screenFlashColors = [];
 
+    /// <inheritdoc/>
     public override Step[] Steps
     {
         get => base.Steps;
@@ -258,6 +259,8 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
 
     #endregion
 
+
+    #pragma warning disable CS1591 // Missing XML comment
     protected StartChargedAttackOnActivation? startOnActivation;
     protected DisableAfterTime? disableTimer;
     protected KeepWorldPosition? keepPos;
@@ -269,7 +272,9 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
 
     protected CameraShakeAnimator? cameraShaker;
     protected ScreenFlashAnimator? screenFlasher;
+    #pragma warning restore CS1591 // Missing XML comment
 
+    /// <inheritdoc/>
     public override GameObject CreateGameObject(GameObject parent, HeroController hc)
     {
         foreach (var attack in Steps)
@@ -367,8 +372,10 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
     /// </summary>
     public enum VanillaVoiceTable
     {
+        #pragma warning disable CS1591 // Missing XML comment
         DEFAULT,
         BEAST_RAGE,
+        #pragma warning restore CS1591
     }
 
     /// <summary>
@@ -417,13 +424,17 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
         #endregion
 
         private NailSlashWithEndEvent? nailSlash;
+
+        /// <inheritdoc/>
         protected override NailAttackBase? NailAttack => nailSlash;
 
+        /// <inheritdoc/>
         protected override void AddComponents(HeroController hc)
         {
             nailSlash = GameObject!.AddComponent<NailSlashWithEndEvent>();
         }
 
+        /// <inheritdoc/>
         protected override void LateInitializeComponents(HeroController hc)
         {
             nailSlash!.animName = AnimName;

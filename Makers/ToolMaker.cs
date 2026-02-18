@@ -4,7 +4,10 @@ using UnityEngine;
 
 namespace Needleforge.Makers
 {
-    public class ToolMaker
+    /// <summary>
+    /// This is responsible for creating the actual ToolItem classes when the game wakes up.
+    /// </summary>
+    internal static class ToolMaker
     {
         public static ToolItemsData.Data CreateDefaultData() => new()
         {
@@ -22,7 +25,8 @@ namespace Needleforge.Makers
             UsedExtra = false,
         };
 
-        public static ToolItemBasic CreateBasicTool(Sprite? inventorySprite, ToolItemType type, string name, LocalisedString displayName, LocalisedString description)
+        public static ToolItemBasic CreateBasicTool(Sprite? inventorySprite, ToolItemType type, string name,
+            LocalisedString displayName, LocalisedString description)
         {
             ToolItem item = ToolItemManager.Instance.toolItems[62];
 
@@ -38,21 +42,25 @@ namespace Needleforge.Makers
 
             newTool.baseStorageAmount = 0;
 
-            newTool.inventorySprite = inventorySprite ?? item.GetInventorySprite(ToolItem.IconVariants.Default);
+            newTool.inventorySprite = inventorySprite ? inventorySprite : item.GetInventorySprite(ToolItem.IconVariants.Default);
             newTool.SavedData = CreateDefaultData();
             newTool.alternateUnlockedTest = new()
             {
-                TestGroups = [
-                    new () {
-                        Tests = [
-                            new(){
+                TestGroups =
+                [
+                    new()
+                    {
+                        Tests =
+                        [
+                            new()
+                            {
                                 FieldName = NeedleforgePlugin.GetToolDataByName(name).unlockedPDString,
                                 Type = PlayerDataTest.TestType.Bool,
                                 BoolValue = true,
                             }
                         ]
                     }
-                    ]
+                ]
             };
 
             AddCustomTool(newTool);
@@ -68,8 +76,9 @@ namespace Needleforge.Makers
         }
 
         //TODO: CreateLiquidTool
-        public static ToolItemStatesLiquid CreateLiquidTool(string name, int storageAmount, int maxRefills, Color fluidColor, string infiniteRefillsPD, 
-            ToolItem.ReplenishResources resource, ToolItem.ReplenishUsages replenishUsage, float replenishMult, 
+        public static ToolItemStatesLiquid CreateLiquidTool(string name, int storageAmount, int maxRefills,
+            Color fluidColor, string infiniteRefillsPD,
+            ToolItem.ReplenishResources resource, ToolItem.ReplenishUsages replenishUsage, float replenishMult,
             StateSprites? full, StateSprites? empty, LocalisedString displayName, LocalisedString description)
         {
             ToolItemStatesLiquid fleaBrew = (ToolItemStatesLiquid)ToolItemManager.Instance.toolItems[26];
@@ -91,7 +100,8 @@ namespace Needleforge.Makers
                 HudSprite = full != null ? full.HudSprite : fleaBrew.fullState.HudSprite,
                 InventorySprite = full != null ? full.InventorySprite : fleaBrew.fullState.InventorySprite,
                 HudSpritePoison = full != null ? full.PoisonHudSprite : fleaBrew.fullState.HudSpritePoison,
-                InventorySpritePoison = full != null ? full.PoisonInventorySprite : fleaBrew.fullState.InventorySpritePoison,
+                InventorySpritePoison =
+                    full != null ? full.PoisonInventorySprite : fleaBrew.fullState.InventorySpritePoison,
                 Usage = new()
                 {
                     FsmEventName = name,
@@ -105,7 +115,8 @@ namespace Needleforge.Makers
                 HudSprite = empty != null ? empty.HudSprite : fleaBrew.emptyState.HudSprite,
                 InventorySprite = empty != null ? empty.InventorySprite : fleaBrew.emptyState.InventorySprite,
                 HudSpritePoison = empty != null ? empty.PoisonHudSprite : fleaBrew.emptyState.HudSpritePoison,
-                InventorySpritePoison = empty != null ? empty.PoisonInventorySprite : fleaBrew.emptyState.InventorySpritePoison,
+                InventorySpritePoison =
+                    empty != null ? empty.PoisonInventorySprite : fleaBrew.emptyState.InventorySpritePoison,
                 Usage = new()
                 {
                     FsmEventName = name,

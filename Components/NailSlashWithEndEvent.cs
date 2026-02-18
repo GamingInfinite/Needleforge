@@ -11,20 +11,34 @@ namespace Needleforge.Components;
 /// </remarks>
 public class NailSlashWithEndEvent : NailSlash
 {
+    /// <summary>
+    /// Event which occurs when the animation for an attack completes.
+    /// </summary>
     public event Action? AttackEnding;
 
+    /// <summary>
+    /// Override of <see cref="NailSlash.StartSlash"/> which invokes <see cref="AttackEnding"/>
+    /// when the attack animation completes.
+    /// </summary>
     public new void StartSlash()
     {
         base.StartSlash();
         anim.AnimationCompleted = this.OnAnimationCompleted;
     }
 
+    /// <summary>
+    /// Override of <see cref="NailSlash.PlaySlash"/> which invokes <see cref="AttackEnding"/>
+    /// when the attack animation completes.
+    /// </summary>
     public new void PlaySlash()
     {
         base.PlaySlash();
-		anim.AnimationCompleted = this.OnAnimationCompleted;
-	}
+        anim.AnimationCompleted = this.OnAnimationCompleted;
+    }
 
+    /// <summary>
+    /// Animation completed event handler which invokes <see cref="AttackEnding"/>.
+    /// </summary>
     public new void OnAnimationCompleted(tk2dSpriteAnimator animator, tk2dSpriteAnimationClip clip)
     {
         base.OnAnimationCompleted(animator, clip);

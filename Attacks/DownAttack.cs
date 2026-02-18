@@ -53,8 +53,8 @@ public class DownAttack : AttackBase
 
     /// <summary>
     /// Controls the feel of the bounce when this down attack hits some obstacles/enemies.
-    /// This is only used if <see cref="MovesetData.HeroConfig"/>'s down slash type is
-    /// set to <see cref="DownSlashTypes.Slash"/>.
+    /// If <see cref="MovesetData.HeroConfig"/>'s down slash type is
+    /// <see cref="DownSlashTypes.Custom"/>, this has no effect.
     /// </summary>
     // TODO: figure out and document what the properties of this object do.
     public HeroSlashBounceConfig BounceConfig
@@ -72,6 +72,11 @@ public class DownAttack : AttackBase
 
     #endregion
 
+    /// <summary>
+    /// A reference to the hero config of the <see cref="MovesetData"/> this attack is
+    /// associated with. Used to decide which type of <see cref="NailAttackBase"/>-derived
+    /// component to attack to the created GameObject.
+    /// </summary>
     protected internal HeroControllerConfig? HeroConfig { get; internal set; }
 
     private HeroDownAttack? heroDownAttack;
@@ -79,9 +84,11 @@ public class DownAttack : AttackBase
     private NailSlash? nailSlash;
     private PlayMakerFSM? reactionFsm;
 
+    /// <inheritdoc/>
     protected override NailAttackBase? NailAttack =>
         heroDownAttack ? heroDownAttack.attack : null;
 
+    /// <inheritdoc/>
     protected override void AddComponents(HeroController hc)
     {
         if (!HeroConfig)
@@ -112,6 +119,7 @@ public class DownAttack : AttackBase
         }
     }
 
+    /// <inheritdoc/>
     protected override void LateInitializeComponents(HeroController hc)
     {
         float downAngle = DirectionUtils.GetAngle(DirectionUtils.Down);
