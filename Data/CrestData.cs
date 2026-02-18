@@ -54,6 +54,12 @@ public class CrestData
     public bool UnlockedAtStart = true;
 
     /// <summary>
+    /// Sets whether or not this crest's tool slots count towards Eva's unlocks
+    /// and quest progression. Default is <see langword="false"/>.
+    /// </summary>
+    public bool slotsCountForEvaQuest = false;
+
+    /// <summary>
     /// In-game name of the crest.
     /// </summary>
     public LocalisedString displayName;
