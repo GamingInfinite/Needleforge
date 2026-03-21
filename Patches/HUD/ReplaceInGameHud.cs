@@ -3,7 +3,6 @@ using HarmonyLib;
 using Needleforge.Data;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using static Needleforge.NeedleforgePlugin;
@@ -17,118 +16,101 @@ namespace Needleforge.Patches.HUD;
 /// Patches which enable custom crests to use custom HUD frames in-game.
 /// </summary>
 [HarmonyPatch(typeof(BindOrbHudFrame), nameof(BindOrbHudFrame.DoChangeFrame))]
-internal class ReplaceInGameHud
+internal static class ReplaceInGameHud
 {
+    const BindingFlags PUBLICSTATIC = BindingFlags.Public | BindingFlags.Static;
 
     /// <summary>
-    /// IL patch which injects an extra branch into the crest selection process of
-    /// <see cref="BindOrbHudFrame.DoChangeFrame"/> to enable setting custom HUD
-    /// animations for custom crests.
+    /// Injects a branch into the crest selection process of <see cref="BindOrbHudFrame.DoChangeFrame"/>
+    /// that allows setting custom HUD animations and coroutines for custom crests.
     /// </summary>
     /// <remarks>
-    /// Many thanks to <see href="https://github.com/hamunii">Hamunii</see> for their
-    /// help making this patch cleaner and more maintainable.
+    /// Thanks <see href="https://github.com/hamunii">Hamunii</see> for the help making
+    /// this patch cleaner and more maintainable.
     /// </remarks>
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> ChangeHud(
         IEnumerable<CodeInstruction> instructions,
         ILGenerator generator
     ) {
-        var cm = new CodeMatcher(instructions, generator);
-        cm.Start();
+        MethodInfo
+            get_HunterCrest2 = typeof(Gameplay)
+                .GetProperty(nameof(Gameplay.HunterCrest2), PUBLICSTATIC).GetGetMethod(),
+            get_ToolBase_IsEquipped = typeof(ToolBase)
+                .GetProperty(nameof(ToolBase.IsEquipped)).GetGetMethod();
+        int
+            localsObject_idx = -1,
+            hunter2_idx = -1;
+        FieldInfo
+            newFrameAnims_f = null!,
+            customAnimRoutine_f = null!;
+        Label
+            elseIfCompleted_label = default,
+            hunter2_newLabel = generator.DefineLabel(),
+            returnFalse_label = generator.DefineLabel();
 
-        #region Locating local variable field references
+        return new CodeMatcher(instructions, generator)
 
-        // Find ldloc index of the runtime class in charge of local vars newFrameAnims
-        // and customAnimRoutine
-        cm.MatchForward(useEnd: false, [
-            new (LdlocRelaxed),
-            new (ci => LdfldWithName(ci, "newFrameAnims"))
-        ]);
-        if (cm.IsInvalid) {
-            cm.ReportFailure(null, logger.LogError);
-            return instructions;
-        }
-        var ldLocalVarsObj = cm.Instruction;
+        // find index of the runtime class in charge of
+        // local variables newFrameAnims and customAnimRoutine
+        .Start()
+        .MatchStartForward([
+            new(x => Ldloc(x, out localsObject_idx)),
+            new(x => Ldfld(x, "newFrameAnims")),
+        ])
 
-        // Find field references for newFrameAnims and customAnimRoutine
-        var newFrameAnims =
-            instructions.First(ci => StfldWithName(ci, "newFrameAnims"))
-            .operand as FieldInfo;
+        // find field references for newFrameAnims and customAnimRoutine
+        .Start()
+        .MatchStartForward([
+            new(x => Stfld(x, "newFrameAnims", out newFrameAnims_f)),
+        ])
+        .Start()
+        .MatchStartForward([
+            new(x => Stfld(x, "customAnimRoutine", out customAnimRoutine_f)),
+        ])
 
-        var customAnimRoutine =
-            instructions.First(ci => StfldWithName(ci, "customAnimRoutine"))
-            .operand as FieldInfo;
+        // find index of hunter_v2
+        .Start()
+        .MatchStartForward([
+            new(x => Call(x, get_HunterCrest2)),
+            new(x => Stloc(x, out hunter2_idx)),
+        ])
 
-        #endregion
+        // find injection site; hunter_v2 else-if block.
+        // record label of the end of the if-statement, steal label of this else-if block
+        .MatchStartForward([
+            new(x => Br(x, out elseIfCompleted_label)),
+            new(x => Ldloc(x, hunter2_idx)),
+            new(x => Callvirt(x, get_ToolBase_IsEquipped)),
+        ])
+        .Advance(1)
+        .StealLabel(hunter2_newLabel, out Label hunter2_oldLabel)
 
-        #region Locating the injection site
+        // inject a new "else-if" block
+        .Insert([
+            // push args onto stack
+            new(OpCodes.Ldarg_0) { labels = [hunter2_oldLabel] },
 
-        // Find the ldloc index of hunter crest 2
-        cm.Start();
-        cm.MatchForward(useEnd: true, [
-            new (OpCodes.Call),
-            new (StlocRelaxed),
-            new (ci => CallWithMethodName(ci, $"get_{nameof(Gameplay.HunterCrest2)}")),
-            new (StlocRelaxed)
-        ]);
-        if (cm.IsInvalid) {
-            cm.ReportFailure(null, logger.LogError);
-            return instructions;
-        }
-        int locHunterCrest2 = GetStlocIndex(cm.Instruction);
+            new(OpCodes.Ldloc, localsObject_idx),
+            new(OpCodes.Ldflda, newFrameAnims_f),
 
-        // Find the first instruction of the HunterCrest2 else-if block
-        cm.MatchForward(useEnd: false, [
-            new (BrRelaxed), // label for elseIfCompleted
-            new (ci => LdlocWithIndex(ci, locHunterCrest2)), // set index here
-            new (ci => CallvirtWithMethodName(ci, $"get_{nameof(ToolBase.IsEquipped)}")),
-            new (BrfalseRelaxed)
-        ]);
-        Label elseIfCompleted = (Label)cm.Operand;
-        cm.Advance(1); // now at the Ldloc
-        if (cm.IsInvalid) {
-            cm.ReportFailure(null, logger.LogError);
-            return instructions;
-        }
+            new(OpCodes.Ldloc, localsObject_idx),
+            new(OpCodes.Ldflda, customAnimRoutine_f),
 
-        #endregion
-
-        #region Performing the injection
-
-        // Record and steal the label of the start of the hunter else-if
-        Label hunter2startOld = cm.Instruction.labels[0],
-            hunter2startNew = generator.DefineLabel();
-        cm.Instruction.labels = [hunter2startNew];
-
-        // Store the first instruction of the ret false path, with a label
-        var returnFalse = new CodeInstruction(OpCodes.Ldc_I4_0) { labels = [generator.DefineLabel()] };
-
-        // Inject a new "else-if" block....
-        cm.Insert([
-            new (OpCodes.Ldarg_0) { labels = [hunter2startOld] }, // arg 0: this
-            
-            new (ldLocalVarsObj), // arg 1: ref BasicFrameAnims
-            new (OpCodes.Ldflda, newFrameAnims),
-
-            new (ldLocalVarsObj), // arg 2: ref CoroutineFunction
-            new (OpCodes.Ldflda, customAnimRoutine),
-
-            // Consumes args & returns an int [0, 1, 2] which maps to instruction to jump to
+            // handle the logic and push an int describing where to branch
             Transpilers.EmitDelegate(SetCustomHudVars),
 
-            // Jump to an instruction based on the return type
-            new (OpCodes.Switch, new Label[]{ returnFalse.labels[0], hunter2startNew, elseIfCompleted }),
+            // branch based on result
+            new(OpCodes.Switch, new Label[]{
+                returnFalse_label, hunter2_newLabel, elseIfCompleted_label
+            }),
 
-            // The return false path
-            returnFalse,
-            new (OpCodes.Ret),
-        ]);
+            // the 'return false' branch
+            new(OpCodes.Ldc_I4_0) { labels = [returnFalse_label] },
+            new(OpCodes.Ret),
+        ])
 
-        #endregion
-
-        // Return the results
-        return cm.Instructions();
+        .InstructionEnumeration();
     }
 
     /// <summary>
@@ -138,17 +120,16 @@ internal class ReplaceInGameHud
     /// </summary>
     /// <param name="self"></param>
     /// <param name="basicFrameAnims">
-    ///        Reference to the local variable in <see cref="BindOrbHudFrame.DoChangeFrame"/>
-    ///        which is responsible for setting the names of the animations used for basic
-    ///        HUD visuals like appearing and disappearing.
+    ///     Reference to the local var responsible for setting the names of animations
+    ///     used for basic HUD visuals like appearing and disappearing.
     /// </param>
     /// <param name="coroutineFunction">
-    ///        Reference to the local variable in <see cref="BindOrbHudFrame.DoChangeFrame"/>
-    ///        which is responsible for setting the coroutine used for extra visual effects
-    ///        in the HUD; ex. Architect's craft bind, Wanderer's expanded harp look, etc.
+    ///     Reference to local var responsible for setting the coroutine used for extra
+    ///     visual effects in the HUD; ex. Architect's craft bind animation.
     /// </param>
-    /// <returns>A number indicating action the rest of the IL patch in
-    /// <see cref="ChangeHud"/> should take.</returns>
+    /// <returns>
+    ///     A number indicating how the IL patch in <see cref="ChangeHud"/> should branch.
+    /// </returns>
     private static ReturnBehaviour SetCustomHudVars(
         BindOrbHudFrame self,
         ref BasicFrameAnims basicFrameAnims,
@@ -188,9 +169,7 @@ internal class ReplaceInGameHud
     }
 
     private static BasicFrameAnims PresetBasicAnims(BindOrbHudFrame self, VanillaCrest crest)
-    {
-        return crest switch
-        {
+        => crest switch {
             VanillaCrest.HUNTER_V2 => self.hunterV2FrameAnims,
             VanillaCrest.HUNTER_V3 => self.hunterV3FrameAnims,
             VanillaCrest.BEAST => self.warriorFrameAnims,
@@ -203,6 +182,5 @@ internal class ReplaceInGameHud
             VanillaCrest.CLOAKLESS => self.cloaklessFrameAnims,
             _ => self.defaultFrameAnims
         };
-    }
 
 }
