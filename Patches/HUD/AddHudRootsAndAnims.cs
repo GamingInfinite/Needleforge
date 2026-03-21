@@ -1,3 +1,4 @@
+using GlobalEnums;
 using HarmonyLib;
 using Needleforge.Data;
 using System.Collections.Generic;
@@ -11,18 +12,30 @@ internal class AddHudRootsAndAnims
     [HarmonyPostfix]
     private static void Postfix(BindOrbHudFrame __instance)
     {
-        GameObject NeedleforgeHudRoots = new GameObject("NeedleforgeHudRoots");
+        GameObject hudRootParent = new("NeedleforgeHudRoots") { layer = (int)PhysLayers.UI };
+        hudRootParent.transform.SetParent(__instance.transform);
+        ResetPos(hudRootParent);
+
+        // ensures roots are by default layered above hud frame and below bind orb
+        hudRootParent.transform.SetLocalPositionZ(-0.0001f);
+
         ModHelper.Log("Adding Needleforge Hud Roots");
         foreach (CrestData data in NeedleforgePlugin.newCrestData)
         {
-            GameObject hudRoot = new GameObject($"{data.name}HUDRoot");
-            hudRoot.transform.SetParent(NeedleforgeHudRoots.transform);
+            GameObject hudRoot = new($"{data.name}HUDRoot") { layer = (int)PhysLayers.UI };
+            hudRoot.transform.SetParent(hudRootParent.transform);
+            ResetPos(hudRoot);
             NeedleforgePlugin.hudRoots[data.name] = hudRoot;
 
             UpdateHudAnimLibrary(__instance, data.HudFrame);
             data.HudFrame.InitializeRoot();
         }
-        NeedleforgeHudRoots.transform.SetParent(__instance.transform);
+
+        static void ResetPos(GameObject go)
+        {
+            go.transform.localScale = Vector3.one;
+            go.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+        }
     }
 
     /// <summary>
@@ -40,6 +53,8 @@ internal class AddHudRootsAndAnims
                 library.AddIfNotPresent(anim);
             }
             hudFrame.animator.Library.clips = [.. library];
+            hudFrame.animator.Library.isValid = false;
+            hudFrame.animator.Library.ValidateLookup();
         }
 
         if (hudData.HasAnySteelCustomAnims)
@@ -53,6 +68,8 @@ internal class AddHudRootsAndAnims
                 library.AddIfNotPresent(anim);
             }
             proxy.steelSoulAnims.clips = [.. library];
+            proxy.steelSoulAnims.isValid = false;
+            proxy.steelSoulAnims.ValidateLookup();
         }
     }
 
