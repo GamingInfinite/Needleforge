@@ -5,17 +5,35 @@ using System.Linq;
 
 namespace Needleforge.Patches.HeroControl;
 
-[HarmonyPatch(typeof(HeroController), nameof(HeroController.Awake))]
-internal class AddMovesetsAndAnims
+[HarmonyPatch(typeof(HeroController))]
+internal static class AddMovesetsAndAnims
 {
-    private static void Postfix(HeroController __instance)
+    [HarmonyPatch(nameof(HeroController.Awake))]
+    [HarmonyPostfix]
+    private static void InitMovesets(HeroController __instance)
     {
         ModHelper.Log("Initializing Crest Movesets...");
-        foreach (var crest in NeedleforgePlugin.newCrestData) {
+        foreach (var crest in NeedleforgePlugin.newCrestData)
+        {
             ModHelper.Log($"Init {crest.name} Moveset");
             TryAddDefaultAnimations(__instance);
             MovesetMaker.InitializeMoveset(crest.Moveset);
         }
+    }
+
+    [HarmonyPatch(nameof(HeroController.SetConfigGroup))]
+    [HarmonyPrefix]
+    private static bool SilenceError(HeroController __instance, HeroController.ConfigGroup configGroup)
+    {
+        // only on loading a save
+        if (__instance.didStart)
+            return true;
+
+        // if this is a needleforge crest abort silently instead of loudly
+        if (configGroup == null && NeedleforgePlugin.newCrests.Any(x => ReferenceEquals(x.HeroConfig, __instance.crestConfig)))
+            return false;
+
+        return true;
     }
 
     /// <summary>

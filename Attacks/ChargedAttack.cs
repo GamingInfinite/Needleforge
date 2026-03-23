@@ -236,7 +236,6 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
                 screenFlasher!.screenFlashColours = [.. value];
         }
     }
-
     private ObservableCollection<Color> _screenFlashColors = [];
 
     /// <inheritdoc/>

@@ -187,9 +187,9 @@ public abstract class AttackBase : GameObjectProxy
         get => _knockback;
         set
         {
-            _knockback = value;
+            _knockback = Mathf.Max(value, 0);
             if (GameObject)
-                Damager!.magnitudeMult = value;
+                Damager!.magnitudeMult = _knockback;
         }
     }
     private float _knockback = 1f;
@@ -456,6 +456,6 @@ public abstract class AttackBase : GameObjectProxy
         }
 
         if (!string.IsNullOrWhiteSpace(warning))
-            ModHelper.LogWarning(warning + '\n' + new StackTrace(fNeedFileInfo: true));
+            ModHelper.LogWarning(warning, true);
     }
 }

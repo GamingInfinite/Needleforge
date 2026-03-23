@@ -30,6 +30,9 @@ public abstract class MultiStepAttack<T> : GameObjectProxy where T : AttackBase
                 foreach (var attack in value)
                     attack.CreateGameObject(GameObject, HeroController.instance);
             }
+            if (_steps.IsNullOrEmpty())
+                ModHelper.LogWarning($"{GetType().Name}.{nameof(Steps)} is null or " +
+                    $"empty; the attack won't do anything.", true);
         }
     }
     private T[] _steps = [];
@@ -53,7 +56,8 @@ public abstract class MultiStepAttack<T> : GameObjectProxy where T : AttackBase
     #endregion
 
     /// <inheritdoc/>
-    public override GameObject CreateGameObject(GameObject parent, HeroController hc) {
+    public override GameObject CreateGameObject(GameObject parent, HeroController hc)
+    {
         GameObject = base.CreateGameObject(parent, hc);
         GameObject.SetActive(false);
 

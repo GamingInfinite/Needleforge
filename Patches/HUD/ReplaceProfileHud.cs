@@ -1,5 +1,8 @@
 ﻿using HarmonyLib;
 using Needleforge.Data;
+using System;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using CrestTypes = SaveProfileHealthBar.CrestTypes;
 
@@ -9,10 +12,8 @@ namespace Needleforge.Patches.HUD;
 /// Patches which enable custom crests to use custom HUD frames on the profile menu.
 /// </summary>
 [HarmonyPatch(typeof(SaveProfileHealthBar), nameof(SaveProfileHealthBar.ShowHealth))]
-internal class ReplaceProfileHud {
-
-    [HarmonyPostfix]
-    private static void ReplaceHUD (SaveProfileHealthBar __instance, bool steelsoulMode, string crestId)
+internal static class ReplaceProfileHud {
+    private static void Postfix(SaveProfileHealthBar __instance, bool steelsoulMode, string crestId)
     {
         foreach(var crest in NeedleforgePlugin.newCrestData)
         {
@@ -51,4 +52,28 @@ internal class ReplaceProfileHud {
             _ => CrestTypes.Hunter,
         };
 
+}
+
+/// <summary>
+/// Patch that gets rid of the "could not parse crest id" error in the console.
+/// </summary>
+[HarmonyPatch]
+internal static class ReplaceProfileHud_EnumTryParse
+{
+    static MethodBase TargetMethod()
+        => typeof(Enum).GetMethods()
+            .Single(x => x.Name == nameof(Enum.TryParse) && x.GetParameters().Length == 2)
+            .MakeGenericMethod(typeof(CrestTypes));
+
+    static bool Prefix(string value, ref CrestTypes result, ref bool __result)
+    {
+        int i = NeedleforgePlugin.newCrestData.FindIndex(x => x.name == value);
+        if (i >= 0)
+        {
+            result = CrestTypes.Hunter;
+            __result = true;
+            return false;
+        }
+        return true;
+    }
 }
