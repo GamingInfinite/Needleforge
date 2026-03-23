@@ -216,17 +216,17 @@ internal static class MovesetFSMEdits
         FsmState Kickoff = fsm.AddState("Needleforge Kickoff");
 
         AnticType.AddMethod(() => {
-			var crest = NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped);
-			if (
-				crest != null
-				&& crest.Moveset.HeroConfig!.ChargedSlashFsmEdit == null
-			) {
-				var attack = crest.Moveset.ChargedSlash?.GameObject;
-				if (attack && attack.transform.childCount <= 0)
-					ModHelper.LogWarning($"{crest.name}: {nameof(MovesetData.ChargedSlash)} has no steps; the attack won't do anything.");
-				fsm.Fsm.Event(needleforgeDefaultEvent);
-			}
-		});
+            var crest = NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped);
+            if (
+                crest != null
+                && crest.Moveset.HeroConfig!.ChargedSlashFsmEdit == null
+            ) {
+                var attack = crest.Moveset.ChargedSlash?.GameObject;
+                if (attack && attack.transform.childCount <= 0)
+                    ModHelper.LogWarning($"{crest.name}: {nameof(MovesetData.ChargedSlash)} has no steps; the attack won't do anything.");
+                fsm.Fsm.Event(needleforgeDefaultEvent);
+            }
+        });
         AnticType.AddTransition(needleforgeDefaultEvent.Name, Kickoff.Name);
 
         Kickoff.AddAction(new CheckIsCharacterGrounded
@@ -240,8 +240,15 @@ internal static class MovesetFSMEdits
             NotGroundedEvent = FsmEvent.GetFsmEvent("FINISHED"),
             EveryFrame = false,
         });
-        Kickoff.AddLambdaMethod(DoKickoffIfRequested);
+        Kickoff.AddMethod(() => {
+            var hc = HeroController.instance;
+            if (hc.Config is HeroConfigNeedleforge x && x.ChargedSlashDoesKickoff)
+                hc.rb2d.linearVelocityY = 10;
+        });
         Kickoff.AddTransition("FINISHED", "Antic");
+
+        // Allow crests other than Shaman to have charged slash recoil
+        fsm.GetState("Slash Recoil?")?.DisableActionsOfType<CheckIfCrestEquipped>();
 
         #endregion
 
@@ -271,32 +278,6 @@ internal static class MovesetFSMEdits
             foreach(var end in AtkEnds)
                 end.AddTransition("FINISHED", SetFinished.Name);
         }
-
-        #region FSM Action Delegates
-
-        static void RedirectToNeedleforgeKickoff(Action finished, PlayMakerFSM fsm)
-        {
-            var crest = NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped);
-            if (
-                crest != null
-                && crest.Moveset.HeroConfig!.ChargedSlashFsmEdit == null
-            ) {
-                fsm.Fsm.Event(needleforgeDefaultEvent);
-            }
-            finished();
-        }
-
-        static void DoKickoffIfRequested(Action finished)
-        {
-            var hc = HeroController.instance;
-            if (hc.Config is HeroConfigNeedleforge config && config.ChargedSlashDoesKickoff)
-            {
-                hc.rb2d.linearVelocityY = 10;
-            }
-            finished();
-        }
-
-        #endregion
     }
 
     #region Utils
