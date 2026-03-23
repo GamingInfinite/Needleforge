@@ -19,31 +19,29 @@ internal class Tool_CrestFSMEdits
         amount.Value = 1;
         time.Value = 1.2f;
     };
+
     private static readonly Dictionary<UniqueBindDirection, Func<bool>> directionGet = new()
     {
-        { UniqueBindDirection.UP, () => HeroController.instance.inputHandler.inputActions.Up.IsPressed },
-        { UniqueBindDirection.DOWN, () => HeroController.instance.inputHandler.inputActions.Down.IsPressed },
-        { UniqueBindDirection.LEFT, () => HeroController.instance.inputHandler.inputActions.Left.IsPressed },
-        { UniqueBindDirection.RIGHT, () => HeroController.instance.inputHandler.inputActions.Right.IsPressed }
+        { UniqueBindDirection.UP, () => HeroInput.Up.IsPressed },
+        { UniqueBindDirection.DOWN, () => HeroInput.Down.IsPressed },
+        { UniqueBindDirection.LEFT, () => HeroInput.Left.IsPressed },
+        { UniqueBindDirection.RIGHT, () => HeroInput.Right.IsPressed }
     };
+    private static HeroActions HeroInput => HeroController.instance.inputHandler.inputActions;
 
-    [HarmonyPrefix]
+	[HarmonyPrefix]
     private static void AddCrests(HeroController __instance)
     {
         PlayMakerFSM bind = __instance.gameObject.GetFsmPreprocessed("Bind")!;
-        FsmState CanBind = bind.GetState("Can Bind?")!;
-
-        FsmState BindType = bind.GetState("Bind Type")!;
-
-        FsmState QuickBind = bind.GetState("Quick Bind?")!;
-
-        FsmState BindBell = bind.GetState("Bind Bell?")!;
-
-        FsmState EndBind = bind.GetState("End Bind")!;
-
-        FsmState QuickCraft = bind.GetState("Quick Craft?")!;
-        FsmState UseReserve = bind.GetState("Use Reserve Bind?")!;
-        FsmState ReserveBurst = bind.GetState("Reserve Bind Burst")!;
+        FsmState
+            CanBind = bind.GetState("Can Bind?")!,
+            BindType = bind.GetState("Bind Type")!,
+            QuickBind = bind.GetState("Quick Bind?")!,
+            BindBell = bind.GetState("Bind Bell?")!,
+            EndBind = bind.GetState("End Bind")!,
+            QuickCraft = bind.GetState("Quick Craft?")!,
+            UseReserve = bind.GetState("Use Reserve Bind?")!,
+            ReserveBurst = bind.GetState("Reserve Bind Burst")!;
 
         FsmInt healValue = bind.GetIntVariable("Heal Amount");
         FsmInt healAmount = bind.GetIntVariable("Bind Amount");
@@ -51,20 +49,19 @@ internal class Tool_CrestFSMEdits
 
         FsmState whichCrest = bind.AddState("Which Crest?");
         whichCrest.AddTransition("Toolmaster", QuickCraft.name);
-        whichCrest.AddLambdaMethod(finish =>
+        whichCrest.AddMethod(() =>
         {
             if (!NeedleforgePlugin.uniqueBind.ContainsKey(PlayerData.instance.CurrentCrestID))
             {
                 bind.SendEvent("Toolmaster");
             }
-            finish.Invoke();
         });
         UseReserve.ChangeTransition("FALSE", whichCrest.name);
         ReserveBurst.ChangeTransition("FINISHED", whichCrest.name);
         foreach (ToolCrest crest in NeedleforgePlugin.newCrests)
         {
             FsmBool equipped = bind.AddBoolVariable($"Is {crest.name} Equipped");
-            CanBind.AddAction(new CheckIfCrestEquipped()
+            CanBind.AddAction(new CheckIfCrestEquipped
             {
                 Crest = crest,
                 storeValue = equipped
@@ -73,7 +70,7 @@ internal class Tool_CrestFSMEdits
             FsmState newBindState = bind.AddState($"{crest.name} Bind");
             FsmEvent newBindTransition = BindType.AddTransition($"{crest.name}", newBindState.name);
 
-            BindType.AddAction(new BoolTest()
+            BindType.AddAction(new BoolTest
             {
                 boolVariable = equipped,
                 isTrue = newBindTransition,
@@ -82,11 +79,10 @@ internal class Tool_CrestFSMEdits
 
             newBindState.AddTransition("FINISHED", QuickBind.name);
 
-            newBindState.AddLambdaMethod((action) =>
+            newBindState.AddMethod(() =>
             {
                 defaultBind.Invoke(healValue, healAmount, healTime, bind);
                 NeedleforgePlugin.bindEvents[crest.name].Invoke(healValue, healAmount, healTime, bind);
-                bind.SendEvent("FINISHED");
             });
             
             if (NeedleforgePlugin.uniqueBind.TryGetValue(crest.name, out UniqueBindEvent bindData))
@@ -95,21 +91,19 @@ internal class Tool_CrestFSMEdits
                 FsmState specialBindTrigger = bind.AddState($"{crest.name} Special Bind Trigger");
                 FsmEvent specialBindTransition = whichCrest.AddTransition($"{crest.name} Special", specialBindCheck.name);
 
-                whichCrest.AddLambdaMethod(finish =>
+                whichCrest.AddMethod(() =>
                 {
                     if (crest.IsEquipped)
                     {
                         bind.SendEvent($"{crest.name} Special");
                     }
-                    finish.Invoke();
                 });
 
                 specialBindCheck.AddTransition("FALSE", BindBell.name);
                 specialBindCheck.AddTransition("TRUE", specialBindTrigger.name);
-                specialBindCheck.AddLambdaMethod(finish =>
+                specialBindCheck.AddMethod(() =>
                 {
                     bind.SendEvent(directionGet[bindData.Direction]() ? "TRUE" : "FALSE");
-                    finish.Invoke();
                 });
 
                 specialBindTrigger.AddTransition("FINISHED", EndBind.name);
@@ -150,7 +144,12 @@ internal class Tool_CrestFSMEdits
             }
         };
         replaceSilkCost.Arg = replaceSilkCost.Finish;
-        CanBind.ReplaceAction(9, replaceSilkCost);
+        // bit better compatibility with other mods that edit this fsm
+        int silkCostIdx = Array.FindIndex(
+            CanBind.Actions,
+            x => x is ConvertBoolToInt y && y.intVariable.Name == "Current Silk Cost"
+        );
+        CanBind.ReplaceAction(silkCostIdx, replaceSilkCost);
     }
 
     [HarmonyPrefix]
