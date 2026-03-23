@@ -96,29 +96,81 @@ internal static class MovesetFSMEdits
             StartAttack = fsm.GetState("Start Attack")!,
             RegainControlNormal = fsm.GetState("Regain Control Normal")!;
 
+        FsmInt
+            crestIdx = fsm.AddIntVariable($"Equipped Crest {NeedleforgePlugin.Id}");
+
         #region Default behaviour
 
-        StartAttack.InsertLambdaMethod(
+        StartAttack.InsertMethod(
             1 + Array.FindLastIndex(StartAttack.Actions, x => x is SetIntValue),
-            finished => RedirectToLoopingDefault(finished, fsm)
+            () => {
+                crestIdx.Value = NeedleforgePlugin.newCrestData.FindIndex(x => x.IsEquipped);
+                if (crestIdx.Value >= 0)
+                {
+                    var crest = NeedleforgePlugin.newCrestData[crestIdx.Value];
+                    var attack = crest.Moveset.ConfigGroup!.DashStab.transform;
+                    fsm.GetIntVariable("Attack Steps").Value = attack.childCount;
+
+                    if (attack.childCount <= 0)
+                        ModHelper.LogWarning($"{crest.name}: {nameof(MovesetData.DashSlash)} has no steps; the attack won't do anything.");
+                    else if (crest.Moveset.HeroConfig!.dashStabSteps > attack.childCount)
+                        ModHelper.LogWarning(
+                            $"{crest.name}: The {nameof(MovesetData.HeroConfig)}.dashStabSteps " +
+                            $"field has no effect for Needleforge crests. Modify the " +
+                            $"{nameof(MovesetData.DashSlash)}.{nameof(Attacks.DashAttack.Steps)} array instead.");
+
+                    // witch is our default path
+                    fsm.Fsm.Event("MULTIPLE");
+                }
+            }
         );
 
         FsmState SetAttackMultiple = fsm.GetState("Set Attack Multiple")!;
-        SetAttackMultiple.InsertLambdaMethod(
+        SetAttackMultiple.InsertMethod(
             Array.FindLastIndex(SetAttackMultiple.Actions, x => x is SetPolygonCollider),
-            finished => DetectAttackStepName(finished, fsm)
+            () => {
+                if (crestIdx.Value >= 0)
+                {
+                    var crest = NeedleforgePlugin.newCrestData[crestIdx.Value];
+                    var attack = crest.Moveset.ConfigGroup!.DashStab.transform;
+                    int i = fsm.GetIntVariable("Attack Step").Value - 1;
+
+                    fsm.GetStringVariable("Attack Child Name")
+                        .Value = attack.GetChild(i).name;
+                }
+            }
         );
 
         FsmState AttackDashStart = fsm.GetState("Attack Dash Start")!;
-        AttackDashStart.InsertLambdaMethod(
+        AttackDashStart.InsertMethod(
             0,
-            finished => ClearAttackCallMethodCaches(finished, AttackDashStart)
-            // Necessary to avoid breaking hunter and witch dash slashes if the custom
-            // crest's dash attack is used before either of theirs after a save is loaded
+            () => {
+                // Necessary to avoid breaking hunter and witch dash slashes if the custom
+                // crest's dash attack is used before either of theirs after a save is loaded
+                foreach(var callmethod in AttackDashStart.GetActionsOfType<CallMethodProper>())
+                    if (
+                        typeof(NailAttackBase).IsAssignableFrom(callmethod.cachedType)
+                        && callmethod.cachedType != typeof(DashStabNailAttack)
+                    ) {
+                        callmethod.cachedType = null;
+                        callmethod.cachedMethodInfo = null;
+                        callmethod.cachedParameterInfo = [];
+                    }
+            }
         );
-        AttackDashStart.InsertLambdaMethod(
+        AttackDashStart.InsertMethod(
             Array.FindIndex(AttackDashStart.Actions, x => x is PlayAudioEvent),
-            finished => SetAttackAudioClip(finished, fsm)
+            () => {
+                if (crestIdx.Value >= 0)
+                {
+                    var crest = NeedleforgePlugin.newCrestData[crestIdx.Value];
+                    var attack = crest.Moveset.ConfigGroup!.DashStab.transform;
+                    int i = fsm.GetIntVariable("Attack Step").Value - 1;
+                    var audioSrc = attack.GetChild(i).GetComponent<AudioSource>();
+                    if (audioSrc)
+                        fsm.FsmVariables.FindFsmObject("Clip").Value = audioSrc.clip;
+                }
+            }
         );
 
         #endregion
@@ -149,64 +201,6 @@ internal static class MovesetFSMEdits
             foreach(var end in AtkEnds)
                 end.AddTransition("FINISHED", RegainControlNormal.Name);
         }
-
-        #region FSM Action Delegates
-
-        static void RedirectToLoopingDefault(Action finished, PlayMakerFSM fsm)
-        {
-            if (NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped) is CrestData crest)
-            {
-                var attack = crest.Moveset.ConfigGroup!.DashStab.transform;
-                fsm.GetIntVariable("Attack Steps").Value = attack.childCount;
-                fsm.Fsm.Event(FsmEvent.GetFsmEvent("MULTIPLE"));
-            }
-            finished();
-        }
-
-        static void DetectAttackStepName(Action finished, PlayMakerFSM fsm)
-        {
-            if (NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped) is CrestData crest)
-            {
-                int i = fsm.GetIntVariable("Attack Step").Value - 1;
-                var attack = crest.Moveset.ConfigGroup!.DashStab.transform;
-
-                fsm.GetStringVariable("Attack Child Name")
-                    .Value = attack.GetChild(i).name;
-            }
-            finished();
-        }
-
-        static void SetAttackAudioClip(Action finished, PlayMakerFSM fsm)
-        {
-            if (NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped) is CrestData crest)
-            {
-                int i = fsm.GetIntVariable("Attack Step").Value - 1;
-                var attack = crest.Moveset.ConfigGroup!.DashStab.transform;
-                var audioSrc = attack.GetChild(i).GetComponent<AudioSource>();
-
-                if (audioSrc)
-                    fsm.FsmVariables.FindFsmObject("Clip").Value = audioSrc.clip;
-            }
-            finished();
-        }
-
-        static void ClearAttackCallMethodCaches(Action finished, FsmState state)
-        {
-            foreach(var callmethod in state.Actions.OfType<CallMethodProper>())
-            {
-                if (
-                    typeof(NailAttackBase).IsAssignableFrom(callmethod.cachedType)
-                    && callmethod.cachedType != typeof(DashStabNailAttack)
-                ) {
-                    callmethod.cachedType = null;
-                    callmethod.cachedMethodInfo = null;
-                    callmethod.cachedParameterInfo = [];
-                }
-            }
-            finished();
-        }
-
-        #endregion
     }
 
     private static void ChargedSlashFSMEdits(HeroController hc)
@@ -217,14 +211,25 @@ internal static class MovesetFSMEdits
             AnticType = fsm.GetState("Antic Type")!,
             SetFinished = fsm.GetState("Set Finished")!;
 
-        #region Default behaviour for custom charged slashes w/o fsm edits
+        #region Default behaviour
 
         FsmState Kickoff = fsm.AddState("Needleforge Kickoff");
 
-        AnticType.AddLambdaMethod(finished => RedirectToNeedleforgeKickoff(finished, fsm));
+        AnticType.AddMethod(() => {
+			var crest = NeedleforgePlugin.newCrestData.FirstOrDefault(x => x.IsEquipped);
+			if (
+				crest != null
+				&& crest.Moveset.HeroConfig!.ChargedSlashFsmEdit == null
+			) {
+				var attack = crest.Moveset.ChargedSlash?.GameObject;
+				if (attack && attack.transform.childCount <= 0)
+					ModHelper.LogWarning($"{crest.name}: {nameof(MovesetData.ChargedSlash)} has no steps; the attack won't do anything.");
+				fsm.Fsm.Event(needleforgeDefaultEvent);
+			}
+		});
         AnticType.AddTransition(needleforgeDefaultEvent.Name, Kickoff.Name);
 
-        Kickoff.AddAction(new CheckIsCharacterGrounded()
+        Kickoff.AddAction(new CheckIsCharacterGrounded
         {
             Target = new() { OwnerOption = OwnerDefaultOption.UseOwner },
             RayCount = new() { Value = 3 },

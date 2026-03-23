@@ -47,6 +47,7 @@ internal class MovesetMaker
         hc.configs = [.. hc.configs, moveset.ConfigGroup];
 
         moveset.ExtraInitialization();
+        HeroConfigErrorChecking(moveset);
         moveset.ConfigGroup.Setup();
 
         GameObject? AttackOrDefault(GameObjectProxy? attack, GameObject? _default)
@@ -99,5 +100,50 @@ internal class MovesetMaker
 
         return true;
     }
+
+    private static void HeroConfigErrorChecking(MovesetData moveset) {
+		HeroController hc = HeroController.instance;
+		string
+            name = moveset.Crest.name,
+			m = nameof(CrestData.Moveset),
+            mcfg = $"{m}.{nameof(MovesetData.HeroConfig)}",
+            tcfg = $"{nameof(ToolCrest)}.{nameof(ToolCrest.HeroConfig)}",
+            gcfg = $"{m}.{nameof(MovesetData.ConfigGroup)}.{nameof(ConfigGroup.Config)}",
+            correctSetter = $"The only place you should set the moveset config is {mcfg}";
+
+        // Config in MovesetData, ToolCrest, and ConfigGroup should be the exact same object.
+		if (
+			!ReferenceEquals(moveset.HeroConfig, moveset.Crest.ToolCrest!.HeroConfig)
+			|| !ReferenceEquals(moveset.HeroConfig, moveset.ConfigGroup!.Config)
+		) {
+			ModHelper.LogWarning(
+				$"{name}: {mcfg} object is not the same object as its {gcfg} and/or " +
+                $"{tcfg}; this can cause issues with its attacks and save data. " +
+                $"{correctSetter}");
+		}
+
+        // Config objects CANNOT be shared by reference between any two ToolCrests or ConfigGroups
+		string sharedCfg = "is a direct reference to another crest's config. This can " +
+			$"cause issues with both crests' attacks and save data. {correctSetter}";
+		if (
+			ToolItemManager.GetAllCrests().Except([moveset.Crest.ToolCrest])
+			.Any(x => ReferenceEquals(x.HeroConfig, moveset.Crest.ToolCrest!.HeroConfig))
+		) {
+			ModHelper.LogError($"{name}: {tcfg} {sharedCfg}");
+		}
+		if (
+			hc.configs.Except([moveset.ConfigGroup!])
+			.Any(x => ReferenceEquals(x.Config, moveset.ConfigGroup!.Config))
+		) {
+			ModHelper.LogError($"{name}: {gcfg} {sharedCfg}");
+		}
+
+        // The crest's name and the name in its config MUST be identical
+        if (name != moveset.HeroConfig!.name) {
+            ModHelper.LogError(
+                $"{name}: The crest's .{nameof(CrestData.name)} does not match the " +
+                $"name in its {mcfg}. Custom attacks may not work. {correctSetter}");
+        }
+	}
 
 }

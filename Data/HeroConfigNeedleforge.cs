@@ -43,14 +43,30 @@ public class HeroConfigNeedleforge : HeroControllerConfig
     /// See Hornet's "crest_attacks" FSM.
     /// </summary>
     /// <inheritdoc cref="FsmEdit" path="/remarks"/>
-    public FsmEdit? DownSlashFsmEdit { get; set; } = null;
+    public FsmEdit? DownSlashFsmEdit {
+        get => _downFsm;
+        set {
+            if (HeroController.instance && HeroController.instance.didStart)
+                ModHelper.LogWarning($"Crest FSM edits have already been run; setting {nameof(DownSlashFsmEdit)} has no effect.", true);
+            _downFsm = value;
+        }
+    }
+    private FsmEdit? _downFsm = null;
 
     /// <summary>
     /// Defines an FSM edit for Hornet's behaviour during dash attacks.
     /// See Hornet's "Sprint" FSM.
     /// </summary>
     /// <inheritdoc cref="FsmEdit" path="/remarks"/>
-    public FsmEdit? DashSlashFsmEdit { get; set; } = null;
+    public FsmEdit? DashSlashFsmEdit {
+		get => _dashFsm;
+		set {
+			if (HeroController.instance && HeroController.instance.didStart)
+				ModHelper.LogWarning($"Crest FSM edits have already been run; setting {nameof(DashSlashFsmEdit)} has no effect.", true);
+			_dashFsm = value;
+		}
+	}
+	private FsmEdit? _dashFsm;
 
     /// <summary>
     /// Whether or not Hornet lifts off the ground at the beginning of a charged attack.
@@ -69,7 +85,15 @@ public class HeroConfigNeedleforge : HeroControllerConfig
     /// you must deactivate it at the end of your FSM edit.
     /// </para>
     /// </remarks>
-    public FsmEdit? ChargedSlashFsmEdit { get; set; } = null;
+    public FsmEdit? ChargedSlashFsmEdit {
+		get => _chargeFsm;
+		set {
+			if (HeroController.instance && HeroController.instance.didStart)
+				ModHelper.LogWarning($"Crest FSM edits have already been run; setting {nameof(ChargedSlashFsmEdit)} has no effect.", true);
+			_chargeFsm = value;
+		}
+	}
+	private FsmEdit? _chargeFsm;
 
     /// <summary>
     /// Defines a new control path for Hornet's behaviour during an FSM-controlled attack.
