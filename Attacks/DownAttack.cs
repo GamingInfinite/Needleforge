@@ -86,7 +86,7 @@ public class DownAttack : AttackBase
 
     /// <inheritdoc/>
     protected override NailAttackBase? NailAttack =>
-        heroDownAttack ? heroDownAttack.attack : null;
+        heroDownAttack ? heroDownAttack.attack : (nailSlash ? nailSlash : null);
 
     /// <inheritdoc/>
     protected override void AddComponents(HeroController hc)
@@ -99,22 +99,24 @@ public class DownAttack : AttackBase
             );
         }
 
-        heroDownAttack = GameObject!.AddComponent<HeroDownAttack>();
-        heroDownAttack.hc = hc;
-
         switch (HeroConfig.downSlashType) {
+            case DownSlashTypes.Slash:
+                nailSlash = GameObject!.AddComponent<NailSlash>();
+                heroDownAttack = GameObject!.AddComponent<HeroDownAttack>();
+                heroDownAttack.hc = hc;
+                heroDownAttack.attack = nailSlash;
+                break;
+
             case DownSlashTypes.DownSpike:
-                downspike = GameObject.AddComponent<DownspikeWithBounceConfig>();
+                downspike = GameObject!.AddComponent<DownspikeWithBounceConfig>();
+                heroDownAttack = GameObject!.AddComponent<HeroDownAttack>();
+                heroDownAttack.hc = hc;
                 heroDownAttack.attack = downspike;
                 break;
 
             case DownSlashTypes.Custom:
-                reactionFsm = GameObject.AddComponent<PlayMakerFSM>();
-                goto case DownSlashTypes.Slash;
-
-            case DownSlashTypes.Slash:
-                nailSlash = GameObject.AddComponent<NailSlash>();
-                heroDownAttack.attack = nailSlash;
+                nailSlash = GameObject!.AddComponent<NailSlash>();
+                reactionFsm = GameObject!.AddComponent<PlayMakerFSM>();
                 break;
         }
     }
