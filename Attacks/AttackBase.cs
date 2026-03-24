@@ -178,6 +178,21 @@ public abstract class AttackBase : GameObjectProxy
     private float _stunDamage = 1f;
 
     /// <summary>
+    /// Which special damage types (e.g. piercing) this attack deals.
+    /// This is a set of flags; multiple types can be enabled with the <c>|</c> operator.
+    /// </summary>
+    public SpecialTypes SpecialDamageTypes
+    {
+        get => _specialTypes;
+        set
+        {
+            _specialTypes = value;
+            if (GameObject) Damager!.specialType = value; 
+        }
+    }
+    private SpecialTypes _specialTypes = SpecialTypes.None;
+
+    /// <summary>
     /// A multiplier on how far away from Hornet an enemy is pushed when this attack
     /// hits them. Must be non-negative.
     /// </summary>
@@ -343,6 +358,7 @@ public abstract class AttackBase : GameObjectProxy
         Damager.magnitudeMult = KnockbackMult;
         Damager.nailDamageMultiplier = DamageMult;
         Damager.stunDamage = StunDamage;
+        Damager.specialType = SpecialDamageTypes;
         Damager.silkGeneration = SilkGeneration;
 
         bool isMultiHitter = MultiHitMultipliers.Length > 0;
@@ -400,11 +416,12 @@ public abstract class AttackBase : GameObjectProxy
 
     private void AttachTinker()
     {
-        GameObject clashTink = new("Clash Tink");
+        GameObject clashTink = new("Clash Tink") {
+            tag = NAIL_ATTACK_TAG,
+            layer = (int)PhysLayers.TINKER,
+        };
         Object.DontDestroyOnLoad(clashTink);
         clashTink.transform.SetParent(GameObject!.transform);
-        clashTink.tag = NAIL_ATTACK_TAG;
-        clashTink.layer = (int)PhysLayers.TINKER;
         clashTink.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
         clashTink.SetActive(false); // VERY IMPORTANT
@@ -458,4 +475,5 @@ public abstract class AttackBase : GameObjectProxy
         if (!string.IsNullOrWhiteSpace(warning))
             ModHelper.LogWarning(warning, true);
     }
+
 }
