@@ -1,8 +1,9 @@
 ﻿using GlobalEnums;
+using System.Collections.Generic;
 using TeamCherry.SharedUtils;
 using UnityEngine;
 using UnityEngine.Events;
-using static Needleforge.Utils.MathUtils;
+using static Needleforge.Utils.MiscUtils;
 using EffectsTypes = EnemyHitEffectsProfile.EffectsTypes;
 
 namespace Needleforge.Attacks;
@@ -265,6 +266,31 @@ public abstract class AttackBase : GameObjectProxy
         }
     }
     private int _multiSteps = 2;
+
+    /// <summary>
+    /// Triggers this attack's effect animation and hitbox.
+    /// This will not affect Hornet's animation or player control.
+    /// </summary>
+    public void StartAttack()
+    {
+        if (GameObject)
+            GameObject.GetComponent<NailAttackBase>()
+                .CallMethod(
+                    nameof(NailSlash.StartSlash),
+                    x => { x.OnSlashStarting(); x.OnPlaySlash(); }
+                );
+    }
+
+    /// <summary>
+    /// Immediately stops this attack's effect animation and hitbox.
+    /// This will not affect Hornet's animation or player control.
+    /// </summary>
+    public void CancelAttack()
+    {
+        if (GameObject)
+            GameObject.GetComponent<NailAttackBase>()
+                .CallMethod(nameof(NailSlash.CancelAttack), x => x.OnCancelAttack());
+    }
 
     #endregion
 
