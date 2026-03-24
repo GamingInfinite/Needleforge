@@ -2,9 +2,8 @@
 using TeamCherry.SharedUtils;
 using UnityEngine;
 using UnityEngine.Events;
-using System.Diagnostics;
-using EffectsTypes = EnemyHitEffectsProfile.EffectsTypes;
 using static Needleforge.Utils.MathUtils;
+using EffectsTypes = EnemyHitEffectsProfile.EffectsTypes;
 
 namespace Needleforge.Attacks;
 
@@ -119,7 +118,7 @@ public abstract class AttackBase : GameObjectProxy
     /// <summary>
     /// Multiplier on the overall size of the attack.
     /// </summary>
-    public virtual Vector2 Scale
+    public override Vector2 Scale
     {
         get => _scale;
         set
@@ -310,6 +309,7 @@ public abstract class AttackBase : GameObjectProxy
 
         GameObject.tag = NAIL_ATTACK_TAG;
         GameObject.layer = (int)PhysLayers.HERO_ATTACK;
+        GameObject.transform.localScale = Vector2.one;
         GameObject.SetActive(false); // VERY IMPORTANT
 
         // Common component initialization
