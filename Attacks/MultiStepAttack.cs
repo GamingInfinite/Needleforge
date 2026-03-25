@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Needleforge.Components;
+using System.Linq;
+using UnityEngine;
 
 namespace Needleforge.Attacks;
 
@@ -25,17 +27,15 @@ public abstract class MultiStepAttack<T> : GameObjectProxy where T : AttackBase
         set
         {
             _steps = value;
-            if (GameObject)
-            {
-                foreach (var attack in value)
-                    attack.CreateGameObject(GameObject, HeroController.instance);
-            }
+            if (GameObject) SyncSteps();
+
             if (_steps.IsNullOrEmpty())
                 ModHelper.LogWarning($"{GetType().Name}.{nameof(Steps)} is null or " +
                     $"empty; the attack won't do anything.", true);
         }
     }
     private T[] _steps = [];
+    private T[] oldSteps = [];
 
     /// <summary>
     /// Sets the <see cref="AttackBase.AnimLibrary"/> of all Steps of this attack.
@@ -64,6 +64,37 @@ public abstract class MultiStepAttack<T> : GameObjectProxy where T : AttackBase
         foreach (var attack in Steps)
             attack.CreateGameObject(GameObject, hc);
 
+        oldSteps = [.. _steps];
+        parent.AddComponentIfNotPresent<UpdateRunner>().OnUpdate += SyncSteps;
+
         return GameObject;
     }
+
+    /// <summary>
+    /// Ensures the actual GameObjects that the attack's Steps are proxying reflect
+    /// the contents of the Steps array if it changes mid-game.
+    /// </summary>
+    /// <remarks>
+    /// Didn't make the Steps property an ObservableCollection, don't want to introduce
+    /// a binary breaking change, so... reinventing the wheel it is!
+    /// </remarks>
+    private void SyncSteps()
+    {
+        if (!oldSteps.SequenceEqual(Steps))
+        {
+            int i = 0;
+            foreach (var attack in Steps)
+            {
+                if (
+                    !oldSteps.Contains(attack) || !attack.GameObject
+                    || attack.GameObject.transform.parent.gameObject != GameObject!
+                ) {
+                    attack.CreateGameObject(GameObject!, HeroController.instance);
+                }
+                attack.GameObject!.transform.SetSiblingIndex(i++);
+            }
+        }
+        oldSteps = [.. Steps];
+    }
+
 }
