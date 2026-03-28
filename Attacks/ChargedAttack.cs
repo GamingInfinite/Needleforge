@@ -1,6 +1,4 @@
-﻿using GlobalSettings;
-using Needleforge.Components;
-using System.Collections;
+﻿using Needleforge.Components;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;

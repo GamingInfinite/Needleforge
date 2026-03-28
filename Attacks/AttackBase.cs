@@ -360,6 +360,13 @@ public abstract class AttackBase : GameObjectProxy
     private float _travelYOffset = 0;
 
     /// <summary>
+    /// Whether or not this attack's position in world space will be constant after it
+    /// activates, instead of following Hornet's movement.
+    /// Default is <see langword="false"/>.
+    /// </summary>
+    public bool KeepWorldPosition { get; set; }
+
+    /// <summary>
     /// Triggers this attack's effect animation and hitbox.
     /// This will not affect Hornet's animation or player control.
     /// </summary>
@@ -429,6 +436,7 @@ public abstract class AttackBase : GameObjectProxy
     protected DamageEnemies? Damager { get; private set; }
     protected AudioSourcePriority? AudioPriority { get; private set; }
     protected NailAttackTravel? Travel { get; private set; }
+    protected KeepWorldPosition? KeepPos { get; private set; }
     #pragma warning restore CS1591 // Missing XML comment
 
     /// <inheritdoc/>
@@ -450,6 +458,7 @@ public abstract class AttackBase : GameObjectProxy
         Damager = GameObject.AddComponent<DamageEnemies>();
         AudioPriority = GameObject.AddComponent<AudioSourcePriority>();
         Travel = GameObject.AddComponent<NailAttackTravel>();
+        KeepPos = GameObject.AddComponent<KeepWorldPosition>();
 
         AddComponents(hc);
 
@@ -470,6 +479,15 @@ public abstract class AttackBase : GameObjectProxy
         Travel.impactPrefab = TravelImpactRegular;
         Travel.maxXOffset = new OverrideFloat();
         Travel.maxYOffset = new OverrideFloat();
+
+        KeepPos.getPositionOnEnable =
+            KeepPos.resetOnDisable =
+            KeepPos.keepX =
+            KeepPos.keepY =
+            KeepPos.keepScaleX =
+            KeepPos.keepScaleY = true;
+        KeepPos.enabled = false;
+        NailAttack!.AttackStarting += ResetKeptPos;
 
         // Customizations
 
@@ -587,6 +605,12 @@ public abstract class AttackBase : GameObjectProxy
     {
         if (Damager!.NailElement == NailElements.None)
             Sprite!.color = Color;
+    }
+
+    private void ResetKeptPos()
+    {
+        KeepPos!.enabled = false;
+        KeepPos!.enabled = KeepWorldPosition && !CanTravel;
     }
 
     /// <summary>
