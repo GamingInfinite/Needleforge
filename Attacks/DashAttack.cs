@@ -64,6 +64,8 @@ public class DashAttack : MultiStepAttack<DashAttack.Step>
         protected override void LateInitializeComponents(HeroController hc)
         {
             dashStab!.animName = AnimName;
+            Damager!.dealtDamageFSM = hc.sprintFSM;
+            Damager!.dealtDamageFSMEvent = "DASH HIT";
             Collider!.enabled = false;
 
             if (string.IsNullOrWhiteSpace(Name))

@@ -1,6 +1,4 @@
-﻿using GlobalSettings;
-using Needleforge.Components;
-using System.Collections;
+﻿using Needleforge.Components;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -37,37 +35,14 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
     /// GameObject is activated.
     /// Default is <see langword="true"/>.
     /// </summary>
-    public bool PlayOnActivation
-    {
-        get => _playOnActive;
-        set
-        {
-            _playOnActive = value;
-            if (GameObject)
-                startOnActivation!.enabled = value;
-        }
-    }
-    private bool _playOnActive = true;
+    public bool PlayOnActivation { get; set; } = true;
 
     /// <summary>
     /// Whether or not this attack's Steps will play one another in sequence after
     /// one is played.
     /// Default is <see langword="true"/>.
     /// </summary>
-    public bool PlayStepsInSequence
-    {
-        get => _playInSequence;
-        set
-        {
-            _playInSequence = value;
-            if (GameObject)
-            {
-                foreach (var attack in Steps)
-                    attack.startNextStepWhenDone = value;
-            }
-        }
-    }
-    private bool _playInSequence = true;
+    public bool PlayStepsInSequence { get; set; } = true;
 
     /// <summary>
     /// Whether or not this attack's last Step will deactivate this attack's GameObject
@@ -79,20 +54,7 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
     /// recommended to keep one of the automatic disable options on unless you're making
     /// an FSM edit which disables the GameObject manually.
     /// </remarks>
-    public bool DisableAfterLastStep
-    {
-        get => _disableAfterLast;
-        set
-        {
-            _disableAfterLast = value;
-            if (GameObject)
-            {
-                foreach (var attack in Steps)
-                    attack.disableIfLastStep = value;
-            }
-        }
-    }
-    private bool _disableAfterLast = true;
+    public bool DisableAfterLastStep { get; set; } = true;
 
     /// <summary>
     /// Time limit in seconds after which this attack's GameObject will deactivate.
@@ -201,8 +163,9 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
     private bool _makesNoise = true;
 
     /// <summary>
-    /// <see cref="CameraShakeProfile"/>s which members of <see cref="Steps"/> use to
-    /// create a camera shake when they're played. See <see cref="Step.CameraShakeIndex"/>.
+    /// <see cref="CameraShakeProfile"/>s which members of
+    /// <see cref="MultiStepAttack{T}.Steps">ChargedAttack.Steps</see> use to create a
+    /// camera shake when they're triggered. See <see cref="Step.CameraShakeIndex"/>.
     /// </summary>
     /// <remarks>
     /// The profiles the game uses can be found in <see cref="Camera"/>.
@@ -222,8 +185,8 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
     private ObservableCollection<CameraShakeProfile> _cameraShakeProfiles = [];
 
     /// <summary>
-    /// Colors which members of <see cref="Steps"/> use to create a screen flashes when
-    /// they're played. See <see cref="Step.ScreenFlashIndex"/>.
+    /// Colors which members of <see cref="MultiStepAttack{T}.Steps">ChargedAttack.Steps</see>
+    /// use to create a screen flashes when they're triggered. See <see cref="Step.ScreenFlashIndex"/>.
     /// </summary>
     public ObservableCollection<Color> ScreenFlashColors
     {
@@ -238,29 +201,11 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
     }
     private ObservableCollection<Color> _screenFlashColors = [];
 
-    /// <inheritdoc/>
-    public override Step[] Steps
-    {
-        get => base.Steps;
-        set
-        {
-            base.Steps = value;
-            if (GameObject)
-            {
-                foreach (var attack in value)
-                {
-                    attack.disableIfLastStep = DisableAfterLastStep;
-                    attack.startNextStepWhenDone = PlayStepsInSequence;
-                }
-            }
-        }
-    }
-
     #endregion
 
 
     #pragma warning disable CS1591 // Missing XML comment
-    protected StartChargedAttackOnActivation? startOnActivation;
+    protected ChargedAttackAutoTrigger? autoTrigger;
     protected DisableAfterTime? disableTimer;
     protected KeepWorldPosition? keepPos;
 
@@ -276,17 +221,11 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
     /// <inheritdoc/>
     public override GameObject CreateGameObject(GameObject parent, HeroController hc)
     {
-        foreach (var attack in Steps)
-        {
-            attack.disableIfLastStep = DisableAfterLastStep;
-            attack.startNextStepWhenDone = PlayStepsInSequence;
-        }
-
         GameObject = base.CreateGameObject(parent, hc);
         GameObject.SetActive(false);
 
-        startOnActivation = GameObject.AddComponent<StartChargedAttackOnActivation>();
-        startOnActivation.enabled = PlayOnActivation;
+        autoTrigger = GameObject.AddComponent<ChargedAttackAutoTrigger>();
+        autoTrigger.attack = this;
 
         keepPos = GameObject.AddComponent<KeepWorldPosition>();
         keepPos.getPositionOnEnable = true;
@@ -386,9 +325,6 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
         /// <inheritdoc cref="Step"/>
         public Step() { }
 
-        internal bool disableIfLastStep = true;
-        internal bool startNextStepWhenDone = true;
-
         #region API
 
         /// <inheritdoc cref="Attack.AnimName"/>
@@ -398,31 +334,28 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
             set
             {
                 _animName = value;
-                if (GameObject)
-                    nailSlash!.animName = value;
+                if (GameObject) nailSlash!.animName = value;
             }
         }
         private string _animName = "";
 
         /// <summary>
-        /// The index in <see cref="ChargedAttack.CameraShakeProfiles"/> this step uses
-        /// to shake the camera when it plays.
-        /// If <see langword="null"/>, no camera shake occurs.
+        /// The index in <see cref="CameraShakeProfiles"/> used to shake the camera when
+        /// this attack is triggered. If <see langword="null"/>, no camera shake occurs.
         /// Default is <see langword="null"/>.
         /// </summary>
         public int? CameraShakeIndex { get; set; } = null;
 
         /// <summary>
-        /// The index in <see cref="ChargedAttack.ScreenFlashColors"/> this step uses
-        /// to create a screen flash when it plays.
-        /// If <see langword="null"/>, no screen flash occurs.
+        /// The index in <see cref="ScreenFlashColors"/> used to create a screen flash
+        /// when this attack is triggered. If <see langword="null"/>, no flash occurs.
         /// Default is <see langword="null"/>.
         /// </summary>
         public int? ScreenFlashIndex { get; set; } = null;
 
         #endregion
 
-        private NailSlashWithEndEvent? nailSlash;
+        private NailSlash? nailSlash;
 
         /// <inheritdoc/>
         protected override NailAttackBase? NailAttack => nailSlash;
@@ -430,7 +363,7 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
         /// <inheritdoc/>
         protected override void AddComponents(HeroController hc)
         {
-            nailSlash = GameObject!.AddComponent<NailSlashWithEndEvent>();
+            nailSlash = GameObject!.AddComponent<NailSlash>();
         }
 
         /// <inheritdoc/>
@@ -438,8 +371,6 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
         {
             nailSlash!.animName = AnimName;
             nailSlash!.AttackStarting += DoShakeAndFlash;
-            nailSlash!.AttackEnding += DisableIfLast;
-            nailSlash!.AttackEnding += ActivateNextStep;
 
             if (string.IsNullOrWhiteSpace(Name))
                 Name = $"Charge Step {GameObject!.transform.GetSiblingIndex() + 1}";
@@ -464,54 +395,6 @@ public class ChargedAttack : MultiStepAttack<ChargedAttack.Step>
                         SendMessageOptions.DontRequireReceiver
                     );
             }
-        }
-
-        private void ActivateNextStep()
-        {
-            if (!startNextStepWhenDone)
-                return;
-
-            var transform = GameObject!.transform;
-            var parent = transform.parent;
-            var nextIdx = 1 + transform.GetSiblingIndex();
-
-            for(int i = nextIdx; i < parent.childCount; i++)
-            {
-                if (parent.GetChild(nextIdx).TryGetComponent<NailSlashWithEndEvent>(out var nextSlash))
-                {
-                    nailSlash!.StartCoroutine(SlashOneFrameLater(nextSlash));
-                    break;
-                }
-            }
-        }
-
-        private void DisableIfLast()
-        {
-            if (!disableIfLastStep)
-                return;
-
-            var transform = GameObject!.transform;
-            var parent = transform.parent;
-            var nextIdx = 1 + transform.GetSiblingIndex();
-
-            bool shouldDisable = true;
-            for(int i = nextIdx; i < parent.childCount; i++)
-            {
-                if (parent.GetChild(nextIdx).TryGetComponent<NailSlashWithEndEvent>(out _))
-                {
-                    shouldDisable = false;
-                    break;
-                }
-            }
-
-            if (shouldDisable)
-                parent.gameObject.SetActive(false);
-        }
-
-        private static IEnumerator SlashOneFrameLater(NailSlashWithEndEvent slash)
-        {
-            yield return null;
-            slash.StartSlash();
         }
 
     }

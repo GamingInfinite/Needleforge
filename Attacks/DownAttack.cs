@@ -79,14 +79,13 @@ public class DownAttack : AttackBase
     /// </summary>
     protected internal HeroControllerConfig? HeroConfig { get; internal set; }
 
-    private HeroDownAttack? heroDownAttack;
     private DownspikeWithBounceConfig? downspike;
     private NailSlash? nailSlash;
     private PlayMakerFSM? reactionFsm;
 
     /// <inheritdoc/>
     protected override NailAttackBase? NailAttack =>
-        heroDownAttack ? heroDownAttack.attack : null;
+        nailSlash ? nailSlash : (downspike ? downspike : null);
 
     /// <inheritdoc/>
     protected override void AddComponents(HeroController hc)
@@ -99,22 +98,21 @@ public class DownAttack : AttackBase
             );
         }
 
-        heroDownAttack = GameObject!.AddComponent<HeroDownAttack>();
-        heroDownAttack.hc = hc;
+        switch (HeroConfig.downSlashType)
+        {
+            case DownSlashTypes.Slash:
+                nailSlash = GameObject!.AddComponent<NailSlash>();
+                GameObject!.AddComponent<HeroDownAttack>();
+                break;
 
-        switch (HeroConfig.downSlashType) {
             case DownSlashTypes.DownSpike:
-                downspike = GameObject.AddComponent<DownspikeWithBounceConfig>();
-                heroDownAttack.attack = downspike;
+                downspike = GameObject!.AddComponent<DownspikeWithBounceConfig>();
+                GameObject!.AddComponent<HeroDownAttack>();
                 break;
 
             case DownSlashTypes.Custom:
-                reactionFsm = GameObject.AddComponent<PlayMakerFSM>();
-                goto case DownSlashTypes.Slash;
-
-            case DownSlashTypes.Slash:
-                nailSlash = GameObject.AddComponent<NailSlash>();
-                heroDownAttack.attack = nailSlash;
+                nailSlash = GameObject!.AddComponent<NailSlash>();
+                reactionFsm = GameObject!.AddComponent<PlayMakerFSM>();
                 break;
         }
     }
@@ -126,7 +124,8 @@ public class DownAttack : AttackBase
 
         Damager!.direction = downAngle;
 
-        switch (HeroConfig!.downSlashType) {
+        switch (HeroConfig!.downSlashType)
+        {
             case DownSlashTypes.DownSpike:
                 downspike!.animName = AnimName;
                 downspike!.heroBox = hc.heroBox;
@@ -136,10 +135,8 @@ public class DownAttack : AttackBase
                     hc.transform.Find($"Attacks/Downspike Knockback Bottom").GetComponent<DamageEnemies>();
                 downspike!.leftExtraDirection = 135;
                 downspike!.rightExtraDirection = 45;
-
                 downspike!.bounceConfig = BounceConfig;
 
-                Damager!.manualTrigger = true;
                 Damager!.forceSpikeUpdate = true;
                 break;
 
@@ -158,19 +155,22 @@ public class DownAttack : AttackBase
                 break;
         }
 
-        IEnumerator InitReactionFsm() {
+        IEnumerator InitReactionFsm()
+        {
             yield return null; // wait one frame for components to Awake
             reactionFsm!.SetFsmTemplate(ReactionFsmTemplate);
         }
     }
 
-    private static FsmTemplate ReactionFsmTemplate {
-        get {
-            if (!_reactionFsmTemplate) {
-                var reaper = HeroController.instance.transform.Find("Attacks/Scythe/DownSlash New");
-                var reaperFsm = reaper.GetComponent<PlayMakerFSM>();
-                _reactionFsmTemplate = reaperFsm.fsmTemplate;
-            }
+    private static FsmTemplate ReactionFsmTemplate
+    {
+        get
+        {
+            if (!_reactionFsmTemplate)
+                _reactionFsmTemplate =
+                    HeroController.instance.transform.Find("Attacks/Scythe/DownSlash New")
+                    .GetComponent<PlayMakerFSM>()
+                    .fsmTemplate;
             return _reactionFsmTemplate;
         }
     }
