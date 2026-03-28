@@ -47,4 +47,13 @@ internal static class MiscUtils {
             fallbackFn?.Invoke(component);
     }
 
+    internal static void StartAttack(this NailAttackBase nab)
+        => nab.CallMethod(
+                nameof(NailSlash.StartSlash),
+                x => { x.OnSlashStarting(); x.OnPlaySlash(); }
+            );
+
+    internal static void EndAttack(this NailAttackBase nab)
+        => nab.CallMethod(nameof(NailSlash.CancelAttack), x => x.OnCancelAttack());
+
 }

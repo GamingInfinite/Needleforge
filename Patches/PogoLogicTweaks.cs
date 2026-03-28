@@ -1,4 +1,6 @@
 ﻿using HarmonyLib;
+using Needleforge.Components;
+using UnityEngine;
 
 namespace Needleforge.Patches;
 
@@ -13,5 +15,20 @@ internal static class PogoLogicTweaks
         if (didHit && __instance.bounceQueued && __instance.attack)
             __instance.hc.AffectedByGravity(true);
         __instance.bounceQueued = false;
+    }
+
+    // NailAttackTravel prevents custom recoil, which prevents auto-bouncing.
+    // For safety in case component (event handler) order is changed later.
+    [HarmonyPatch("ContinueBounceTrigger")]
+    [HarmonyPrefix]
+    static void AllowTravellingBounces(HeroDownAttack __instance, GameObject otherObj)
+    {
+        if (
+            !HeroDownAttack.IsNonBounce(otherObj)
+            && __instance.TryGetComponent<NailAttackTravel>(out var x)
+            && x.enabled
+        ) {
+            __instance.hc.AllowRecoil();
+        }
     }
 }

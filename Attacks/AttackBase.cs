@@ -1,4 +1,5 @@
 ﻿using GlobalEnums;
+using Needleforge.Components;
 using System.Collections.Generic;
 using TeamCherry.SharedUtils;
 using UnityEngine;
@@ -268,28 +269,114 @@ public abstract class AttackBase : GameObjectProxy
     private int _multiSteps = 2;
 
     /// <summary>
+    /// Whether or not this attack is set to travel over time.
+    /// See <see cref="TravelDuration"/>, <see cref="TravelDistance"/>, etc.
+    /// </summary>
+    public bool CanTravel => TravelDuration > 0 && TravelDistance != Vector2.zero;
+
+    /// <summary>
+    /// How many seconds the attack will travel for.
+    /// If this or <see cref="TravelDistance"/> are 0, the attack will not travel.
+    /// </summary>
+    public float TravelDuration
+    {
+        get => _travelDuration;
+        set
+        {
+            _travelDuration = value;
+            if (Travel)
+            {
+                Travel.travelDuration = value;
+                Travel.enabled = CanTravel;
+            }
+        }
+    }
+    private float _travelDuration = 0;
+
+    /// <summary>
+    /// How far the attack will travel over its <see cref="TravelDuration"/>.
+    /// If this or <see cref="TravelDuration"/> are 0, the attack will not travel.
+    /// </summary>
+    public Vector2 TravelDistance
+    {
+        get => _travelDist;
+        set
+        {
+            _travelDist = value;
+            if (Travel)
+            {
+                Travel.travelDistance = value;
+                Travel.enabled = CanTravel;
+            }
+        }
+    }
+    private Vector2 _travelDist = Vector2.zero;
+
+	/// <summary>
+    /// The amount of time a travelling attack is considered "attached" to Hornet and
+    /// can cause her to recoil when it hits something.
+	/// Value is a percentage of <see cref="TravelDistance"/> and must be between 0 and 1.
+    /// Default is 0; i.e. the attack will never cause recoil.
+	/// </summary>
+	public float TravelRecoilTime
+    {
+        get => _travelRecoilDist;
+        set
+        {
+            _travelRecoilDist = Mathf.Clamp(value, 0, 1);
+            if (Travel) Travel.recoilDistance = _travelRecoilDist;
+        }
+    }
+    private float _travelRecoilDist = 0;
+
+    /// <summary>
+    /// Curve modifying the attack's position over its <see cref="TravelDuration"/>.
+    /// Value is a percentage of <see cref="TravelDistance"/> and should be between 0 and 1.
+    /// Default is a linear curve; i.e. the attack travels at a constant speed.
+    /// </summary>
+    public AnimationCurve TravelCurve
+    {
+        get => _travelCurve;
+        set {
+            _travelCurve = value;
+            if (Travel) Travel.travelCurve = value;
+        }
+    }
+    private AnimationCurve _travelCurve = AnimationCurve.Linear(0, 0, 1, 1);
+
+    /// <summary>
+    /// An offset to add to a travelling attack's Y position if Hornet is on the ground
+    /// when the attack is triggered.
+    /// </summary>
+    public float TravelGroundedYOffset
+    {
+        get => _travelYOffset;
+        set
+        {
+            _travelYOffset = value;
+            if (Travel) Travel.groundedYOffset = value;
+        }
+    }
+    private float _travelYOffset = 0;
+
+    /// <summary>
     /// Triggers this attack's effect animation and hitbox.
     /// This will not affect Hornet's animation or player control.
     /// </summary>
     public void StartAttack()
     {
-        if (GameObject)
-            GameObject.GetComponent<NailAttackBase>()
-                .CallMethod(
-                    nameof(NailSlash.StartSlash),
-                    x => { x.OnSlashStarting(); x.OnPlaySlash(); }
-                );
+        if (NailAttack)
+            NailAttack.StartAttack();
     }
 
     /// <summary>
     /// Immediately stops this attack's effect animation and hitbox.
     /// This will not affect Hornet's animation or player control.
     /// </summary>
-    public void CancelAttack()
+    public void EndAttack()
     {
-        if (GameObject)
-            GameObject.GetComponent<NailAttackBase>()
-                .CallMethod(nameof(NailSlash.CancelAttack), x => x.OnCancelAttack());
+        if (NailAttack)
+            NailAttack.EndAttack();
     }
 
     #endregion
@@ -341,6 +428,7 @@ public abstract class AttackBase : GameObjectProxy
     protected PolygonCollider2D? TinkCollider { get; private set; }
     protected DamageEnemies? Damager { get; private set; }
     protected AudioSourcePriority? AudioPriority { get; private set; }
+    protected NailAttackTravel? Travel { get; private set; }
     #pragma warning restore CS1591 // Missing XML comment
 
     /// <inheritdoc/>
@@ -361,6 +449,7 @@ public abstract class AttackBase : GameObjectProxy
         Collider = GameObject.AddComponent<PolygonCollider2D>();
         Damager = GameObject.AddComponent<DamageEnemies>();
         AudioPriority = GameObject.AddComponent<AudioSourcePriority>();
+        Travel = GameObject.AddComponent<NailAttackTravel>();
 
         AddComponents(hc);
 
@@ -376,6 +465,11 @@ public abstract class AttackBase : GameObjectProxy
         NailAttack!.hc = hc;
         NailAttack!.enemyDamager = Damager;
         NailAttack!.activateOnSlash = [];
+
+        Travel.enabled = CanTravel;
+        Travel.impactPrefab = TravelImpactRegular;
+        Travel.maxXOffset = new OverrideFloat();
+        Travel.maxYOffset = new OverrideFloat();
 
         // Customizations
 
@@ -401,6 +495,12 @@ public abstract class AttackBase : GameObjectProxy
         NailAttack!.scale = Scale;
         NailAttack!.AttackStarting += TintIfNotImbued;
 
+        Travel.groundedYOffset = TravelGroundedYOffset;
+        Travel.travelDistance = TravelDistance;
+        Travel.recoilDistance = TravelRecoilTime;
+        Travel.travelDuration = TravelDuration;
+        Travel.travelCurve = TravelCurve;
+
         AttachTinker();
 
         LateInitializeComponents(hc);
@@ -413,6 +513,22 @@ public abstract class AttackBase : GameObjectProxy
     /// The value of the <see cref="GameObject.tag"/> applied to all attack objects.
     /// </summary>
     protected const string NAIL_ATTACK_TAG = "Nail Attack";
+
+    /// <summary>
+    /// Standard impact prefab for travelling attacks, pulled from shaman crest.
+    /// </summary>
+    private static GameObject TravelImpactRegular
+    {
+        get
+        {
+            if (!_impactRegular)
+                _impactRegular = HeroController.instance
+                    .transform.Find("Attacks/Shaman/Slash")
+                    .GetComponent<NailSlashTravel>().impactPrefab;
+            return _impactRegular;
+        }
+    }
+    private static GameObject? _impactRegular;
 
     private void DamagerInit()
     {

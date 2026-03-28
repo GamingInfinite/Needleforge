@@ -141,7 +141,7 @@ internal static class ILUtils {
     /// <paramref name="label"/> is set to the <see cref="Label"/> branched to.
     /// </summary>
     internal static bool Br(CodeInstruction x, out Label label) {
-        label = Br(x) ? (Label)x.operand : default;
+        label = x.operand is Label l ? l : default;
         return Br(x);
     }
 
@@ -150,6 +150,15 @@ internal static class ILUtils {
     /// </summary>
     internal static bool Brfalse(CodeInstruction x)
         => x.opcode == OpCodes.Brfalse || x.opcode == OpCodes.Brfalse_S;
+
+    /// <summary>
+    /// True if the opcode is any variant of <see cref="OpCodes.Brfalse"/>. If true,
+    /// <paramref name="label"/> is set to the <see cref="Label"/> branched to.
+    /// </summary>
+    internal static bool Brfalse(CodeInstruction x, out Label label) {
+        label = x.operand is Label l ? l : default;
+        return Brfalse(x);
+    }
 
     /// <summary>
     /// True if the opcode is any variant of <see cref="OpCodes.Brtrue"/>.
