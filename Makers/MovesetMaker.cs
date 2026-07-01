@@ -34,7 +34,7 @@ internal class MovesetMaker
 
         if (moveset.UseVanillaChargedSlash != null)
         {
-            GameObject? chargedPrefab = VanillaAttacks.ChargedSlashes.GetChargedSlashForCrest(moveset.UseVanillaChargedSlash);
+            GameObject? chargedPrefab = ChargedSlashes.GetChargedSlashForCrest(moveset.UseVanillaChargedSlash);
             if (chargedPrefab != null)
             {
                 ClonedAttack clonedChargedAttack = new()
@@ -50,152 +50,153 @@ internal class MovesetMaker
             Charged_Slash = AttackOrDefault(moveset.ChargedSlash, hunter.ChargeSlash);
         #endregion
 
-        #region Downslash and Alt
-        GameObject? DownSlash = null;
-        GameObject? AltDownSlash = null;
-        if (moveset.UseVanillaDownSlash != null)
-        {
-            VanillaAttackObjects? objects = CustomDownSlashes.GetDownSlashForCrest(moveset.UseVanillaDownSlash);
-
-            if (objects != null) {
-                GameObject downslashPrefab = objects.Attack;
-                ClonedAttack clonedAttack = new() { OriginalObject = downslashPrefab, 
-                    Name = $"{moveset.Crest.name} {moveset.UseVanillaDownSlash} Downslash clone" };
-                DownSlash = clonedAttack.CreateGameObject(root, hc);
-
-                //Only in the case of architect do we have a second prefab to clone.
-                //The charged variant will be stored in the alt downslash slot.
-                //This should be fine since with a custom downslash, you never access alt downslash anyway.
-                if (moveset.UseVanillaDownSlash == VanillaAttackType.ARCHITECT)
-                {
-                    GameObject chargedPrefab = objects.AttackAlt!;
-                    ClonedAttack clonedAttackCharged = new()
-                    {
-                        OriginalObject = chargedPrefab,
-                        Name = $"{moveset.Crest.name} {moveset.UseVanillaDownSlash} Downslash clone Charged"
-                    };
-                    AltDownSlash = clonedAttackCharged.CreateGameObject(root, hc);
-                }
-            }
-        }
-
-        if (DownSlash == null)
-        {
-            DownSlash = AttackOrDefault(moveset.DownSlash, hunter.DownSlashObject);
-        }
-
-        if (AltDownSlash == null)
-        {
-            AltDownSlash = moveset.AltDownSlash?.CreateGameObject(root, hc);
-        }
-        #endregion
+        #region Downslash
 
         #region Ensuring correct event is sent when using vanilla down slashes
 
         switch (moveset.UseVanillaDownSlash)
         {
-            case VanillaAttackType.BEAST:
+            case VanillaCrest.BEAST:
+            case VanillaCrest.BEAST_RAGE:
                 moveset.HeroConfig.downSlashType = HeroControllerConfig.DownSlashTypes.Custom;
                 moveset.HeroConfig.downSlashEvent = "WARRIOR DOWNSLASH";
                 break;
-            case VanillaAttackType.REAPER:
+            case VanillaCrest.REAPER:
                 moveset.HeroConfig.downSlashType = HeroControllerConfig.DownSlashTypes.Custom;
                 moveset.HeroConfig.downSlashEvent = "RPR DOWNSLASH";
                 break;
-            case VanillaAttackType.WITCH:
+            case VanillaCrest.WITCH:
+            case VanillaCrest.CURSED:
                 moveset.HeroConfig.downSlashType = HeroControllerConfig.DownSlashTypes.Custom;
                 moveset.HeroConfig.downSlashEvent = "WITCH DOWNSLASH";
                 break;
-            case VanillaAttackType.SHAMAN:
+            case VanillaCrest.SHAMAN:
                 moveset.HeroConfig.downSlashType = HeroControllerConfig.DownSlashTypes.Custom;
                 moveset.HeroConfig.downSlashEvent = "SHAMAN DOWNSLASH";
                 break;
-            case VanillaAttackType.ARCHITECT:
+            case VanillaCrest.ARCHITECT:
                 moveset.HeroConfig.downSlashType = HeroControllerConfig.DownSlashTypes.Custom;
                 moveset.HeroConfig.downSlashEvent = "TOOLMASTER DOWNSLASH";
                 break;
-            case VanillaAttackType.HUNTER: case VanillaAttackType.CLOAKLESS:
+            case VanillaCrest.HUNTER:
+            case VanillaCrest.HUNTER_V2:
+            case VanillaCrest.HUNTER_V3:
+            case VanillaCrest.CLOAKLESS:
                 moveset.HeroConfig.downSlashType = HeroControllerConfig.DownSlashTypes.DownSpike;
                 break;
-            case VanillaAttackType.WANDERER:
-                ModHelper.LogWarning($"Crest {moveset.Crest.name} is requesting use of a DownSlash type" +
-                    $" {moveset.UseVanillaDownSlash}, which has no unique downslash." + 
-                    " Check the VanillaAttacks class for the right DownAttack prefab.");
+            case VanillaCrest.WANDERER:
+                moveset.HeroConfig.downSlashType = HeroControllerConfig.DownSlashTypes.Slash;
                 break;
 
         }
 
         #endregion
+        GameObject? AltDownSlash = null;
+        GameObject? DownSlash = null;
 
-        #region Dash slash and Alt, also Special
+        if (moveset.UseVanillaDownSlash != null)
+        {
+            DownAttack? clonedDown = null;
+            DownAttack? clonedAltDown = null;
+            #region switch case for DownAttack
+            switch (moveset.UseVanillaDownSlash)
+            {
+                case VanillaCrest.BEAST:
+                    clonedDown = DownSlashes.BeastCopy();
+                    break;
+                case VanillaCrest.BEAST_RAGE:
+                    clonedDown = DownSlashes.BeastRageCopy();
+                    break;
+                case VanillaCrest.REAPER:
+                    clonedDown = DownSlashes.ReaperCopy();
+                    break;
+                case VanillaCrest.WITCH:
+                case VanillaCrest.CURSED:
+                    clonedDown = DownSlashes.WitchCopy();
+                    break;
+                case VanillaCrest.SHAMAN:
+                    clonedDown = DownSlashes.ShamanCopy();
+                    break;
+                case VanillaCrest.ARCHITECT:
+                    clonedDown = DownSlashes.ArchitectCopy();
+                    clonedAltDown = DownSlashes.ArchitectChargedCopy();
+                    break;
+                case VanillaCrest.HUNTER:
+                case VanillaCrest.HUNTER_V2:
+                case VanillaCrest.HUNTER_V3:
+                    clonedDown = DownSlashes.HunterCopy();
+                    break;
+                case VanillaCrest.CLOAKLESS:
+                    clonedDown = DownSlashes.CloaklessCopy();
+                    break;
+                case VanillaCrest.WANDERER:
+                    clonedDown = DownSlashes.WandererCopy();
+                    break;
+            }
+            #endregion
+
+            if (clonedDown != null)
+                moveset.DownSlash = clonedDown;
+            if (clonedAltDown != null)
+                moveset.AltDownSlash = clonedAltDown;
+        }
+
+        DownSlash = AttackOrDefault(moveset.DownSlash, hunter.DownSlashObject);
+        
+        if (moveset.AltDownSlash != null)
+            AltDownSlash = moveset.AltDownSlash.CreateGameObject(root, hc);
+        #endregion
+
+        #region Dash slash
         GameObject? DashSlash = null;
-        GameObject? DashSlashAlt = null;
-        GameObject? SpecialSlash = null; //Currently only wanderer's recoil slash.
 
         if (moveset.UseVanillaDashSlash != null)
         {
-            VanillaAttackObjects? objects = DashSlashes.GetDashSlashForCrest(moveset.UseVanillaDashSlash);
-
-            if (objects != null)
+            DashAttack? clonedDash = null;
+            #region switch case for DashAttack
+            switch (moveset.UseVanillaDashSlash)
             {
-                ClonedAttack clonedDashSlash = new()
-                {
-                    OriginalObject = objects.Attack,
-                    Name = $"{moveset.Crest.name} {moveset.UseVanillaDashSlash} Dash Slash clone"
-                };
-                DashSlash = clonedDashSlash.CreateGameObject(root, hc);
-
-                ClonedAttack clonedDashSlashAlt = new()
-                {
-                    OriginalObject = objects.AttackAlt,
-                    Name = $"{moveset.Crest.name} {moveset.UseVanillaDashSlash} Dash Slash clone Alt"
-                };
-
-                ClonedAttack clonedSpecialSlash = new()
-                {
-                    OriginalObject = objects.AttackSpecial,
-                    Name = $"{moveset.Crest.name} {moveset.UseVanillaDashSlash} Special Slash clone"
-                };
-
-                if (objects.AttackAlt != null)
-                    DashSlashAlt = clonedDashSlashAlt.CreateGameObject(root, hc);
-
-                if (objects.AttackSpecial != null)
-                    SpecialSlash = clonedSpecialSlash.CreateGameObject(root, hc);
-
-                //super special case for witch
-                if (moveset.UseVanillaDashSlash == VanillaAttackType.WITCH)
-                {
-                    GameObject dashroot = new GameObject($"{moveset.Crest.name} Witch Dash Slash clone");
-                    dashroot.transform.parent = root.transform;
-
-                    //copying dimensions of dash slash parent
-                    Transform originalParent = objects.Attack.transform.parent;
-                    dashroot.transform.localPosition = originalParent.localPosition;
-                    dashroot.transform.localScale = originalParent.localScale;
-
-                    //renaming slashes so that they can be found easier
-                    DashSlash.name = "Dash Slash 1";
-                    DashSlashAlt!.name = "Dash Slash 2";
-
-                    //reparenting
-                    DashSlash.transform.parent = dashroot.transform;
-                    DashSlashAlt!.transform.parent = dashroot.transform;
-
-                    //cleaning stored objects, only dash slash parent is stored
-                    DashSlash = dashroot;
-                    DashSlashAlt = null;
-                }
+                case VanillaCrest.BEAST:
+                    clonedDash = DashSlashes.BeastCopy();
+                    break;
+                case VanillaCrest.BEAST_RAGE:
+                    clonedDash = DashSlashes.BeastRageCopy();
+                    break;
+                case VanillaCrest.REAPER:
+                    clonedDash = DashSlashes.ReaperCopy();
+                    break;
+                case VanillaCrest.WITCH:
+                case VanillaCrest.CURSED:
+                    clonedDash = DashSlashes.WitchCopy();
+                    break;
+                case VanillaCrest.SHAMAN:
+                    clonedDash = DashSlashes.ShamanCopy();
+                    break;
+                case VanillaCrest.ARCHITECT:
+                    clonedDash = DashSlashes.ArchitectCopy();
+                    break;
+                case VanillaCrest.HUNTER:
+                case VanillaCrest.HUNTER_V2:
+                case VanillaCrest.HUNTER_V3:
+                    clonedDash = DashSlashes.HunterCopy();
+                    break;
+                case VanillaCrest.CLOAKLESS:
+                    clonedDash = DashSlashes.CloaklessCopy();
+                    break;
+                case VanillaCrest.WANDERER:
+                    clonedDash = DashSlashes.WandererCopy();
+                    break;
             }
-        } 
+            #endregion
 
-        if (DashSlash == null)
-        {
-            DashSlash = AttackOrDefault(moveset.DashSlash, hunter.DashStab);
+            if (clonedDash != null)
+                moveset.DashSlash = clonedDash;
         }
+
+        DashSlash = AttackOrDefault(moveset.DashSlash, hunter.DashStab);
         #endregion
 
-        moveset.ConfigGroup = new ConfigGroupNeedleforge()
+        moveset.ConfigGroup = new ConfigGroup()
         {
             ActiveRoot = root,
             Config = moveset.HeroConfig,
@@ -207,14 +208,13 @@ internal class MovesetMaker
             WallSlashObject =   AttackOrDefault(moveset.WallSlash, hunter.WallSlashObject),
             DownSlashObject =   DownSlash,
             DashStab =          DashSlash,
-            DashStabAlt =       DashSlashAlt,
-            SpecialSlash =      SpecialSlash,
+            DashStabAlt =       null,
             ChargeSlash =       Charged_Slash,
             TauntSlash =        AttackOrDefault(null, hunter.TauntSlash),
 
             AlternateSlashObject = moveset.AltSlash?.CreateGameObject(root, hc),
             AltUpSlashObject =     moveset.AltUpSlash?.CreateGameObject(root, hc),
-            AltDownSlashObject =   AltDownSlash,
+            AltDownSlashObject = AltDownSlash,
         };
 
         hc.configs = [.. hc.configs, moveset.ConfigGroup];
@@ -234,28 +234,6 @@ internal class MovesetMaker
                     GameObject clone = Object.Instantiate(_default, root.transform);
                     clone.name = clone.name.Replace("(Clone)", "");
                     return clone;
-                }
-            }
-            return attack.CreateGameObject(root, hc);
-        }
-
-        GameObject? DashAttackOrDefault(GameObjectProxy? attack, GameObject? _default)
-        {
-            if (attack == null)
-            {
-                if (!_default)
-                    return null;
-                else
-                {
-                    GameObject cloneParent = new("Dash Stab Parent");
-                    cloneParent.transform.parent = root.transform;
-                    cloneParent.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-                    cloneParent.transform.localScale = Vector3.one;
-
-                    GameObject clone = Object.Instantiate(_default, cloneParent.transform);
-                    clone.name = clone.name.Replace("(Clone)", "");
-
-                    return cloneParent;
                 }
             }
             return attack.CreateGameObject(root, hc);

@@ -43,6 +43,9 @@
     <ItemGroup>
       <Binaries Include="$(TargetPath)" LocalDir="/" />
       <Binaries Include="$(TargetDir)/$(TargetName).pdb" LocalDir="/" />
+
+	  <!-- I18N -->
+	  <Binaries Include="Languages/*.json" LocalDir="/Languages/" />
     </ItemGroup>
 
     <!-- Local install -->

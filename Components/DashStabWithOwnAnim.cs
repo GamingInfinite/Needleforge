@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Needleforge.Components;
 
@@ -51,6 +52,14 @@ public class DashStabWithOwnAnim : DashStabNailAttack
         IsDamagerActive = true;
         mesh.enabled = true;
         animator.PlayFromFrame(animName, 0);
+
+        animator.AnimationCompleted = OnAnimationCompleted;
+    }
+
+    private void OnAnimationCompleted(tk2dSpriteAnimator animator, tk2dSpriteAnimationClip clip)
+    {
+        base.OnCancelAttack();
+        animator.AnimationCompleted = null; //I'm not sure if this is needed, but it's in the original tc code.
     }
 
     /// <summary>
