@@ -42,7 +42,17 @@ public abstract class AttackBase : GameObjectProxy
     /// <summary>
     /// Can be used as an alternative to setting <see cref="AnimLibrary"/> to use one of Hornet's vanilla animation libraries. Overrides <see cref="AnimLibrary"/>. 
     /// </summary>
-    public VanillaAttackType? UseVanillaAnimLibrary { get; set; } = null;
+    public VanillaCrest? UseVanillaAnimLibrary
+    {
+        get => _useVanillaAnimLibrary;
+        set
+        {
+            _useVanillaAnimLibrary = value;
+            if (GameObject)
+                Animator!.library = VanillaReferences.GetLibraryForCrestType(UseVanillaAnimLibrary);
+        }
+    }
+    private VanillaCrest? _useVanillaAnimLibrary { get; set; } = null;
 
     /// <summary>
     /// Color to tint the attack's effect animation when it's not imbued with an element.
@@ -67,7 +77,17 @@ public abstract class AttackBase : GameObjectProxy
     /// <summary>
     /// Can be used as an alternative to setting <see cref="Sound"/> to use one of Hornet's vanilla slash sounds. Overrides <see cref="Sound"/>. 
     /// </summary>
-    public VanillaAttackType? UseVanillaSound { get; set; } = null;
+    public VanillaCrest? UseVanillaSound
+    {
+        get => _useVanillaSound;
+        set
+        {
+            _useVanillaSound = value;
+            if (GameObject)
+                AudioSrc!.clip = VanillaReferences.GetAudioClipForCrestType(UseVanillaSound);
+        }
+    }
+    private VanillaCrest? _useVanillaSound { get; set; } = null;
 
     /// <summary>
     /// Points which define the shape of this attack's damaging hitbox.
@@ -490,6 +510,7 @@ public abstract class AttackBase : GameObjectProxy
         Travel.impactPrefab = TravelImpactRegular;
         Travel.maxXOffset = new OverrideFloat();
         Travel.maxYOffset = new OverrideFloat();
+        Travel.hc = hc;
 
         KeepPos.getPositionOnEnable =
             KeepPos.resetOnDisable =

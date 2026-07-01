@@ -54,13 +54,14 @@ public class ClonedAttack : GameObjectProxy
         GameObject = clonedSlash;
         GameObject.name = Name;
         GameObject.transform.SetParent(parent.transform);
-        GameObject.transform.localScale = OriginalObject.transform.localScale;
         // POTENTIAL TODO: Figure out a way to have a custom scale, rotation,
         // and localposition without defaulting to 0,0,0 and identity rotation.
         // For now, this will do since the usecase is charged and downslashes,
         // which should just match original and can be changed in the Initialized event
         // of their crest.
-        GameObject.transform.SetLocalPositionAndRotation(OriginalObject.transform.localPosition, OriginalObject.transform.localRotation);
+        Position = OriginalObject.transform.localPosition;
+        Scale = OriginalObject.transform.localScale;
+        Rotation = OriginalObject.transform.localRotation;
 
         return GameObject;
     }

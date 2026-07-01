@@ -131,7 +131,7 @@ public partial class ExampleCrestPlugin : BaseUnityPlugin
                     AnimName = "NeoSlashEffect",
                     Color = Color.magenta,
                     Scale = new(2, 0.5f),
-                },
+                }
             ],
         };
 

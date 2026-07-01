@@ -143,10 +143,8 @@ public class MovesetData
     /// When a certain vanilla down slash is desired, this property acts as an alternative
     /// to <see cref="DownSlash"/>.
     /// This will overwrite the behaviour defined in <see cref="DownSlash"/>.
-    /// Optional.
-    /// <para>Note that this only refers to downslashes with custom behaviour.
-    /// Valid options are WITCH, REAPER, SHAMAN, ARCHITECT, BEAST.
-    /// Required animations will be automatically cloned, but if desired, 
+    /// Optional. Must be set before the moveset is initialized.
+    /// <para>Required animations will be automatically cloned, but if desired, 
     /// custom (non-looping) animations can be set under the following names.
     /// Animations that require a trigger will be marked with a T:</para>
     /// <para>When using BEAST, required animations are "SpinBall Antic", "SpinBall Launch",
@@ -157,7 +155,18 @@ public class MovesetData
     /// <para>When using ARCHITECT, the required animations are T:"DownSpike Charge", "DownSpike Antic", 
     /// "DownSpike", "DownSpike Charged", "Drill Grind", "Drill Grind Charged".</para>
     /// </summary>
-    public VanillaAttackType? UseVanillaDownSlash { get; set; } = null;
+    public VanillaCrest? UseVanillaDownSlash
+    {
+        get => _useVanillaDownSlash;
+        set
+        {
+            _useVanillaDownSlash = value;
+            if (_initialized)
+                ModHelper.LogWarning($"{Crest.name}: UseVanillaDownSlash was set to {value} after moveset initialization. " +
+                    $"This will have no effect, set this value beforehand.");
+        }
+    }
+    private VanillaCrest? _useVanillaDownSlash { get; set; } = null;
 
     /// <summary>
     /// Defines the visual, auditory and damage properties of the dash attack.
@@ -190,13 +199,12 @@ public class MovesetData
     /// When a certain vanilla dash slash is desired, this property acts as an alternative
     /// to <see cref="DashSlash"/>.
     /// This will overwrite the behaviour defined in <see cref="DashSlash"/>.
-    /// Optional.
-    /// <para>Hunter will have its Attack Steps forced to 1, and Witch will
-    /// have its forced to 2. To get around this, consider using <see cref="DashSlash"/> instead.</para>
-    /// <para>Note that when using Witch, the object stored in <see cref="ConfigGroup.DashStab"/>
-    /// is the parent object containing "Dash Slash 1" and "Dash Slash 2". In all other cases,
-    /// <see cref="ConfigGroup.DashStab"/> is the standard slash, and <see cref="ConfigGroup.DashStabAlt"/>
-    /// is a variant slash, such as Wanderer's alternate or Architect's charged.</para>
+    /// Optional. Must be set before the moveset is initialized.
+    /// <para>The Steps stored within each variant differ.</para>
+    /// <para>For Hunter, Beast, Cloakless, Shaman, and Reaper, Step 0 is the only object.</para>
+    /// <para>For Architect, Step 0 is the uncharged attack and Step 1 is the charged attack.</para>
+    /// <para>For Witch, Step 0 is the first slash, Step 1 is the second.</para>
+    /// <para>For Wanderer, Step 0 is the first slash, Step 1 is the second, and Step 2 is the recoil slash followup.</para>
     /// <para>Required animations will be automatically cloned, but if desired, 
     /// custom (non-looping) animations can be set under the following names.
     /// Animations that require a trigger will be marked with a T:</para>
@@ -211,7 +219,18 @@ public class MovesetData
     /// <para>When using WITCH, required animations are "Dash Attack Antic 1", "Dash Attack 1",
     /// "Dash Attack Recover", "Dash Attack Antic 2", "Dash Attack 2"</para>
     /// </summary>
-    public VanillaAttackType? UseVanillaDashSlash { get; set; } = null;
+    public VanillaCrest? UseVanillaDashSlash
+    {
+        get => _useVanillaDashSlash;
+        set
+        {
+            _useVanillaDashSlash = value;
+            if (_initialized)
+                ModHelper.LogWarning($"{Crest.name}: UseVanillaDashSlash was set to {value} after moveset initialization. " +
+                    $"This will have no effect, set this value beforehand.");
+        }
+    }
+    private VanillaCrest? _useVanillaDashSlash { get; set; } = null;
 
     /// <summary>
     /// Defines the visual, auditory and damage properties of the charged attack,
@@ -249,10 +268,24 @@ public class MovesetData
     /// When a vanilla charged slash is desired, this property acts as an alternative 
     /// to setting up a custom one with <see cref="ChargedSlash"/>.
     /// This will overwrite the behaviour defined in <see cref="ChargedSlash"/>.
-    /// Optional.
+    /// Optional. Must be set before the moveset is initialized.
     /// <para>Cloakless does not have a charged slash, so it has no effect when set as this field.</para>
+    /// <para>Beast, specifically, uses an animation named 'NeedleArt Dash' in place of 'Slash_Charged'.
+    /// This will be automatically cloned if not created by the user. This animation needs three triggers.
+    /// Each will start the next state of the FSM.</para>
     /// </summary>
-    public VanillaAttackType? UseVanillaChargedSlash { get; set; } = null;
+    public VanillaCrest? UseVanillaChargedSlash
+    {
+        get => _useVanillaChargedSlash;
+        set
+        {
+            _useVanillaChargedSlash = value;
+            if (_initialized)
+                ModHelper.LogWarning($"{Crest.name}: UseVanillaChargedSlash was set to {value} after moveset initialization. " +
+                    $"This will have no effect, set this value beforehand.");
+        }
+    }
+    private VanillaCrest? _useVanillaChargedSlash { get; set; } = null;
 
     /// <summary>
     /// Defines the visual, auditory, and damage properties of the alternate side attack,
@@ -343,7 +376,13 @@ public class MovesetData
     public event Action? OnInitialized;
 
     /// <inheritdoc cref="OnInitialized"/>
-    internal void ExtraInitialization() => OnInitialized?.DynamicInvoke();
+    internal void ExtraInitialization() {
+        _initialized = true;
+        OnInitialized?.DynamicInvoke();
+    }
+
+    //For warning the user if they try to change properties that won't update after initialization.
+    private bool _initialized = false;
 
     private void UpdateConfigGroup(string field, GameObjectProxy? value) {
         if (ConfigGroup == null)
@@ -362,7 +401,9 @@ public class MovesetData
                 ConfigGroup,
                 value.GameObject
                     ? value.GameObject
-                    : value.CreateGameObject(ConfigGroup.ActiveRoot, HeroController.instance)
+                    : ConfigGroup.ActiveRoot
+                        ? value.CreateGameObject(ConfigGroup.ActiveRoot, HeroController.instance)
+                        : null
             );
         }
         else
