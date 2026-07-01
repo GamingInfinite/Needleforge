@@ -1,4 +1,5 @@
 ﻿using Needleforge.Components;
+using System;
 using UnityEngine;
 
 namespace Needleforge.Attacks;
@@ -36,9 +37,11 @@ public class DashAttack : MultiStepAttack<DashAttack.Step>
         /// <remarks>
         /// Effect animations for these attacks should not loop.
         /// </remarks>
-        public override string AnimName {
+        public override string AnimName
+        {
             get => _animName;
-            set {
+            set
+            {
                 _animName = value;
                 if (GameObject)
                     dashStab!.animName = value;
@@ -68,6 +71,24 @@ public class DashAttack : MultiStepAttack<DashAttack.Step>
             Damager!.dealtDamageFSMEvent = "DASH HIT";
             Collider!.enabled = false;
 
+            if (string.IsNullOrWhiteSpace(Name))
+                Name = $"Dash Stab {GameObject!.transform.GetSiblingIndex() + 1}";
+        }
+    }
+
+    /// <summary>
+    /// A variant of <see cref="Step"/> that doesn't send the "DASH HIT" event to the sprint FSM.
+    /// </summary>
+    public class StepEventless : Step
+    {
+        /// <inheritdoc/>
+        protected override void LateInitializeComponents(HeroController hc)
+        {
+            dashStab!.animName = AnimName;
+            Damager!.dealtDamageFSM = null;
+            Damager!.dealtDamageFSMEvent = null;
+            dashStab!.waitForEndDamage = true;
+            Collider!.enabled = false;
             if (string.IsNullOrWhiteSpace(Name))
                 Name = $"Dash Stab {GameObject!.transform.GetSiblingIndex() + 1}";
         }

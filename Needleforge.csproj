@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <!-- 
     Imports silksong path properties only if present in order to allow CI builds. The file should be gitignored.
     If you are checking out from git and need to create a new one, you can use `dotnet new silksongpath` to generate one.
@@ -36,8 +36,11 @@
         <PackageReference Include="Silksong.GameLibs" Version="1.2.0-silksong1.0.30000" PrivateAssets="all" />
     </ItemGroup>
     <ItemGroup>
+        <Compile Remove="AmalgamCrest\**" />
         <Compile Remove="ExampleCrest\**" />
+        <EmbeddedResource Remove="AmalgamCrest\**" />
         <EmbeddedResource Remove="ExampleCrest\**" />
+        <None Remove="AmalgamCrest\**" />
         <None Remove="ExampleCrest\**" />
         <Folder Remove="thunderstore/temp;thunderstore/dist" />
         <None Include="README.md" Pack="True" PackagePath="README.md" />
