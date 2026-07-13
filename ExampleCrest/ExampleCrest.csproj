@@ -21,6 +21,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Shortens and anonymizes paths in debug symbols relative to the project directory. Breakpoints will not work, however. -->
     <PathMap Condition="'$(Configuration)' == 'Release'">$(MSBuildProjectDirectory)=/</PathMap>
+    
+    <!-- I18N -->
+    <NeutralLanguage>EN</NeutralLanguage>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
@@ -28,6 +31,8 @@
     <PackageReference Include="HarmonyX" Version="2.9.0" />
     <PackageReference Include="Hamunii.BepInEx.AutoPlugin" Version="2.1.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.26.0" PrivateAssets="all" />
+    <PackageReference Include="Silksong.FsmUtil" Version="0.3.16" />
+    <PackageReference Include="Silksong.UnityHelper" Version="1.2.0" />
     <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
     <PackageReference Include="Silksong.GameLibs" Version="1.2.0-silksong1.0.30000" PrivateAssets="all" />
   </ItemGroup>
@@ -36,6 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Assets/**/*.*" />
     <None Include="README.md" Pack="True" PackagePath="README.md" />
   </ItemGroup>
 
@@ -43,6 +49,9 @@
     <ItemGroup>
       <Binaries Include="$(TargetPath)" LocalDir="/" />
       <Binaries Include="$(TargetDir)/$(TargetName).pdb" LocalDir="/" />
+
+      <!-- I18N -->
+      <Binaries Include="Languages/*.json" LocalDir="/Languages/" />
     </ItemGroup>
 
     <!-- Local install -->
