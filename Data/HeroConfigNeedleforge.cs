@@ -69,6 +69,11 @@ public class HeroConfigNeedleforge : HeroControllerConfig
 	private FsmEdit? _dashFsm;
 
     /// <summary>
+    /// Whether or not a dash slash will play a small burst effect at the start of the attack.
+    /// </summary>
+    public bool DashStabBurstEffect { get; set; } = true;
+
+    /// <summary>
     /// Whether or not Hornet lifts off the ground at the beginning of a charged attack.
     /// </summary>
     public bool ChargedSlashDoesKickoff { get; set; } = false;
@@ -271,9 +276,11 @@ public class HeroConfigNeedleforge : HeroControllerConfig
     ///     Forces the Hornet's bounce when a dash attack hits an enemy to be a standard
     ///     short bounce, regardless of the value of <paramref name="bounceJumpSpeed"/>.
     /// </param>
+    /// /<param name="doesBurstEffect"> Whether or not the burst effect accompanies the dash attack.
+    /// </param>
     public void SetDashStabFields(
         float? time = null, float? speed = null, float? bounceJumpSpeed = null,
-        bool? forceShortBounce = null
+        bool? forceShortBounce = null, bool? doesBurstEffect = null
     ) {
         if (time != null)
             dashStabTime = (float)time;
@@ -283,6 +290,8 @@ public class HeroConfigNeedleforge : HeroControllerConfig
             dashStabBounceJumpSpeed = (float)bounceJumpSpeed;
         if (forceShortBounce != null)
             forceShortDashStabBounce = (bool)forceShortBounce;
+        if (doesBurstEffect != null)
+            DashStabBurstEffect = (bool)doesBurstEffect;
     }
 
     /// <summary>

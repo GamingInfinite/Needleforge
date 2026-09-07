@@ -258,7 +258,8 @@ internal static class MovesetFSMEdits
             SetUncharged = fsm.GetState("Set Uncharged")!,
             SetCharged = fsm.GetState("Set Charged")!,
             SetAttackMultiple = fsm.GetState("Set Attack Multiple")!,
-            ReactionType = fsm.GetState("Reaction Type")!;
+            ReactionType = fsm.GetState("Reaction Type")!,
+            WitchCheck = fsm.GetState("Witch?")!;
 
         FsmInt
             crestIdx = fsm.AddIntVariable($"Equipped Crest {NeedleforgePlugin.Id}");
@@ -483,6 +484,27 @@ internal static class MovesetFSMEdits
                     var audioSrc = attack.GetChild(i).GetComponent<AudioSource>();
                     if (audioSrc)
                         fsm.FsmVariables.FindFsmObject("Clip").Value = audioSrc.clip;
+                }
+            }
+        );
+        WitchCheck.InsertMethod(
+            0, () =>
+            {
+                if (crestIdx.Value >= 0)
+                {
+                    //If no burst effect is desired, skip this state. For some reason the burst is done here.
+                    var crest = NeedleforgePlugin.newCrestData[crestIdx.Value];
+                    if (!crest.Moveset.HeroConfig!.DashStabBurstEffect)
+                    {
+                        fsm.SendEvent("FINISHED");
+                    }
+
+                    //If we're using a witch-adjacent slash, use the original witch path.
+                    if (crest.Moveset.UseVanillaDashSlash == VanillaCrest.WITCH
+                        || crest.Moveset.UseVanillaDashSlash == VanillaCrest.CURSED)
+                    {
+                        fsm.SendEvent("WITCH");
+                    }
                 }
             }
         );
