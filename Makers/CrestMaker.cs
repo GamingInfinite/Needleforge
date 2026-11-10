@@ -1,9 +1,8 @@
-﻿using Needleforge.Data;
+using Needleforge.Data;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-
 namespace Needleforge.Makers;
-
 internal static class CrestMaker
 {
     internal static ToolCrestsData.Data CreateDefaultSaveData() =>
@@ -19,7 +18,8 @@ internal static class CrestMaker
         List<ToolCrest> crests = ToolItemManager.GetAllCrests();
         ToolCrest hunter = crests[0];
 
-        ToolCrest newCrest = ScriptableObject.CreateInstance<ToolCrest>();
+        ToolCrest? existing = crests.FirstOrDefault(c => c && c.name == crestData.name);
+        ToolCrest newCrest = existing ? existing! : ScriptableObject.CreateInstance<ToolCrest>();
 
         newCrest.name = crestData.name;
         newCrest.crestGlow = crestData.CrestGlow ? crestData.CrestGlow : hunter.crestGlow;
@@ -33,9 +33,11 @@ internal static class CrestMaker
 
         newCrest.heroConfig = crestData.Moveset.HeroConfig;
 
-        ToolItemManager.Instance.crestList.Add(newCrest);
+        if (!existing)
+            ToolItemManager.Instance.crestList.Add(newCrest);
 
-        NeedleforgePlugin.newCrests.Add(newCrest);
+        if (!NeedleforgePlugin.newCrests.Contains(newCrest))
+            NeedleforgePlugin.newCrests.Add(newCrest);
 
         return newCrest;
     }
