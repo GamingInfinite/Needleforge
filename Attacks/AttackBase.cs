@@ -1,5 +1,6 @@
 ﻿using GlobalEnums;
 using Needleforge.Components;
+using Needleforge.Data;
 using System.Collections.Generic;
 using TeamCherry.SharedUtils;
 using UnityEngine;
@@ -39,6 +40,21 @@ public abstract class AttackBase : GameObjectProxy
     private tk2dSpriteAnimation? _animLibrary;
 
     /// <summary>
+    /// Can be used as an alternative to setting <see cref="AnimLibrary"/> to use one of Hornet's vanilla animation libraries. Overrides <see cref="AnimLibrary"/>. 
+    /// </summary>
+    public VanillaCrest? UseVanillaAnimLibrary
+    {
+        get => _useVanillaAnimLibrary;
+        set
+        {
+            _useVanillaAnimLibrary = value;
+            if (GameObject)
+                Animator!.library = VanillaReferences.GetLibraryForCrestType(UseVanillaAnimLibrary);
+        }
+    }
+    private VanillaCrest? _useVanillaAnimLibrary { get; set; } = null;
+
+    /// <summary>
     /// Color to tint the attack's effect animation when it's not imbued with an element.
     /// </summary>
     public Color Color { get; set; } = Color.white;
@@ -57,6 +73,21 @@ public abstract class AttackBase : GameObjectProxy
         }
     }
     private AudioClip? _sound;
+
+    /// <summary>
+    /// Can be used as an alternative to setting <see cref="Sound"/> to use one of Hornet's vanilla slash sounds. Overrides <see cref="Sound"/>. 
+    /// </summary>
+    public VanillaCrest? UseVanillaSound
+    {
+        get => _useVanillaSound;
+        set
+        {
+            _useVanillaSound = value;
+            if (GameObject)
+                AudioSrc!.clip = VanillaReferences.GetAudioClipForCrestType(UseVanillaSound);
+        }
+    }
+    private VanillaCrest? _useVanillaSound { get; set; } = null;
 
     /// <summary>
     /// Points which define the shape of this attack's damaging hitbox.
@@ -479,6 +510,7 @@ public abstract class AttackBase : GameObjectProxy
         Travel.impactPrefab = TravelImpactRegular;
         Travel.maxXOffset = new OverrideFloat();
         Travel.maxYOffset = new OverrideFloat();
+        Travel.hc = hc;
 
         KeepPos.getPositionOnEnable =
             KeepPos.resetOnDisable =
@@ -508,7 +540,12 @@ public abstract class AttackBase : GameObjectProxy
         Damager.multiHitEffects = MultiHitEffects;
 
         Animator.library = AnimLibrary;
+        if (UseVanillaAnimLibrary != null)
+            Animator.library = VanillaReferences.GetLibraryForCrestType(UseVanillaAnimLibrary);
+
         AudioSrc.clip = Sound;
+        if (UseVanillaSound != null)
+            AudioSrc.clip = VanillaReferences.GetAudioClipForCrestType(UseVanillaSound);
 
         NailAttack!.scale = Scale;
         NailAttack!.AttackStarting += TintIfNotImbued;
