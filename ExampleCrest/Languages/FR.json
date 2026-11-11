@@ -1,0 +1,13 @@
+﻿{
+    "CREST_NAME": "Exemple",
+    "CREST_DESC": "Voici une démonstration du fonctionnement de Needleforge.",
+
+    "YELLOW_NAME": "Outil Jaune",
+    "YELLOW_DESC": "Un outil de couleur jaune.",
+
+    "GREEN_NAME": "Outil Vert",
+    "GREEN_DESC": "Un outil de couleur vert.",
+
+    "BLACK_NAME": "Outil Noir",
+    "BLACK_DESC": "Un outil de couleur noire."
+}
