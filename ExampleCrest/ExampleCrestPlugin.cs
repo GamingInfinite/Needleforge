@@ -18,9 +18,9 @@ using WrapMode = tk2dSpriteAnimationClip.WrapMode;
 namespace ExampleCrest;
 
 [BepInAutoPlugin(id: "io.github.examplecrest")]
-[BepInDependency("io.github.needleforge", "0.9.0")]
+[BepInDependency("io.github.needleforge", "0.10.0")]
 [BepInDependency("org.silksong-modding.i18n", "1.0.2")]
-[BepInDependency("org.silksong-modding.fsmutil", "0.3.16")]
+[BepInDependency("org.silksong-modding.fsmutil", "0.3.17")]
 [BepInDependency("org.silksong-modding.unityhelper", "1.1.1")]
 public partial class ExampleCrestPlugin : BaseUnityPlugin
 {
