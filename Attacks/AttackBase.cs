@@ -1,5 +1,6 @@
-﻿using GlobalEnums;
+using GlobalEnums;
 using Needleforge.Components;
+using Needleforge.Patches;
 using Needleforge.Data;
 using System.Collections.Generic;
 using TeamCherry.SharedUtils;
@@ -497,6 +498,8 @@ public abstract class AttackBase : GameObjectProxy
 
         DamagerInit();
 
+        DetectBarnacle.Register(Damager);
+
         AudioSrc.outputAudioMixerGroup = hc.gameObject.GetComponent<AudioSource>().outputAudioMixerGroup;
         AudioSrc.playOnAwake = false;
 
@@ -634,6 +637,7 @@ public abstract class AttackBase : GameObjectProxy
         tinkRb.useFullKinematicContacts = true;
 
         tinkThunk.doRecoil = true;
+        tinkThunk.cooldown = 0.3f;
 
         clashTink.SetActive(true);
     }
