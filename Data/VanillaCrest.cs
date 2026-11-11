@@ -10,6 +10,7 @@ public enum VanillaCrest
     HUNTER_V2,
     HUNTER_V3,
     BEAST,
+    BEAST_RAGE,
     REAPER,
     WANDERER,
     WITCH,
